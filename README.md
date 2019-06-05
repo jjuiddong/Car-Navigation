@@ -9,6 +9,10 @@ Car Navigation on Windows10 Tablet PC with VS2017 C++, Direct3D11, ImGui, V-Worl
   - ImGui
 - Navigation Data
   - VWorld
-    - link: www.vworld.kr
+     - link: www.vworld.kr
+- Hardware
+  - Lenovo D330
+
+     
    
  
