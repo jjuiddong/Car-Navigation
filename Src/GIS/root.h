@@ -25,7 +25,8 @@ public:
 		//, m_offsetY(0.06f)
 		, m_offsetY(0.184964865f)
 		, m_scale(0.018f)
-		, m_trackOffsetY(2.f)
+		, m_isShowGPS(true)
+		, m_trackOffsetY(0.0f)
 	{}
 	virtual ~cRoot() {}
 
@@ -50,6 +51,7 @@ public:
 	float m_genRouteAltitude = 20.f;
 	vector<Vector2d> m_route;
 
+	bool m_isShowGPS;
 	float m_trackOffsetY;
 	vector<Vector3> m_track;
 };

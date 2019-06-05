@@ -245,6 +245,8 @@ void cMapView::OnPreRender(const float deltaSeconds)
 		// render track pos
 		if (!g_root.m_track.empty())
 		{
+			renderer.GetDevContext()->OMSetDepthStencilState(states.DepthNone(), 0);
+
 			Vector3 prevPos;
 			const Vector3 camPos = GetMainCamera().GetEyePos();
 			renderer.m_dbgLine.SetColor(cColor::RED);
@@ -267,12 +269,15 @@ void cMapView::OnPreRender(const float deltaSeconds)
 
 				const float h1 = m_quadTree.GetHeight({ prevPos.x, prevPos.z });
 				const float h2 = m_quadTree.GetHeight({ p1.x, p1.z });
-				renderer.m_dbgLine.SetLine(prevPos + Vector3(0, h1+g_root.m_trackOffsetY, 0)
-					, p1 + Vector3(0, h2+ g_root.m_trackOffsetY, 0), 0.03f);
+				renderer.m_dbgLine.SetLine(prevPos + Vector3(0, -prevPos.y + h1+g_root.m_trackOffsetY, 0)
+					, p1 + Vector3(0, -p1.y + h2 + g_root.m_trackOffsetY, 0), 0.03f);
 				renderer.m_dbgLine.Render(renderer);
 				prevPos = p1;
 			}
-		}
+
+			renderer.GetDevContext()->OMSetDepthStencilState(states.DepthDefault(), 0);
+
+		} // ~if trackpos
 
 	}
 	m_renderTarget.End(renderer);
@@ -302,7 +307,8 @@ void cMapView::OnRender(const float deltaSeconds)
 		ImGui::PopStyleColor();
 		ImGui::SameLine();
 		ImGui::Text("GPS = %.6f, %.6f", m_curGpsPos.y, m_curGpsPos.x);
-		ImGui::Text(m_gpsStr.c_str());
+		if (g_root.m_isShowGPS)
+			ImGui::Text(m_gpsStr.c_str());
 		ImGui::End();
 	}
 	ImGui::PopStyleColor();
@@ -352,7 +358,12 @@ void cMapView::OnWheelMove(const float delta, const POINT mousePt)
 	len = (ray.orig - lookAt).Length();
 
 	const int lv = m_quadTree.GetLevel(len);
-	const float zoomLen = min(len * 0.1f, (float)(2 << (16-lv)));
+	float zoomLen = min(len * 0.1f, (float)(2 << (16-lv)));
+
+	if (!IsTouchWindow(m_owner->getSystemHandle(), NULL))
+	{
+		zoomLen *= 5.f;
+	}
 
 	GetMainCamera().Zoom(ray.dir, (delta < 0) ? -zoomLen : zoomLen);
 

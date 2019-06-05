@@ -74,6 +74,7 @@ void cNavigationView::OnRender(const float deltaSeconds)
 	ImGui::Checkbox("Poi1", &terrain.m_isShowPoi1);
 	ImGui::SameLine();
 	ImGui::Checkbox("Poi2", &terrain.m_isShowPoi2);
+	ImGui::Checkbox("GPS", &g_root.m_isShowGPS);
 
 	ImGui::Spacing();
 
