@@ -24,7 +24,7 @@ cGlobal *g_global = NULL;
 
 cViewer::cViewer()
 {
-	m_windowName = L"World Viewer";
+	m_windowName = L"Navigation";
 	m_isLazyMode = true;
 	//const RECT r = { 0, 0, 1024, 768 };
 	const RECT r = { 0, 0, 1280, 960 };
