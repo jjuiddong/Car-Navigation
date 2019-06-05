@@ -1,0 +1,154 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="stdafx.cpp" />
+    <ClCompile Include="CFW1StateSaver.cpp" />
+    <ClCompile Include="heightmapview.cpp">
+      <Filter>view</Filter>
+    </ClCompile>
+    <ClCompile Include="informationview.cpp">
+      <Filter>view</Filter>
+    </ClCompile>
+    <ClCompile Include="mapview.cpp">
+      <Filter>view</Filter>
+    </ClCompile>
+    <ClCompile Include="observerview.cpp">
+      <Filter>view</Filter>
+    </ClCompile>
+    <ClCompile Include="airspace.cpp">
+      <Filter>terrain</Filter>
+    </ClCompile>
+    <ClCompile Include="gis.cpp">
+      <Filter>terrain</Filter>
+    </ClCompile>
+    <ClCompile Include="heightmap.cpp">
+      <Filter>terrain</Filter>
+    </ClCompile>
+    <ClCompile Include="heightmap_old.cpp">
+      <Filter>terrain</Filter>
+    </ClCompile>
+    <ClCompile Include="poireader.cpp">
+      <Filter>terrain</Filter>
+    </ClCompile>
+    <ClCompile Include="quadtile.cpp">
+      <Filter>terrain</Filter>
+    </ClCompile>
+    <ClCompile Include="quadtilemanager.cpp">
+      <Filter>terrain</Filter>
+    </ClCompile>
+    <ClCompile Include="real3dmodelindexreader.cpp">
+      <Filter>terrain</Filter>
+    </ClCompile>
+    <ClCompile Include="terrainquadtree.cpp">
+      <Filter>terrain</Filter>
+    </ClCompile>
+    <ClCompile Include="tiletexture.cpp">
+      <Filter>terrain</Filter>
+    </ClCompile>
+    <ClCompile Include="triangulate.cpp">
+      <Filter>terrain</Filter>
+    </ClCompile>
+    <ClCompile Include="vworldwebdownloader.cpp">
+      <Filter>terrain</Filter>
+    </ClCompile>
+    <ClCompile Include="xdoreader.cpp">
+      <Filter>terrain</Filter>
+    </ClCompile>
+    <ClCompile Include="worldviewer.cpp" />
+    <ClCompile Include="tinyxml\tinystr.cpp">
+      <Filter>tinyxml</Filter>
+    </ClCompile>
+    <ClCompile Include="tinyxml\tinyxml.cpp">
+      <Filter>tinyxml</Filter>
+    </ClCompile>
+    <ClCompile Include="tinyxml\tinyxmlerror.cpp">
+      <Filter>tinyxml</Filter>
+    </ClCompile>
+    <ClCompile Include="tinyxml\tinyxmlparser.cpp">
+      <Filter>tinyxml</Filter>
+    </ClCompile>
+    <ClCompile Include="routeview.cpp">
+      <Filter>view</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="stdafx.h" />
+    <ClInclude Include="CFW1StateSaver.h" />
+    <ClInclude Include="root.h" />
+    <ClInclude Include="heightmapview.h">
+      <Filter>view</Filter>
+    </ClInclude>
+    <ClInclude Include="informationview.h">
+      <Filter>view</Filter>
+    </ClInclude>
+    <ClInclude Include="mapview.h">
+      <Filter>view</Filter>
+    </ClInclude>
+    <ClInclude Include="observerview.h">
+      <Filter>view</Filter>
+    </ClInclude>
+    <ClInclude Include="airspace.h">
+      <Filter>terrain</Filter>
+    </ClInclude>
+    <ClInclude Include="gis.h">
+      <Filter>terrain</Filter>
+    </ClInclude>
+    <ClInclude Include="heightmap.h">
+      <Filter>terrain</Filter>
+    </ClInclude>
+    <ClInclude Include="heightmap_old.h">
+      <Filter>terrain</Filter>
+    </ClInclude>
+    <ClInclude Include="poireader.h">
+      <Filter>terrain</Filter>
+    </ClInclude>
+    <ClInclude Include="quadtile.h">
+      <Filter>terrain</Filter>
+    </ClInclude>
+    <ClInclude Include="quadtilemanager.h">
+      <Filter>terrain</Filter>
+    </ClInclude>
+    <ClInclude Include="quadtree.h">
+      <Filter>terrain</Filter>
+    </ClInclude>
+    <ClInclude Include="real3dmodelindexreader.h">
+      <Filter>terrain</Filter>
+    </ClInclude>
+    <ClInclude Include="terrainquadtree.h">
+      <Filter>terrain</Filter>
+    </ClInclude>
+    <ClInclude Include="tiletexture.h">
+      <Filter>terrain</Filter>
+    </ClInclude>
+    <ClInclude Include="triangulate.h">
+      <Filter>terrain</Filter>
+    </ClInclude>
+    <ClInclude Include="vworldwebdownloader.h">
+      <Filter>terrain</Filter>
+    </ClInclude>
+    <ClInclude Include="xdoreader.h">
+      <Filter>terrain</Filter>
+    </ClInclude>
+    <ClInclude Include="worldviewer.h" />
+    <ClInclude Include="tinyxml\tinystr.h">
+      <Filter>tinyxml</Filter>
+    </ClInclude>
+    <ClInclude Include="tinyxml\tinyxml.h">
+      <Filter>tinyxml</Filter>
+    </ClInclude>
+    <ClInclude Include="routeview.h">
+      <Filter>view</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="view">
+      <UniqueIdentifier>{c340b6c8-956b-4052-aba2-63b7458f079b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="terrain">
+      <UniqueIdentifier>{c3a4a569-c9c6-454d-988d-54ffc6594492}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tinyxml">
+      <UniqueIdentifier>{5ba87ff8-05b8-42ab-a1a1-41afe374b80b}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

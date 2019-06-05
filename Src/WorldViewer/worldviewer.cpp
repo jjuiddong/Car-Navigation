@@ -1,0 +1,129 @@
+//
+// World Viewer
+//
+#include "stdafx.h"
+#include "mapview.h"
+#include "observerview.h"
+#include "worldviewer.h"
+#include "informationview.h"
+#include "navigationview.h"
+
+using namespace graphic;
+using namespace framework;
+
+INIT_FRAMEWORK3(cViewer);
+
+common::cMemoryPool2<65 * 65 * sizeof(float)> g_memPool65;
+common::cMemoryPool2<67 * 67 * sizeof(float)> g_memPool67;
+common::cMemoryPool2<258 * 258 * sizeof(float)> g_memPool258;
+common::cMemoryPool3<graphic::cTexture, 512> g_memPoolTex;
+
+cRoot g_root;
+cGlobal *g_global = NULL;
+
+
+cViewer::cViewer()
+{
+	m_windowName = L"World Viewer";
+	m_isLazyMode = true;
+	//const RECT r = { 0, 0, 1024, 768 };
+	const RECT r = { 0, 0, 1280, 960 };
+	m_windowRect = r;
+}
+
+cViewer::~cViewer()
+{
+	SAFE_DELETE(g_global);
+}
+
+
+bool cViewer::OnInit()
+{
+	dbg::RemoveLog();
+	dbg::RemoveErrLog();
+
+	const float WINSIZE_X = float(m_windowRect.right - m_windowRect.left);
+	const float WINSIZE_Y = float(m_windowRect.bottom - m_windowRect.top);
+	GetMainCamera().SetCamera(Vector3(30, 30, -30), Vector3(0, 0, 0), Vector3(0, 1, 0));
+	GetMainCamera().SetProjection(MATH_PI / 4.f, (float)WINSIZE_X / (float)WINSIZE_Y, 0.1f, 10000.0f);
+	GetMainCamera().SetViewPort(WINSIZE_X, WINSIZE_Y);
+
+	m_camera.SetCamera(Vector3(-3, 10, -10), Vector3(0, 0, 0), Vector3(0, 1, 0));
+	m_camera.SetProjection(MATH_PI / 4.f, (float)WINSIZE_X / (float)WINSIZE_Y, 1.0f, 10000.f);
+	m_camera.SetViewPort(WINSIZE_X, WINSIZE_Y);
+
+	GetMainLight().Init(cLight::LIGHT_DIRECTIONAL,
+		Vector4(0.2f, 0.2f, 0.2f, 1), Vector4(0.9f, 0.9f, 0.9f, 1),
+		Vector4(0.2f, 0.2f, 0.2f, 1));
+	const Vector3 lightPos(-300, 300, -300);
+	const Vector3 lightLookat(0, 0, 0);
+	GetMainLight().SetPosition(lightPos);
+	GetMainLight().SetDirection((lightLookat - lightPos).Normal());
+
+	m_gui.SetContext();
+
+	m_simView = new cMapView("Map View");
+	m_simView->Create(eDockState::DOCKWINDOW, eDockSlot::TAB, this, NULL);
+	bool result = m_simView->Init(m_renderer);
+	assert(result);
+
+	m_naviView = new cNavigationView("Navigation View");
+	m_naviView->Create(eDockState::DOCKWINDOW, eDockSlot::RIGHT, this, m_simView, 0.15f, framework::eDockSizingOption::PIXEL);
+
+	m_infoView = new cInformationView("Information View");
+	m_infoView->Create(eDockState::DOCKWINDOW, eDockSlot::TAB, this, m_naviView);
+
+	//m_observerView = new cObserverView("Observer View");
+	//m_observerView->Create(eDockState::DOCKWINDOW, eDockSlot::BOTTOM, this, m_simView, 0.3f);// 0.6f, framework::eDockSizingOption::PIXEL);
+	//result = m_observerView->Init(m_renderer);
+	//assert(result);
+
+	g_root.m_mapView = m_simView;
+	g_global = new cGlobal();
+
+	m_gui.SetContext();
+	m_gui.SetStyleColorsDark();
+
+	// tablet touch event
+	// https://docs.microsoft.com/en-us/windows/desktop/wintouch/getting-started-with-multi-touch-messages
+	const int value = GetSystemMetrics(SM_DIGITIZER);
+	if (value & NID_READY) { //stack ready
+	}
+	if (value  & NID_MULTI_INPUT) { //digitizer is multitouch
+	}
+	if (value & NID_INTEGRATED_TOUCH) { // Integrated touch
+		RegisterTouchWindow(getSystemHandle(), 0);
+	}
+
+	//ShowWindow(getSystemHandle(), SW_MAXIMIZE);
+
+	return true;
+}
+
+
+void cViewer::OnUpdate(const float deltaSeconds)
+{
+	__super::OnUpdate(deltaSeconds);
+	cAutoCam cam(&m_camera);
+	GetMainCamera().Update(deltaSeconds);
+}
+
+
+void cViewer::OnRender(const float deltaSeconds)
+{
+}
+
+
+void cViewer::OnEventProc(const sf::Event &evt)
+{
+	ImGuiIO& io = ImGui::GetIO();
+	switch (evt.type)
+	{
+	case sf::Event::KeyPressed:
+		switch (evt.key.code)
+		{
+		case sf::Keyboard::Escape: close(); break;
+		}
+		break;
+	}
+}

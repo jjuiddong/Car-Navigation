@@ -1,0 +1,51 @@
+
+-- VWorld Viewer Document --
+
+- VWorld Data Location
+	- media/vworld
+
+- Architecture
+
+	- cTerrainQuadTree
+		- cQuadTree
+		- cQuadTile
+			- cTileTexture
+			- cHeightmap
+			- cPoiReader
+			- cXdoreader
+			- cModel
+
+	- cQuadTileManager
+		- cTileTexture array
+		- cHeightmap array
+		- cPoiReader array
+		- cReal3DModelIndexReader array
+		- cXdoReader array
+		- cVWorldWebDownloader
+
+	- cMapView
+		- cTerrainQuadTree
+
+
+-----------------------------------------------------------
+- worklist
+	- file auto download
+		- current: 25.3G
+
+	- mouse wheel zoom scale edit
+
+	- rendering
+		- graphic quality
+			- quad detail
+
+
+	-★ resource manager
+		-★ load thread pool
+	-★ click no picking bug fix
+	-★ interface
+		-★ mouse move, rotation
+	-★ config
+		-★ quadtree, facility, poi show
+	-★ current position dynamic size
+	-★ poi 멀리있을 때는 출력안하게
+	-★ move path rendering
