@@ -192,6 +192,7 @@
     <ClCompile Include="triangulate.cpp" />
     <ClCompile Include="UTM.cpp" />
     <ClCompile Include="vworldwebdownloader.cpp" />
+    <ClCompile Include="webdownload.cpp" />
     <ClCompile Include="xdoreader.cpp" />
   </ItemGroup>
   <ItemGroup>

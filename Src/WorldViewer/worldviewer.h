@@ -22,7 +22,7 @@ public:
 
 
 public:
-	cMapView *m_simView;
+	cMapView *m_mapView;
 	cObserverView *m_observerView;
 	cInformationView *m_infoView;
 	cNavigationView *m_naviView;

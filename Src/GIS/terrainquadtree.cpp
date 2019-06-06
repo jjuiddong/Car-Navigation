@@ -37,8 +37,12 @@ cTerrainQuadTree::cTerrainQuadTree()
 	, m_isShowPoi1(true)
 	, m_isShowPoi2(false)
 	, m_isShowDistribute(true)
+	, m_isRenderOptimize(false)
+	, m_optimizeLevel(cQuadTree<sQuadData>::MAX_LEVEL)
 	, m_techniqType(0)
 	, m_distributeType(0)
+	, m_fps(0)
+	, m_calcOptimizeTime(0)
 {
 	m_techName[0] = "Light";
 	m_techName[1] = "NoTexture";
@@ -105,6 +109,23 @@ void cTerrainQuadTree::Render(graphic::cRenderer &renderer
 	, const Ray &mouseRay
 )
 {
+	// 렌더링 최적화.
+	// fps가 낮으면, 더 적게 렌더링한다.
+	// 출력하는 최대 Quad Level을 낮추면, 더 적게 렌더링한다.
+	if (m_isRenderOptimize)
+	{
+		m_calcOptimizeTime += deltaSeconds;
+		if (m_calcOptimizeTime > 1.f)
+		{
+			m_calcOptimizeTime = 0;
+			m_fps = renderer.m_fps;
+			if (renderer.m_fps < 20)
+				m_optimizeLevel = max(1, m_optimizeLevel - 1);
+			else if (renderer.m_fps > 30)
+				m_optimizeLevel = min(cQuadTree<sQuadData>::MAX_LEVEL, m_optimizeLevel + 1);
+		}
+	}
+
 	BuildQuadTree(frustum, ray);
 
 	if (m_isShowTexture)
@@ -123,6 +144,7 @@ void cTerrainQuadTree::Render(graphic::cRenderer &renderer
 	if (m_isShowDistribute)
 		RenderResDistribution(renderer, deltaSeconds, frustum, m_distributeType);
 }
+
 
 
 void cTerrainQuadTree::BuildQuadTree(const graphic::cFrustum &frustum
@@ -699,7 +721,15 @@ inline int cTerrainQuadTree::GetLevel(const float distance)
 {
 	int dist = (int)distance - 20;
 
-#define CALC(lv) if ((dist >>= 1) < 1) return lv;
+#define CALC(lv) \
+	if ((dist >>= 1) < 1) \
+	{ \
+		if (!m_isRenderOptimize)\
+			return lv; \
+		else if (m_optimizeLevel >= lv) \
+			return lv; \
+	}
+
 
 	CALC(cQuadTree<sQuadData>::MAX_LEVEL);
 	CALC(cQuadTree<sQuadData>::MAX_LEVEL - 1);

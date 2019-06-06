@@ -61,51 +61,43 @@ common::cTask::eRunResult::Enum cTaskWebDownload::Run(const double deltaSeconds)
 	const char *cmd = NULL;
 	const char *layerName = NULL;
 	const char *dir = g_mediaDir;
-	StrPath dstFileName;
-	dstFileName.Format("%s\\%d\\%04d\\%04d_%04d", g_mediaDir, m_dnData.level, m_dnData.yLoc, m_dnData.yLoc, m_dnData.xLoc);
+	const StrPath dstFileName = gis::GetDownloadFileName(g_mediaDir, m_dnData);
 
 	switch (m_dnData.layer)
 	{
 	case eLayerName::DEM:
 		cmd = "requestLayerNode";
 		layerName = "dem";
-		dstFileName += ".bil";
 		break;
 
 	case eLayerName::TILE:
 		cmd = "requestLayerNode";
 		layerName = "tile";
-		dstFileName += ".dds";
 		break;
 
 	case eLayerName::POI_BASE:
 		cmd = "requestLayerNode";
 		layerName = "poi_base";
-		dstFileName += ".poi_base";
 		break;
 
 	case eLayerName::POI_BOUND:
 		cmd = "requestLayerNode";
 		layerName = "poi_bound";
-		dstFileName += ".poi_bound";
 		break;
 
 	case eLayerName::FACILITY_BUILD:
 		cmd = "requestLayerNode";
 		layerName = "facility_build";
-		dstFileName += ".facility_build";
 		break;
 
 	case eLayerName::FACILITY_BUILD_GET:
 		cmd = "requestLayerObject";
 		layerName = "facility_build";
-		dstFileName.Format("%s\\%d\\%04d\\%s", g_mediaDir, m_dnData.level, m_dnData.yLoc, m_dnData.dataFile.c_str());
 		break;
 
 	case eLayerName::FACILITY_BUILD_GET_JPG:
 		cmd = "requestLayerObject";
 		layerName = "facility_build";
-		dstFileName.Format("%s\\%d\\%04d\\%s", g_mediaDir, m_dnData.level, m_dnData.yLoc, m_dnData.dataFile.c_str());
 		break;
 
 	default: assert(0); break;

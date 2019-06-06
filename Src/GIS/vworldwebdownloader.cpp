@@ -8,6 +8,7 @@ using namespace gis;
 
 cVWorldWebDownloader::cVWorldWebDownloader()
 	: m_isOfflineMode(false)
+	, m_totalDownloadFileSize(0)
 {
 	m_tpDownloader.Init(5); // 5 thread
 }
@@ -66,6 +67,10 @@ void cVWorldWebDownloader::UpdateDownload()
 
 	for (auto &file : m_complete)
 	{
+		// 전체 다운로드 파일크기를 저장한다.
+		const StrPath dstFileName = gis::GetDownloadFileName(g_mediaDir, file);
+		m_totalDownloadFileSize += dstFileName.FileSize();
+
 		// 모든 리스너에게 알린다.
 		for (auto &listener : m_listeners)
 			listener->OnDownloadComplete(file);

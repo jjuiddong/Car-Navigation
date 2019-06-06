@@ -29,10 +29,33 @@
 
 -----------------------------------------------------------
 - worklist
-	- file auto download
-		- current: 25.3G
 
-	- mouse wheel zoom scale edit
+	- 카메라 모드
+		- 넓게
+		- 가까이
+	- 카메라 바닥으로 안가게
+
+	- 디테일 설정
+		- lv15
+		- lv14
+		- lv13
+
+	- media directory multi
+	- 터치 현재위치 따로 출력
+	- 도로 경계 출력
+	- 지역명 폰트 크게
+	- UI투명
+	- UI왼쪽
+	- 라인 바닥에
+	- 산윤곽
+	- 와이어 프레임
+	- 줌업 빠르게 제스처
+	- 미니맵
+	- 나침반
+	- 경로 리스트
+	- 키보드 입력 or 조이패드 입력
+		- lookat 이동
+		- eyepos 이동
 
 	- rendering
 		- graphic quality
@@ -49,3 +72,18 @@
 	-★ current position dynamic size
 	-★ poi 멀리있을 때는 출력안하게
 	-★ move path rendering
+	-★ file auto download
+		-★ current: 25.3G
+	-★ mouse wheel zoom scale edit
+	-★ download file size
+	-★ two finger rotation
+	-★ 스크롤 쉽게
+	-★ 화면 가득안채우기
+	-★ 자동 카메라 방향
+	-★ 업데이트 멈추기
+	-★ 시간 출력
+	-★ 현재 위치로 점프
+	-★ 제스쳐 터치 스위칭시 카메라 거리 설정
+	-★ 가상 키보드 입력 창
+	-★ 경로제거
+	-★ 동적으로 lv 수정, 30 frame 기준

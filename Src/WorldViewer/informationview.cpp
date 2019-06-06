@@ -29,11 +29,11 @@ void cInformationView::OnRender(const float deltaSeconds)
 {
 	cRenderer &renderer = GetRenderer();
 	cViewer *viewer = (cViewer*)g_application;
-	cTerrainQuadTree &terrain = viewer->m_simView->m_quadTree;
+	cTerrainQuadTree &terrain = viewer->m_mapView->m_quadTree;
 
 	if (ImGui::CollapsingHeader("MapView Information", ImGuiTreeNodeFlags_DefaultOpen))
 	{
-		ImGui::Checkbox("Wireframe", &viewer->m_simView->m_showWireframe);
+		ImGui::Checkbox("Wireframe", &viewer->m_mapView->m_showWireframe);
 		ImGui::SameLine();
 		ImGui::Checkbox("Quadtree", &terrain.m_isShowQuadTree);
 		ImGui::SameLine();
@@ -122,8 +122,8 @@ void cInformationView::OnRender(const float deltaSeconds)
 			const Vector2d lonLat(125.0f, 38.00f);
 			const Vector3 globalPos = gis::WGS842Pos(lonLat);
 			const Vector3 relPos = gis::GetRelationPos(globalPos);
-			const float h = viewer->m_simView->m_quadTree.GetHeight(Vector2(relPos.x, relPos.z));
-			viewer->m_simView->m_camera.MoveNext(
+			const float h = viewer->m_mapView->m_quadTree.GetHeight(Vector2(relPos.x, relPos.z));
+			viewer->m_mapView->m_camera.MoveNext(
 				Vector3(relPos.x, h, relPos.z) + Vector3(1,1,1) * 50.f
 				, relPos
 				, 1000
@@ -187,7 +187,7 @@ void cInformationView::OnRender(const float deltaSeconds)
 		fog.x = m_fogColor.x;
 		fog.y = m_fogColor.y;
 		fog.z = m_fogColor.z;
-		fog.w = 1 / (viewer->m_simView->m_camera.GetEyePos().y * m_fogDistanceRate);
+		fog.w = 1 / (viewer->m_mapView->m_camera.GetEyePos().y * m_fogDistanceRate);
 		renderer.m_cbPerFrame.m_v->fogColor = XMLoadFloat4(&fog);
 	}
 }

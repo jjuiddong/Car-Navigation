@@ -28,6 +28,7 @@ protected:
 	void OnMouseMove(const POINT mousePt);
 	void OnMouseDown(const sf::Mouse::Button &button, const POINT mousePt);
 	void OnMouseUp(const sf::Mouse::Button &button, const POINT mousePt);
+	void OnGestured(const int id, const POINT mousePt);
 
 
 public:

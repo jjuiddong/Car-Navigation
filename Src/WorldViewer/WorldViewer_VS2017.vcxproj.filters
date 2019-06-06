@@ -8,9 +8,6 @@
     <ClCompile Include="mapview.cpp">
       <Filter>view</Filter>
     </ClCompile>
-    <ClCompile Include="observerview.cpp">
-      <Filter>view</Filter>
-    </ClCompile>
     <ClCompile Include="worldviewer.cpp" />
     <ClCompile Include="navigationview.cpp">
       <Filter>view</Filter>
@@ -23,9 +20,6 @@
       <Filter>view</Filter>
     </ClInclude>
     <ClInclude Include="mapview.h">
-      <Filter>view</Filter>
-    </ClInclude>
-    <ClInclude Include="observerview.h">
       <Filter>view</Filter>
     </ClInclude>
     <ClInclude Include="worldviewer.h" />

@@ -26,6 +26,7 @@ public:
 		, m_offsetY(0.184964865f)
 		, m_scale(0.018f)
 		, m_isShowGPS(true)
+		, m_isTraceGPSPos(true)
 		, m_trackOffsetY(0.0f)
 	{}
 	virtual ~cRoot() {}
@@ -52,6 +53,7 @@ public:
 	vector<Vector2d> m_route;
 
 	bool m_isShowGPS;
+	bool m_isTraceGPSPos;
 	float m_trackOffsetY;
 	vector<Vector3> m_track;
 };

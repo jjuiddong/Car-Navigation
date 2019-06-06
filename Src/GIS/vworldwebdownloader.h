@@ -47,6 +47,7 @@ namespace gis
 
 		// 중복 요청 체크, filename + (id + layer * 100) + cQuadTree::MakeKey()
 		set<std::tuple<int, int, __int64>> m_requestIds;
+		__int64 m_totalDownloadFileSize;
 		common::cTPSemaphore m_tpDownloader;
 	};
 

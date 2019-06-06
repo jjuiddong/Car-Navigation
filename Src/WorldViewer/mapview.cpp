@@ -71,6 +71,7 @@ void cMapView::OnUpdate(const float deltaSeconds)
 }
 
 
+// GPS 서버로 부터 위치정보를 받아 업데이트 한다.
 void cMapView::UpdateGPS()
 {
 	// receive from gps server (mobile phone)
@@ -105,13 +106,21 @@ void cMapView::UpdateGPS()
 	// 현재 위치를 향해 카메라 looAt을 조정한다.
 	// lookAt이 바뀜에 따라 카메라 위치도 기존 거리를 유지하며 이동한다.
 	g_root.m_lonLat = Vector2((float)m_curGpsPos.x, (float)m_curGpsPos.y);
+	const Vector3 pos = m_quadTree.Get3DPos(m_curGpsPos);
+
+	// 카메라 방향을 바꾼다. 이동하는 방향으로 향하게 한다.
+	const Vector3 lookAt = m_camera.GetLookAt();
+	const Ray ray = m_camera.GetRay();
+	const float dist = Vector3(ray.orig.x, 0, ray.orig.z).Distance(Vector3(lookAt.x, 0, lookAt.z));
+	const Vector3 dir = (Vector3(lookAt.x, 0 , lookAt.z) - Vector3(pos.x, 0, pos.z)).Normal();
+	const Vector3 eyePos = Vector3(pos.x, ray.orig.y, pos.z) + dir * dist;
 
 	// 화면을 이동 중일 때는, 카메라를 업데이트 하지 않는다.
 	// 제스처 입력시에는 카메라를 자동으로 움직이지 않는다.
-	const Vector3 pos = m_quadTree.Get3DPos(m_curGpsPos);
-	if (!m_mouseDown[0] && !m_mouseDown[1] && IsTouchWindow(m_owner->getSystemHandle(), NULL))
+	if (g_root.m_isTraceGPSPos
+		&& !m_mouseDown[0] && !m_mouseDown[1] && IsTouchWindow(m_owner->getSystemHandle(), NULL))
 	{
-		m_camera.Move(pos);
+		m_camera.Move(eyePos, pos);
 	}
 
 	// 이동궤적 저장
@@ -288,8 +297,8 @@ void cMapView::OnRender(const float deltaSeconds)
 {
 	ImVec2 pos = ImGui::GetCursorScreenPos();
 	m_viewPos = { (int)(pos.x), (int)(pos.y) };
-	m_viewRect = { pos.x + 5, pos.y, pos.x + m_rect.Width() - 30, pos.y + m_rect.Height() - 50 };
-	ImGui::Image(m_renderTarget.m_resolvedSRV, ImVec2(m_rect.Width() - 15, m_rect.Height() - 50));
+	m_viewRect = { pos.x + 5, pos.y, pos.x + m_rect.Width() - 30, pos.y + m_rect.Height() - 42 };
+	ImGui::Image(m_renderTarget.m_resolvedSRV, ImVec2(m_rect.Width() - 15, m_rect.Height() - 42));
 
 	// HUD
 	const float windowAlpha = 0.0f;
@@ -302,11 +311,14 @@ void cMapView::OnRender(const float deltaSeconds)
 	if (ImGui::Begin("Information", &isOpen, ImVec2(500.f, 250.f), windowAlpha, flags))
 	{
 		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+		const string dateTime = common::GetCurrentDateTime5();
+		ImGui::Text(dateTime.c_str());
 		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1, 1, 0, 1));
 		ImGui::Text(IsTouchWindow(m_owner->getSystemHandle(), NULL) ? "Touch" : "Gesture");
 		ImGui::PopStyleColor();
 		ImGui::SameLine();
 		ImGui::Text("GPS = %.6f, %.6f", m_curGpsPos.y, m_curGpsPos.x);
+
 		if (g_root.m_isShowGPS)
 			ImGui::Text(m_gpsStr.c_str());
 		ImGui::End();
@@ -374,6 +386,44 @@ void cMapView::OnWheelMove(const float delta, const POINT mousePt)
 	{
 		const Vector3 newPos(eyePos.x, h + 2, eyePos.z);
 		m_camera.SetEyePos(newPos);
+	}
+}
+
+
+// Gesture input
+void cMapView::OnGestured(const int id, const POINT mousePt)
+{
+	static bool isGestureInput = false;
+
+	switch (id)
+	{
+	case GID_BEGIN:
+		break;
+
+	case GID_END:
+		isGestureInput = false;
+		m_mouseDown[1] = false;
+		break;
+
+	case GID_PAN:
+		if (isGestureInput)
+		{
+			m_mouseDown[1] = true;
+			OnMouseMove(mousePt);
+		}
+		else
+		{
+			isGestureInput = true;
+			m_mousePos = mousePt;
+			UpdateLookAt();
+		}
+		break;
+
+	case GID_TWOFINGERTAP:
+	case GID_PRESSANDTAP:
+		if (!IsTouchWindow(m_owner->getSystemHandle(), NULL))
+			RegisterTouchWindow(m_owner->getSystemHandle(), 0);
+		break;
 	}
 }
 
@@ -512,10 +562,10 @@ void cMapView::OnEventProc(const sf::Event &evt)
 		}
 		break;
 
-		case sf::Keyboard::Left: m_camera.MoveRight(-0.5f); break;
-		case sf::Keyboard::Right: m_camera.MoveRight(0.5f); break;
-		case sf::Keyboard::Up: m_camera.MoveUp(0.5f); break;
-		case sf::Keyboard::Down: m_camera.MoveUp(-0.5f); break;
+		case sf::Keyboard::Left: m_camera.MoveRight2(-0.5f); break;
+		case sf::Keyboard::Right: m_camera.MoveRight2(0.5f); break;
+		case sf::Keyboard::Up: m_camera.MoveUp2(0.5f); break;
+		case sf::Keyboard::Down: m_camera.MoveUp2(-0.5f); break;
 		}
 		break;
 
@@ -563,6 +613,17 @@ void cMapView::OnEventProc(const sf::Event &evt)
 		OnWheelMove(evt.mouseWheelScroll.delta, pos);
 	}
 	break;
+
+	case sf::Event::Gestured:
+	{
+		POINT curPos = { evt.gesture.x, evt.gesture.y };
+		//GetCursorPos(&curPos); // sf::event mouse position has noise so we use GetCursorPos() function
+		ScreenToClient(m_owner->getSystemHandle(), &curPos);
+		const POINT pos = { curPos.x - m_viewPos.x, curPos.y - m_viewPos.y };
+		OnGestured(evt.gesture.id, pos);
+	}
+	break;
+
 	}
 }
 

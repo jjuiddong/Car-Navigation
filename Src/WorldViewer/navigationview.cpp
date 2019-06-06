@@ -27,7 +27,7 @@ void cNavigationView::OnUpdate(const float deltaSeconds)
 void cNavigationView::OnRender(const float deltaSeconds)
 {
 	cViewer *viewer = (cViewer*)g_application;
-	cTerrainQuadTree &terrain = viewer->m_simView->m_quadTree;
+	cTerrainQuadTree &terrain = viewer->m_mapView->m_quadTree;
 
 	ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1, 1, 0, 1));
 	ImGui::Text(IsTouchWindow(m_owner->getSystemHandle(), NULL) ? "Touch Mode" : "Gesture Mode");
@@ -75,6 +75,11 @@ void cNavigationView::OnRender(const float deltaSeconds)
 	ImGui::SameLine();
 	ImGui::Checkbox("Poi2", &terrain.m_isShowPoi2);
 	ImGui::Checkbox("GPS", &g_root.m_isShowGPS);
+	ImGui::SameLine();
+	ImGui::Checkbox("Trace GPS", &g_root.m_isTraceGPSPos);
+	if (ImGui::Checkbox("Optimize Render", &terrain.m_isRenderOptimize))
+		if (!terrain.m_isRenderOptimize)
+			terrain.m_optimizeLevel = cQuadTree<sQuadData>::MAX_LEVEL;
 
 	ImGui::Spacing();
 
@@ -83,58 +88,38 @@ void cNavigationView::OnRender(const float deltaSeconds)
 
 	// Information
 	ImGui::Text("tile memory %d", terrain.m_tileMgr.m_tiles.size());
-	ImGui::Text("hmap fileloader");
-	ImGui::Text("    - file count = %d", terrain.m_tileMgr.m_hmaps.m_files.size());
-	ImGui::Text("    - task = %d", terrain.m_tileMgr.m_hmaps.m_tpLoader.m_tasks.size());
-	ImGui::Text("tmap fileloader");
-	ImGui::Text("    - file count = %d", terrain.m_tileMgr.m_tmaps.m_files.size());
-	ImGui::Text("    - task = %d", terrain.m_tileMgr.m_tmaps.m_tpLoader.m_tasks.size());
-	ImGui::Text("poi_base fileloader");
-	ImGui::Text("    - file count = %d", terrain.m_tileMgr.m_pmaps[0].m_files.size());
-	ImGui::Text("    - task = %d", terrain.m_tileMgr.m_pmaps[0].m_tpLoader.m_tasks.size());
-	ImGui::Text("poi_bound fileloader");
-	ImGui::Text("    - file count = %d", terrain.m_tileMgr.m_pmaps[1].m_files.size());
-	ImGui::Text("    - task = %d", terrain.m_tileMgr.m_pmaps[1].m_tpLoader.m_tasks.size());
-	ImGui::Text("xdo model");
-	ImGui::Text("    - file count = %d", terrain.m_tileMgr.m_facilities.m_files.size());
-	ImGui::Text("    - task = %d", terrain.m_tileMgr.m_facilities.m_tpLoader.m_tasks.size());
-	ImGui::Text("xdo texture");
-	ImGui::Text("    - file count = %d", terrain.m_tileMgr.m_facilitiesTex.m_files.size());
-	ImGui::Text("    - task = %d", terrain.m_tileMgr.m_facilitiesTex.m_tpLoader.m_tasks.size());
-	ImGui::Text("model");
-	ImGui::Text("	- file count = %d", cResourceManager::Get()->m_assimpModels.size());
-	ImGui::Text("	- read load file count = %d", terrain.m_tileMgr.m_readyLoadModel.size());
-
-	ImGui::Text("    - download requestIds %d"
+	ImGui::Text("render quad lv %d", terrain.m_optimizeLevel);
+	ImGui::Text("download %d"
 		, terrain.m_tileMgr.m_vworldDownloader.m_requestIds.size());
+	ImGui::Text("    - total size %I64d (MB)"
+		, terrain.m_tileMgr.m_vworldDownloader.m_totalDownloadFileSize / (1048576)); // 1024*1024
 
 
 	ImGui::Spacing();
 	ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.6f, 0.6f, 0, 1));
 	ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.8f, 0.8f, 0, 1));
 	ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.4f, 0.4f, 0, 1));
-	if (ImGui::Button("Jump3"))
+	if (ImGui::Button("Jump to Current Position"))
 	{
-		const Vector2d lonLat(128.46845f, 37.17420f);
-		const Vector3 globalPos = gis::WGS842Pos(lonLat);
-		const Vector3 relPos = gis::GetRelationPos(globalPos);
+		auto &mapView = viewer->m_mapView;
+		auto &camera = mapView->m_camera;
+		const Vector3 lookAt = mapView->m_quadTree.Get3DPos(mapView->m_curGpsPos);
+		const Vector3 eyePos = lookAt + Vector3(1, 1, 1) * 250.f;
+		camera.Move(eyePos, lookAt);
 
-		Vector3 dir = Vector3(2578.13232f, 0.000000000f, 1812.11475f) - Vector3(2886.70898f, 10646.5088f, -3660.70337f);
-		dir.Normalize();
-
-		viewer->m_simView->m_camera.Move(
-			Vector3(2886.70898f, 10646.5088f, -3660.70337f)
-			, Vector3(2578.13232f, 0.000000000f, 1812.11475f)
-		);
-
-		const float h = viewer->m_simView->m_quadTree.GetHeight(Vector2(relPos.x, relPos.z));
-
-		viewer->m_simView->m_camera.MoveNext(
-			Vector3(relPos.x, h, relPos.z) + dir * -50.f
-			, relPos
-		);
 	}
 	ImGui::PopStyleColor(3);
 	ImGui::Spacing();
 
+	ImGui::Spacing();
+	ImGui::Spacing();
+	ImGui::Spacing();
+	ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.6f, 0.1f, 0, 1));
+	ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.8f, 0.1f, 0, 1));
+	ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.4f, 0.1f, 0, 1));
+	if (ImGui::Button("Clear Path"))
+	{
+		g_root.m_track.clear();
+	}
+	ImGui::PopStyleColor(3);
 }

@@ -1,9 +1,8 @@
 //
-// World Viewer
+// Car Navigation
 //
 #include "stdafx.h"
 #include "mapview.h"
-#include "observerview.h"
 #include "worldviewer.h"
 #include "informationview.h"
 #include "navigationview.h"
@@ -26,8 +25,8 @@ cViewer::cViewer()
 {
 	m_windowName = L"Navigation";
 	m_isLazyMode = true;
-	//const RECT r = { 0, 0, 1024, 768 };
-	const RECT r = { 0, 0, 1280, 960 };
+	const RECT r = { 0, 0, 1024, 768 };
+	//const RECT r = { 0, 0, 1280, 960 };
 	m_windowRect = r;
 }
 
@@ -62,13 +61,13 @@ bool cViewer::OnInit()
 
 	m_gui.SetContext();
 
-	m_simView = new cMapView("Map View");
-	m_simView->Create(eDockState::DOCKWINDOW, eDockSlot::TAB, this, NULL);
-	bool result = m_simView->Init(m_renderer);
+	m_mapView = new cMapView("Map View");
+	m_mapView->Create(eDockState::DOCKWINDOW, eDockSlot::TAB, this, NULL);
+	bool result = m_mapView->Init(m_renderer);
 	assert(result);
 
 	m_naviView = new cNavigationView("Navigation View");
-	m_naviView->Create(eDockState::DOCKWINDOW, eDockSlot::RIGHT, this, m_simView, 0.15f, framework::eDockSizingOption::PIXEL);
+	m_naviView->Create(eDockState::DOCKWINDOW, eDockSlot::LEFT, this, m_mapView, 0.15f, framework::eDockSizingOption::PIXEL);
 
 	m_infoView = new cInformationView("Information View");
 	m_infoView->Create(eDockState::DOCKWINDOW, eDockSlot::TAB, this, m_naviView);
@@ -78,7 +77,7 @@ bool cViewer::OnInit()
 	//result = m_observerView->Init(m_renderer);
 	//assert(result);
 
-	g_root.m_mapView = m_simView;
+	g_root.m_mapView = m_mapView;
 	g_global = new cGlobal();
 
 	m_gui.SetContext();

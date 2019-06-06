@@ -32,7 +32,10 @@ namespace gis
 		iDownloadFinishListener *listener;
 	};
 
+	StrPath GetDownloadFileName(const char *mediaDir, const sDownloadData &dnData);
+
 	interface iDownloadFinishListener {
 		virtual void OnDownloadComplete(const sDownloadData &data) = 0;
 	};
+
 }

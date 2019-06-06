@@ -82,8 +82,12 @@ public:
 	bool m_isShowDistribute;
 	bool m_isLight;
 	bool m_isCalcResDistribution;
+	bool m_isRenderOptimize;
+	int m_optimizeLevel;
 	int m_showQuadCount;
 	int m_loopCount;
 	const char *m_techName[5]; // Light, NoTexture, Heightmap, Light_Heightmap, Unlit
 	int m_techniqType;
+	int m_fps;
+	float m_calcOptimizeTime;
 };
