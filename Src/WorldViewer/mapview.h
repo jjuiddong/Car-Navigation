@@ -22,7 +22,7 @@ public:
 
 protected:
 	void UpdateGPS();
-	void UpdateCameraMoving(const float deltaSeconds);
+	void UpdateMapScanning(const float deltaSeconds);
 	void UpdateLookAt();
 	void OnWheelMove(const float delta, const POINT mousePt);
 	void OnMouseMove(const POINT mousePt);
@@ -53,6 +53,8 @@ public:
 	Vector2d m_curGpsPos;
 	float m_lookAtDistance;
 	float m_lookAtYVector;
+
+	bool m_isGestureInput;
 
 	// MouseMove Variable
 	POINT m_viewPos;

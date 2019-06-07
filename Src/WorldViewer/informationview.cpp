@@ -113,9 +113,9 @@ void cInformationView::OnRender(const float deltaSeconds)
 		ImGui::DragScalarN("Right Bottom", ImGuiDataType_Double
 			, (double*)&g_global->m_scanRightBottom, 2, 0.001f);
 
-		if (ImGui::Button("Camera Moving"))
+		if (ImGui::Button("Map Scanning"))
 		{
-			g_global->m_isCameraMoving = true;
+			g_global->m_isMapScanning = true;
 			g_global->m_isMoveRight = false;
 
 			//const Vector2d lonLat(128.46845f, 37.17420f);

@@ -52,8 +52,8 @@ bool cMapView::Init(cRenderer &renderer)
 	m_skybox.Create(renderer, "../media/skybox/sky.dds");
 	m_skybox.m_isDepthNone = true;
 
-	m_curPosObj.Create(renderer, 1.f, 10, 10,
-		(eVertexType::POSITION | eVertexType::NORMAL), cColor::RED);
+	m_curPosObj.Create(renderer, 1.f, 10, 10
+		, (eVertexType::POSITION | eVertexType::NORMAL), cColor::RED);
 	g_root.m_track.reserve(3000);
 
 	return true;
@@ -69,14 +69,14 @@ void cMapView::OnUpdate(const float deltaSeconds)
 	m_camera.Update(deltaSeconds);
 
 	UpdateGPS();
-	UpdateCameraMoving(deltaSeconds);
+	UpdateMapScanning(deltaSeconds);
 }
 
 
 // GPS 서버로 부터 위치정보를 받아 업데이트 한다.
+// receive from gps server (mobile phone)
 void cMapView::UpdateGPS()
 {
-	// receive from gps server (mobile phone)
 	if (!g_global->m_gpsClient.IsConnect())
 		return;
 
@@ -111,8 +111,10 @@ void cMapView::UpdateGPS()
 		m_lookAtYVector = m_camera.GetDirection().y;
 	}
 
+	// path로그 파일에 저장
 	std::ofstream ofs("path.txt", std::ios::app);
 	const string date = common::GetCurrentDateTime();
+	ofs << std::fixed;
 	ofs << date << ", " << m_curGpsPos.x << ", " << m_curGpsPos.y << std::endl;
 
 	// 현재 위치를 향해 카메라 looAt을 조정한다.
@@ -121,44 +123,65 @@ void cMapView::UpdateGPS()
 	const Vector3 pos = m_quadTree.Get3DPos(m_curGpsPos);
 	const Vector3 oldPos = m_quadTree.Get3DPos(oldGpsPos);
 
-	const bool isMoveCamera = g_root.m_isTraceGPSPos
+	const bool isTraceGPSPos = g_root.m_isTraceGPSPos
 		&& !m_mouseDown[0] && !m_mouseDown[1] && IsTouchWindow(m_owner->getSystemHandle(), NULL);
 
 	// 카메라 방향을 바꾼다. 이동하는 방향으로 향하게 한다.
+	// 최근 이동 궤적에서 n개의 벡터를 평균해서 최종 방향을 결정한다. (가중치 평균)
+	Vector3 avrDir;
+	{
+		// 최근 n1개 50% 가중치
+		// 나머지 n2개 50% 가중치
+		const int n1 = 10;
+		const int n2 = 50;
+		const float r1 = 50.f / (float)n1;
+		const float r2 = 50.f / (float)n2;
+
+		int cnt = 0;
+		for (int i = (int)g_root.m_track.size() - 1; (i >= 1) && (cnt < (n1 + n2)); --i, ++cnt)
+		{
+			const Vector3 &p0 = g_root.m_track[i-1];
+			const Vector3 &p1 = g_root.m_track[i];
+			Vector3 d = p1 - p0;
+			d.y = 0.f;
+			d.Normalize();
+			if (cnt < n1)
+				avrDir += d * r1;
+			else
+				avrDir += d * r2;
+		}
+		avrDir.Normalize();
+	}
+
 	if (oldPos.Distance(pos) > 2.f)
 	{
-		const Vector3 eyePos = m_camera.GetEyePos();
-		const Vector3 lookAt = m_camera.GetLookAt();
-		//const Vector3 camDir = (lookAt - eyePos).Normal();
-
-		Vector3 dir = (Vector3(pos.x, 0, pos.z) - Vector3(oldPos.x, 0, oldPos.z)).Normal();
+		Vector3 dir = avrDir;
 		dir.y = m_lookAtYVector;
 		const Vector3 newEyePos = pos + dir * -m_lookAtDistance;
 
-		// 화면을 이동 중일 때는, 카메라를 업데이트 하지 않는다.
-		// 제스처 입력시에는 카메라를 자동으로 움직이지 않는다.
-		if (isMoveCamera)
-			m_camera.Move(newEyePos, pos);
+		// 제스처 입력 시에는 카메라를 자동으로 움직이지 않는다.
+		if (isTraceGPSPos)
+			m_camera.Move(newEyePos, pos, 0.5f);
 
 		oldGpsPos = m_curGpsPos;
 	}
-	else if (isMoveCamera)
+	else if (isTraceGPSPos)
 	{
-		m_camera.Move(pos);
+		m_camera.Move(pos, 0.5f);
 	}
 
 	// 이동궤적 저장
 	// 그전 위치와 거의 같다면 저장하지 않는다.
 	if (g_root.m_track.empty()
-		|| (!g_root.m_track.empty() && (g_root.m_track.back().Distance(pos) > 3.f)))
+		|| (!g_root.m_track.empty() && (g_root.m_track.back().Distance(pos) > 2.f)))
 		g_root.m_track.push_back(pos);
 }
 
 
 // 카메라를 이동하면서 파일을 다운로드 받는다.
-void cMapView::UpdateCameraMoving(const float deltaSeconds)
+void cMapView::UpdateMapScanning(const float deltaSeconds)
 {
-	if (!g_global->m_isCameraMoving)
+	if (!g_global->m_isMapScanning)
 		return;
 
 	// 카메라 위치로 위경도를 파악하고, 특정 범위안에서 움직이도록 한다.
@@ -205,7 +228,7 @@ void cMapView::UpdateCameraMoving(const float deltaSeconds)
 	if (longLat.y < rightBottom.y)
 	{
 		m_camera.MoveCancel();
-		g_global->m_isCameraMoving = false;
+		g_global->m_isMapScanning = false;
 	}
 }
 
@@ -285,8 +308,8 @@ void cMapView::OnPreRender(const float deltaSeconds)
 			renderer.m_dbgLine.SetColor(cColor::RED);
 			for (int i = 0; i < (int)g_root.m_track.size() - 1; ++i)
 			{
-				auto &p0 = g_root.m_track[i];
-				auto &p1 = g_root.m_track[i + 1];
+				const Vector3 &p0 = g_root.m_track[i];
+				const Vector3 &p1 = g_root.m_track[i + 1];
 				if (p0.Distance(p1) > 100.f)
 					continue;
 
@@ -297,7 +320,11 @@ void cMapView::OnPreRender(const float deltaSeconds)
 				const float camLen = camPos.Distance(p1);
 				if (camLen == 0.f)
 					continue;
-				if ((len / camLen < 0.05f) && (i != (int)(g_root.m_track.size() - 2)))
+
+				// 카메라와의 거리대비, 간격이 좁은 위치는 출력하지 않는다.
+				// 마지막 20개의 위치는 출력한다.
+				if ((len / camLen < 0.05f) 
+					&& (i < (int)(g_root.m_track.size() - 20)))
 					continue;
 
 				const float h1 = m_quadTree.GetHeight({ prevPos.x, prevPos.z });
@@ -334,12 +361,24 @@ void cMapView::OnRender(const float deltaSeconds)
 	ImGui::SetNextWindowSize(ImVec2(min(m_viewRect.Width(), 500), 250));
 	if (ImGui::Begin("Information", &isOpen, ImVec2(500.f, 250.f), windowAlpha, flags))
 	{
-		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0, 0, 0, 1));
-		ImGui::PushFont(m_owner->m_fontBig);
-		const string dateTime = common::GetCurrentDateTime5();
-		ImGui::Text(dateTime.c_str());
-		ImGui::PopStyleColor();
-		ImGui::PopFont();
+		// render time
+		{
+			static float incT = 0;
+			static ImVec4 color(0, 0, 0, 1);
+			incT += deltaSeconds;
+			if (incT > 2.f)
+			{
+				color = (color.x == 0.f) ? ImVec4(1, 1, 1, 1) : ImVec4(0, 0, 0, 1);
+				incT = 0.f;
+			}
+
+			ImGui::PushStyleColor(ImGuiCol_Text, color);
+			ImGui::PushFont(m_owner->m_fontBig);
+			const string dateTime = common::GetCurrentDateTime5();
+			ImGui::Text(dateTime.c_str());
+			ImGui::PopStyleColor();
+			ImGui::PopFont();
+		}
 
 		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1, 1, 0, 1));
@@ -401,7 +440,8 @@ void cMapView::OnWheelMove(const float delta, const POINT mousePt)
 	const int lv = m_quadTree.GetLevel(len);
 	float zoomLen = min(len * 0.1f, (float)(2 << (16-lv)));
 
-	if (!IsTouchWindow(m_owner->getSystemHandle(), NULL))
+	if (m_isGestureInput 
+		&& !IsTouchWindow(m_owner->getSystemHandle(), NULL))
 	{
 		zoomLen *= 5.f;
 	}
@@ -430,27 +470,29 @@ void cMapView::OnWheelMove(const float delta, const POINT mousePt)
 // Gesture input
 void cMapView::OnGestured(const int id, const POINT mousePt)
 {
-	static bool isGestureInput = false;
+	static bool isGesturePanInput = false;
 
 	switch (id)
 	{
 	case GID_BEGIN:
+		m_isGestureInput = true;
 		break;
 
 	case GID_END:
-		isGestureInput = false;
+		isGesturePanInput = false;
+		m_isGestureInput = true;
 		m_mouseDown[1] = false;
 		break;
 
 	case GID_PAN:
-		if (isGestureInput)
+		if (isGesturePanInput)
 		{
 			m_mouseDown[1] = true;
 			OnMouseMove(mousePt);
 		}
 		else
 		{
-			isGestureInput = true;
+			isGesturePanInput = true;
 			m_mousePos = mousePt;
 			UpdateLookAt();
 		}
@@ -501,7 +543,7 @@ void cMapView::OnMouseMove(const POINT mousePt)
 	if (eyePos.y < (h + 2))
 	{
 		const Vector3 newPos(eyePos.x, h + 2, eyePos.z);
-		//m_camera.SetEyePos(newPos);
+		m_camera.SetEyePos(newPos);
 	}
 
 	// 이동 경로와의 거리를 업데이트 한다.

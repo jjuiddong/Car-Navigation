@@ -5,7 +5,7 @@
 
 cGlobal::cGlobal()
 	: m_gpsClient(new network2::cPacketHeaderNoFormat())
-	, m_isCameraMoving(false)
+	, m_isMapScanning(false)
 	, m_isMoveRight(false)
 	, m_pickScanLeftTop(false)
 	, m_pickScanRightBottom(false)

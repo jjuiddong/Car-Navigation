@@ -17,7 +17,7 @@ public:
 	int m_gpsPort = 60660;
 	network2::cTcpClient m_gpsClient;
 
-	bool m_isCameraMoving; // 카메라를 정해진 경로로 움직일 때 true
+	bool m_isMapScanning; // 카메라를 정해진 경로로 움직일 때 true
 	bool m_isMoveRight;
 	bool m_pickScanLeftTop;
 	bool m_pickScanRightBottom;
