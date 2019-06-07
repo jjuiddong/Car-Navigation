@@ -51,6 +51,8 @@ public:
 	Str512 m_gpsStr;
 	graphic::cSphere m_curPosObj;
 	Vector2d m_curGpsPos;
+	float m_lookAtDistance;
+	float m_lookAtYVector;
 
 	// MouseMove Variable
 	POINT m_viewPos;

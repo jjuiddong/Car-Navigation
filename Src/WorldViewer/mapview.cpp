@@ -12,6 +12,8 @@ cMapView::cMapView(const string &name)
 	, m_groundPlane2(Vector3(0, -1, 0), 0)
 	, m_showGround(false)
 	, m_showWireframe(false)
+	, m_lookAtDistance(0)
+	, m_lookAtYVector(0)
 {
 }
 
@@ -99,6 +101,16 @@ void cMapView::UpdateGPS()
 		return;
 
 	m_curGpsPos = lonLat;
+
+	static Vector2d oldGpsPos;
+	if (oldGpsPos.IsEmpty())
+		oldGpsPos = m_curGpsPos;
+	if (m_lookAtDistance == 0)
+	{
+		m_lookAtDistance = m_camera.GetEyePos().Distance(m_camera.GetLookAt());
+		m_lookAtYVector = m_camera.GetDirection().y;
+	}
+
 	std::ofstream ofs("path.txt", std::ios::app);
 	const string date = common::GetCurrentDateTime();
 	ofs << date << ", " << m_curGpsPos.x << ", " << m_curGpsPos.y << std::endl;
@@ -107,20 +119,32 @@ void cMapView::UpdateGPS()
 	// lookAt이 바뀜에 따라 카메라 위치도 기존 거리를 유지하며 이동한다.
 	g_root.m_lonLat = Vector2((float)m_curGpsPos.x, (float)m_curGpsPos.y);
 	const Vector3 pos = m_quadTree.Get3DPos(m_curGpsPos);
+	const Vector3 oldPos = m_quadTree.Get3DPos(oldGpsPos);
+
+	const bool isMoveCamera = g_root.m_isTraceGPSPos
+		&& !m_mouseDown[0] && !m_mouseDown[1] && IsTouchWindow(m_owner->getSystemHandle(), NULL);
 
 	// 카메라 방향을 바꾼다. 이동하는 방향으로 향하게 한다.
-	const Vector3 lookAt = m_camera.GetLookAt();
-	const Ray ray = m_camera.GetRay();
-	const float dist = Vector3(ray.orig.x, 0, ray.orig.z).Distance(Vector3(lookAt.x, 0, lookAt.z));
-	const Vector3 dir = (Vector3(lookAt.x, 0 , lookAt.z) - Vector3(pos.x, 0, pos.z)).Normal();
-	const Vector3 eyePos = Vector3(pos.x, ray.orig.y, pos.z) + dir * dist;
-
-	// 화면을 이동 중일 때는, 카메라를 업데이트 하지 않는다.
-	// 제스처 입력시에는 카메라를 자동으로 움직이지 않는다.
-	if (g_root.m_isTraceGPSPos
-		&& !m_mouseDown[0] && !m_mouseDown[1] && IsTouchWindow(m_owner->getSystemHandle(), NULL))
+	if (oldPos.Distance(pos) > 2.f)
 	{
-		m_camera.Move(eyePos, pos);
+		const Vector3 eyePos = m_camera.GetEyePos();
+		const Vector3 lookAt = m_camera.GetLookAt();
+		//const Vector3 camDir = (lookAt - eyePos).Normal();
+
+		Vector3 dir = (Vector3(pos.x, 0, pos.z) - Vector3(oldPos.x, 0, oldPos.z)).Normal();
+		dir.y = m_lookAtYVector;
+		const Vector3 newEyePos = pos + dir * -m_lookAtDistance;
+
+		// 화면을 이동 중일 때는, 카메라를 업데이트 하지 않는다.
+		// 제스처 입력시에는 카메라를 자동으로 움직이지 않는다.
+		if (isMoveCamera)
+			m_camera.Move(newEyePos, pos);
+
+		oldGpsPos = m_curGpsPos;
+	}
+	else if (isMoveCamera)
+	{
+		m_camera.Move(pos);
 	}
 
 	// 이동궤적 저장
@@ -310,9 +334,14 @@ void cMapView::OnRender(const float deltaSeconds)
 	ImGui::SetNextWindowSize(ImVec2(min(m_viewRect.Width(), 500), 250));
 	if (ImGui::Begin("Information", &isOpen, ImVec2(500.f, 250.f), windowAlpha, flags))
 	{
-		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0, 0, 0, 1));
+		ImGui::PushFont(m_owner->m_fontBig);
 		const string dateTime = common::GetCurrentDateTime5();
 		ImGui::Text(dateTime.c_str());
+		ImGui::PopStyleColor();
+		ImGui::PopFont();
+
+		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1, 1, 0, 1));
 		ImGui::Text(IsTouchWindow(m_owner->getSystemHandle(), NULL) ? "Touch" : "Gesture");
 		ImGui::PopStyleColor();
@@ -387,6 +416,14 @@ void cMapView::OnWheelMove(const float delta, const POINT mousePt)
 		const Vector3 newPos(eyePos.x, h + 2, eyePos.z);
 		m_camera.SetEyePos(newPos);
 	}
+
+	// 이동 경로와의 거리를 업데이트 한다.
+	// 이 거리를 유지하면서 GPS 좌표를 추적한다.
+	if (g_root.m_isTraceGPSPos && !g_root.m_track.empty())
+	{
+		m_lookAtDistance = m_camera.GetEyePos().Distance(g_root.m_track.back());
+		m_lookAtYVector = m_camera.GetDirection().y;
+	}
 }
 
 
@@ -434,9 +471,7 @@ void cMapView::OnMouseMove(const POINT mousePt)
 	const POINT delta = { mousePt.x - m_mousePos.x, mousePt.y - m_mousePos.y };
 	m_mousePos = mousePt;
 
-	const bool isCameraMove = true;
-
-	if (m_mouseDown[0] && isCameraMove)
+	if (m_mouseDown[0])
 	{
 		Vector3 dir = GetMainCamera().GetDirection();
 		Vector3 right = GetMainCamera().GetRight();
@@ -448,12 +483,12 @@ void cMapView::OnMouseMove(const POINT mousePt)
 		GetMainCamera().MoveRight(-delta.x * m_rotateLen * 0.001f);
 		GetMainCamera().MoveFrontHorizontal(delta.y * m_rotateLen * 0.001f);
 	}
-	else if (m_mouseDown[1] && isCameraMove)
+	else if (m_mouseDown[1])
 	{
 		m_camera.Yaw2(delta.x * 0.005f, Vector3(0, 1, 0));
 		m_camera.Pitch2(delta.y * 0.005f, Vector3(0, 1, 0));
 	}
-	else if (m_mouseDown[2] && isCameraMove)
+	else if (m_mouseDown[2])
 	{
 		const float len = GetMainCamera().GetDistance();
 		GetMainCamera().MoveRight(-delta.x * len * 0.001f);
@@ -467,6 +502,14 @@ void cMapView::OnMouseMove(const POINT mousePt)
 	{
 		const Vector3 newPos(eyePos.x, h + 2, eyePos.z);
 		//m_camera.SetEyePos(newPos);
+	}
+
+	// 이동 경로와의 거리를 업데이트 한다.
+	// 이 거리를 유지하면서 GPS 좌표를 추적한다.
+	if (g_root.m_isTraceGPSPos && !g_root.m_track.empty())
+	{
+		m_lookAtDistance = m_camera.GetEyePos().Distance(g_root.m_track.back());
+		m_lookAtYVector = m_camera.GetDirection().y;
 	}
 }
 
@@ -617,7 +660,6 @@ void cMapView::OnEventProc(const sf::Event &evt)
 	case sf::Event::Gestured:
 	{
 		POINT curPos = { evt.gesture.x, evt.gesture.y };
-		//GetCursorPos(&curPos); // sf::event mouse position has noise so we use GetCursorPos() function
 		ScreenToClient(m_owner->getSystemHandle(), &curPos);
 		const POINT pos = { curPos.x - m_viewPos.x, curPos.y - m_viewPos.y };
 		OnGestured(evt.gesture.id, pos);
