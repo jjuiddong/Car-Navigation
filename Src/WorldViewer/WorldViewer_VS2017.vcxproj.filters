@@ -13,6 +13,7 @@
       <Filter>view</Filter>
     </ClCompile>
     <ClCompile Include="global.cpp" />
+    <ClCompile Include="gpsclient.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h" />
@@ -27,6 +28,7 @@
       <Filter>view</Filter>
     </ClInclude>
     <ClInclude Include="global.h" />
+    <ClInclude Include="gpsclient.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="view">

@@ -95,8 +95,18 @@ namespace gis
 	// meter -> 3D unit
 	float Meter23DUnit(const float meter);
 
-	// GPRMC
-	Vector2d GetGPRMCLonLat(const Str512 &gprmc);
+	// GPRMC, Recommended Minimmum data
+	struct sGPRMC {
+		uint64 date; // yyyymmddhhmmssmmm
+		bool available;
+		Vector2d lonLat;
+		float speed;
+		float angle;
+		float altitude;
+		float north;
+	};
+
+	bool GetGPRMCLonLat(const Str512 &gprmc, OUT sGPRMC &out);
 }
 
 
@@ -119,13 +129,13 @@ namespace gis
 
 namespace
 {
-	//const static char *g_textureDir = "..\\media\\VWorld";
-	//const static char *g_heightmapDir = "..\\media\\VWorld";
-	//const static char *g_mediaDir = "..\\media\\VWorld";
+	const static char *g_textureDir = "..\\media\\VWorld";
+	const static char *g_heightmapDir = "..\\media\\VWorld";
+	const static char *g_mediaDir = "..\\media\\VWorld";
 
-	const static char *g_textureDir = "D:\\media\\VWorld";
-	const static char *g_heightmapDir = "D:\\media\\VWorld";
-	const static char *g_mediaDir = "D:\\media\\VWorld";
+	//const static char *g_textureDir = "D:\\media\\VWorld";
+	//const static char *g_heightmapDir = "D:\\media\\VWorld";
+	//const static char *g_mediaDir = "D:\\media\\VWorld";
 
 }
 

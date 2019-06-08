@@ -28,18 +28,19 @@ void cNavigationView::OnRender(const float deltaSeconds)
 {
 	cViewer *viewer = (cViewer*)g_application;
 	cTerrainQuadTree &terrain = viewer->m_mapView->m_quadTree;
+	cGpsClient &gpsClient = g_global->m_gpsClient;
 
 	ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1, 1, 0, 1));
 	ImGui::Text(IsTouchWindow(m_owner->getSystemHandle(), NULL) ? "Touch Mode" : "Gesture Mode");
 	ImGui::PopStyleColor();
 
-	if (g_global->m_gpsClient.IsReadyConnect())
+	if (gpsClient.IsReadyConnect())
 	{
 		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1, 1, 0, 1));
 		ImGui::Text("Try Connect...");
 		ImGui::PopStyleColor();
 	}
-	else if (g_global->m_gpsClient.IsConnect())
+	else if (gpsClient.IsConnect())
 	{
 		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1, 1, 0, 1));
 		ImGui::Text("Success Connect GPS Server");
@@ -48,15 +49,15 @@ void cNavigationView::OnRender(const float deltaSeconds)
 	else
 	{
 		ImGui::Text("GPS Server IP/Port");
-		ImGui::InputText("IP", g_global->m_gpsIp.m_str, g_global->m_gpsIp.SIZE);
-		ImGui::InputInt("Port", &g_global->m_gpsPort);
+		ImGui::InputText("IP", gpsClient.m_ip.m_str, gpsClient.m_ip.SIZE);
+		ImGui::InputInt("Port", &gpsClient.m_port);
 
 		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0.6f, 0.f, 1));
 		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0, 0.8f, 0.f, 1));
 		ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0, 0.4f, 0.f, 1));
 		if (ImGui::Button("Connnect"))
 		{
-			g_global->m_gpsClient.Init(g_global->m_gpsIp.c_str(), g_global->m_gpsPort);
+			gpsClient.ConnectGpsServer(gpsClient.m_ip.c_str(), gpsClient.m_port);
 		}
 		ImGui::PopStyleColor(3);
 	}
@@ -65,7 +66,7 @@ void cNavigationView::OnRender(const float deltaSeconds)
 	ImGui::Spacing();
 
 	ImGui::Text("Path Count = %d", g_root.m_track.size());
-	ImGui::Text("GPS Count = %d", g_root.m_rcvGPSCount);
+	ImGui::Text("GPS Count = %d", g_global->m_gpsClient.m_recvCount);
 	ImGui::Checkbox("Quadtree", &terrain.m_isShowQuadTree);
 	ImGui::SameLine();
 	ImGui::Checkbox("Facility", &terrain.m_isShowFacility);
@@ -122,5 +123,29 @@ void cNavigationView::OnRender(const float deltaSeconds)
 	{
 		g_root.m_track.clear();
 	}
+
+	if (ImGui::Button("Read Path File"))
+	{
+		if (g_global->m_gpsClient.ReadPathFile("path.txt"))
+		{
+			g_root.m_track.clear();
+			g_root.m_track.reserve(g_global->m_gpsClient.m_paths.size());
+			for (auto &p : g_global->m_gpsClient.m_paths)
+			{
+				const Vector3 pos = terrain.Get3DPos(p.lonLat);
+				g_root.m_track.push_back(pos);
+			}
+		}
+	}
+
+	if (ImGui::Button("GPS Path Pump"))
+	{
+		if (g_global->m_gpsClient.ReadPathFile("path.txt"))
+		{
+			g_root.m_track.clear();
+			g_global->m_gpsClient.m_state = cGpsClient::eState::PathFile;
+		}
+	}
+
 	ImGui::PopStyleColor(3);
 }

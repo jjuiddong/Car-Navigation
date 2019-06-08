@@ -13,10 +13,9 @@ public:
 
 
 public:
-	Str16 m_gpsIp = "192.168.1.102";
-	int m_gpsPort = 60660;
-	network2::cTcpClient m_gpsClient;
+	cGpsClient m_gpsClient;
 
+	// map scanning
 	bool m_isMapScanning; // 카메라를 정해진 경로로 움직일 때 true
 	bool m_isMoveRight;
 	bool m_pickScanLeftTop;

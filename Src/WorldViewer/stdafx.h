@@ -8,6 +8,7 @@ using namespace common;
 #include "../../../Common/Network2/network2.h"
 #include "../gis/gis.h"
 
+#include "gpsclient.h"
 #include "global.h"
 
 extern cGlobal *g_global;

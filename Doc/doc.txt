@@ -1,6 +1,9 @@
 
 -- VWorld Viewer Document --
 
+- GPS Information Parsing
+	- https://drkein.tistory.com/113
+
 - VWorld Data Location
 	- media/vworld
 
@@ -29,6 +32,15 @@
 
 -----------------------------------------------------------
 - worklist
+
+	- path 정보 읽어오기, 펌프
+	- refactoring
+		- gps
+		- camera
+		- global, root
+	- ip save
+	- 카메라 회전 천천히
+
 
 	- 도로정보 가져오기 poi_road, hybrid_road
 		http://xdworld.vworld.kr:8080/XDServer/requestLayerNode?APIKey=A3C8B7D2-1149-3C99-9862-04D6C24730E9&Layer=hybrid_road&Level=13&IDX=70126&IDY=29142
@@ -97,3 +109,4 @@
 	-★ rendering
 		-★ graphic quality
 			-★ quad detail
+	-★ d://media 버그

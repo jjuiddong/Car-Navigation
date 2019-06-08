@@ -48,8 +48,8 @@ public:
 	bool m_showWireframe;
 	cTerrainQuadTree m_quadTree;
 	
-	Str512 m_gpsStr;
 	graphic::cSphere m_curPosObj;
+	gis::sGPRMC m_gpsInfo;
 	Vector2d m_curGpsPos;
 	float m_lookAtDistance;
 	float m_lookAtYVector;

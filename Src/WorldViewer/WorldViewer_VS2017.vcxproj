@@ -154,6 +154,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="global.cpp" />
+    <ClCompile Include="gpsclient.cpp" />
     <ClCompile Include="informationview.cpp" />
     <ClCompile Include="mapview.cpp" />
     <ClCompile Include="navigationview.cpp" />
@@ -165,6 +166,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="global.h" />
+    <ClInclude Include="gpsclient.h" />
     <ClInclude Include="informationview.h" />
     <ClInclude Include="mapview.h" />
     <ClInclude Include="navigationview.h" />

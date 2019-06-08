@@ -77,56 +77,20 @@ void cMapView::OnUpdate(const float deltaSeconds)
 // receive from gps server (mobile phone)
 void cMapView::UpdateGPS()
 {
-	const float ALIVE_TIME = 30.f;
 	const float MIN_LENGTH = 0.5f;
-	static double recvTime = 0.f;
-	if (!g_global->m_gpsClient.IsConnect())
-	{
-		recvTime = 0.f;
-		return;
-	}
 
-	// 일정시간동안 패킷을 받지못했다면 커넥션을 끊는다.
-	const static double curT = g_global->m_timer.GetSeconds();
-	if (recvTime == 0.f)
-		recvTime = curT;
-
-	network2::cPacket packet(g_global->m_gpsClient.m_packetHeader);
-	if (!g_global->m_gpsClient.m_recvQueue.Front(packet))
-	{
-		if (curT - recvTime > ALIVE_TIME)
-			g_global->m_gpsClient.Close();
-		return;
-	}
-
-	recvTime = curT;
-	g_root.m_rcvGPSCount++;
-	memcpy(m_gpsStr.m_str, packet.m_data, min(m_gpsStr.SIZE, (uint)packet.m_writeIdx));
-
-	const string date = common::GetCurrentDateTime();
-	std::ofstream ofsGps("gps.txt", std::ios::app);
-
-	vector<string> lines;
-	common::tokenizer(m_gpsStr.m_str, "\n", "", lines);
-	Vector2d lonLat;
-	for (auto &line : lines)
-	{
-		ofsGps << line;
-		Vector2d gpsPos = gis::GetGPRMCLonLat(line.c_str());
-		if (gpsPos.IsEmpty())
-			continue;
-		lonLat = gpsPos;
-	}
-
-	if (lonLat.IsEmpty())
+	gis::sGPRMC gpsInfo;
+	if (!g_global->m_gpsClient.GetGpsInfo(gpsInfo))
 		return;
 
-	m_curGpsPos = lonLat;
+	m_gpsInfo = gpsInfo;
+	m_curGpsPos = gpsInfo.lonLat;
 
 	static Vector2d oldGpsPos;
 	static Vector3 oldEyePos;
 	if (oldGpsPos.IsEmpty())
 		oldGpsPos = m_curGpsPos;
+
 	if (m_lookAtDistance == 0)
 	{
 		m_lookAtDistance = m_camera.GetEyePos().Distance(m_camera.GetLookAt());
@@ -134,8 +98,9 @@ void cMapView::UpdateGPS()
 	}
 
 	// path로그 파일에 저장
+	const string date = common::GetCurrentDateTime();
 	std::ofstream ofs("path.txt", std::ios::app);
-	ofs << std::fixed;
+	ofs.precision(std::numeric_limits<double>::max_digits10);
 	ofs << date << ", " << m_curGpsPos.x << ", " << m_curGpsPos.y << std::endl;
 
 	// 현재 위치를 향해 카메라 looAt을 조정한다.
@@ -391,7 +356,7 @@ void cMapView::OnRender(const float deltaSeconds)
 	ImGui::SetNextWindowSize(ImVec2(min(m_viewRect.Width(), 500), 250));
 	if (ImGui::Begin("Information", &isOpen, ImVec2(500.f, 250.f), windowAlpha, flags))
 	{
-		// render time
+		// render datetime
 		{
 			static float incT = 0;
 			static ImVec4 color(0, 0, 0, 1);
@@ -405,7 +370,8 @@ void cMapView::OnRender(const float deltaSeconds)
 			ImGui::PushStyleColor(ImGuiCol_Text, color);
 			ImGui::PushFont(m_owner->m_fontBig);
 			const string dateTime = common::GetCurrentDateTime5();
-			ImGui::Text(dateTime.c_str());
+			ImGui::Text("%s, Speed: %.1f", dateTime.c_str(), m_gpsInfo.speed);
+
 			ImGui::PopStyleColor();
 			ImGui::PopFont();
 		}
@@ -418,7 +384,7 @@ void cMapView::OnRender(const float deltaSeconds)
 		ImGui::Text("GPS = %.6f, %.6f", m_curGpsPos.y, m_curGpsPos.x);
 
 		if (g_root.m_isShowGPS)
-			ImGui::Text(m_gpsStr.c_str());
+			ImGui::Text(g_global->m_gpsClient.m_recvStr.c_str());
 		ImGui::End();
 	}
 	ImGui::PopStyleColor();
@@ -557,8 +523,9 @@ void cMapView::OnMouseMove(const POINT mousePt)
 	}
 	else if (m_mouseDown[1])
 	{
-		m_camera.Yaw2(delta.x * 0.005f, Vector3(0, 1, 0));
-		m_camera.Pitch2(delta.y * 0.005f, Vector3(0, 1, 0));
+		const float scale = (m_isGestureInput)? 0.001f : 0.005f;
+		m_camera.Yaw2(delta.x * scale, Vector3(0, 1, 0));
+		m_camera.Pitch2(delta.y * scale, Vector3(0, 1, 0));
 	}
 	else if (m_mouseDown[2])
 	{

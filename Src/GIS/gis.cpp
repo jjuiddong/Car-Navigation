@@ -134,46 +134,56 @@ float gis::Meter23DUnit(const float meter)
 
 // GPRMC 문자열로 위경도를 리턴한다.
 //$GPRMC, 103906.0, A, 3737.084380, N, 12650.121679, E, 0.0, 0.0, 190519, 6.1, W, A * 15
+// https://drkein.tistory.com/113
 // lat: 37 + 37.084380/60
 // lon: 126 + 50.121679/60
 // return : x=longitude, y=latitude
-Vector2d gis::GetGPRMCLonLat(const Str512 &gprmc)
+bool gis::GetGPRMCLonLat(const Str512 &gprmc, OUT sGPRMC &out)
 {
 	if (gprmc.size() < 6)
-		return Vector2d(0, 0);
+		return false;
 	
 	if (strncmp(gprmc.m_str, "$GPRMC", 6))
-		return Vector2d(0, 0);
+		return false;
 
 	vector<string> strs;
 	common::tokenizer(gprmc.c_str(), ",", "", strs);
 
 	if (strs.size() < 6)
-		return Vector2d(0, 0);
+		return false;
+
+	if (strs[2] != "A")
+		return false; // invalid data
 
 	if (strs[4] != "N")
-		return Vector2d(0, 0);
+		return false;
 	
 	if (strs[6] != "E")
-		return Vector2d(0, 0);
+		return false;
 
 	if (strs[3].size() < 2)
-		return Vector2d(0, 0);
+		return false;
 
-	Vector2d reval;
+	Vector2d lonLat;
 	const float lat1 = (float)atof(strs[3].substr(0, 2).c_str());
 	const float lat2 = (float)atof(strs[3].substr(2).c_str());
 	if (lat2 == 0.f)
-		return Vector2d(0, 0);
-	reval.y = lat1 + (lat2 / 60.f);
+		return false;
+	lonLat.y = lat1 + (lat2 / 60.f);
 
 	if (strs[5].size() < 3)
-		return Vector2d(0, 0);
+		return false;
 	const float lon1 = (float)atof(strs[5].substr(0, 3).c_str());
 	const float lon2 = (float)atof(strs[5].substr(3).c_str());
 	if (lon2 == 0.f)
-		return Vector2d(0, 0);
-	reval.x = lon1 + (lon2 / 60.f);
+		return false;
+	lonLat.x = lon1 + (lon2 / 60.f);
 
-	return reval;
+	out.available = true;
+	out.lonLat = lonLat;
+	out.speed = (float)atof(strs[7].c_str()) * 1.8f;
+	out.angle = (float)atof(strs[8].c_str());
+	out.north = (float)atof(strs[10].c_str());
+
+	return true;
 }

@@ -11,24 +11,15 @@ class cRoot
 {
 public:
 	cRoot() : m_renderFlag(0x01 | 0x02)
-		//, m_offsetRot(-0.0743381456f, 0.0576749742f, -0.0738674253f, 0.992819607f) {}
-		//, m_offsetRot(0.016f, 0.042f, -0.103f, 0.994f) {}
-		//, m_offsetRot(-0.019f, 0.033f, -0.103f, 0.992f) 
-		//, m_offsetRot(-0.114f, 0.253f, -0.058f, 0.957f)
-		//, m_offsetRot(0.318f, 0.66f, -0.476f, 0.815f)
-		//, m_offsetRot(0.439f, 0.052f, -0.664f, 0.889f)
-		//, m_offsetRot(0.461f, 0.065f, -0.655f, 0.884f)
 		, m_offsetRot(0.319f, -0.712f, -0.481f, -0.401f)
 		, m_offsetLonLat(90.f, 0.f)
 		, m_angleY(180)
 		, m_scaleY(1.f)
-		//, m_offsetY(0.06f)
 		, m_offsetY(0.184964865f)
 		, m_scale(0.018f)
 		, m_isShowGPS(true)
 		, m_isTraceGPSPos(true)
 		, m_trackOffsetY(0.0f)
-		, m_rcvGPSCount(0)
 	{}
 	virtual ~cRoot() {}
 
@@ -55,7 +46,6 @@ public:
 
 	bool m_isShowGPS;
 	bool m_isTraceGPSPos;
-	int m_rcvGPSCount;
 	float m_trackOffsetY;
 	vector<Vector3> m_track;
 };
