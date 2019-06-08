@@ -14,6 +14,7 @@ cGlobal::cGlobal()
 	, m_scanSpeed(10.f)
 	, m_scanLineOffset(30.f)
 {
+	m_timer.Create();
 }
 
 cGlobal::~cGlobal()

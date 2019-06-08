@@ -65,6 +65,7 @@ void cNavigationView::OnRender(const float deltaSeconds)
 	ImGui::Spacing();
 
 	ImGui::Text("Path Count = %d", g_root.m_track.size());
+	ImGui::Text("GPS Count = %d", g_root.m_rcvGPSCount);
 	ImGui::Checkbox("Quadtree", &terrain.m_isShowQuadTree);
 	ImGui::SameLine();
 	ImGui::Checkbox("Facility", &terrain.m_isShowFacility);

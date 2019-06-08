@@ -13,7 +13,7 @@ public:
 
 
 public:
-	Str16 m_gpsIp = "192.168.1.103";
+	Str16 m_gpsIp = "192.168.1.102";
 	int m_gpsPort = 60660;
 	network2::cTcpClient m_gpsClient;
 
@@ -25,4 +25,6 @@ public:
 	Vector2d m_scanRightBottom;
 	float m_scanSpeed; // m/s
 	float m_scanLineOffset; // meter
+
+	cTimer m_timer;
 };

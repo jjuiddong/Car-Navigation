@@ -28,6 +28,7 @@ public:
 		, m_isShowGPS(true)
 		, m_isTraceGPSPos(true)
 		, m_trackOffsetY(0.0f)
+		, m_rcvGPSCount(0)
 	{}
 	virtual ~cRoot() {}
 
@@ -54,6 +55,7 @@ public:
 
 	bool m_isShowGPS;
 	bool m_isTraceGPSPos;
+	int m_rcvGPSCount;
 	float m_trackOffsetY;
 	vector<Vector3> m_track;
 };

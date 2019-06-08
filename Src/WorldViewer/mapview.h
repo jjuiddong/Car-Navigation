@@ -53,6 +53,7 @@ public:
 	Vector2d m_curGpsPos;
 	float m_lookAtDistance;
 	float m_lookAtYVector;
+	Vector3 m_avrDir;
 
 	bool m_isGestureInput;
 
