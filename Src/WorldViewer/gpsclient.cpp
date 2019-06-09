@@ -63,8 +63,7 @@ bool cGpsClient::GetGpsInfo(OUT gis::sGPRMC &out)
 	ofsGps << "DATE," << date << std::endl;
 	ofsGps << m_recvStr.c_str();
 
-	ParseStr(m_recvStr, out);
-	return true;
+	return ParseStr(m_recvStr, out);
 }
 
 
@@ -95,6 +94,12 @@ bool cGpsClient::ParseStr(const Str512 &str, OUT gis::sGPRMC &out)
 
 	if (!out.available)
 		return false;
+	
+	if (out.lonLat.IsEmpty())
+	{
+		out.available = false;
+		return false;
+	}
 
 	return true;
 }

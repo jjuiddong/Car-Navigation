@@ -149,7 +149,7 @@ bool gis::GetGPRMCLonLat(const Str512 &gprmc, OUT sGPRMC &out)
 	vector<string> strs;
 	common::tokenizer(gprmc.c_str(), ",", "", strs);
 
-	if (strs.size() < 6)
+	if (strs.size() < 11)
 		return false;
 
 	if (strs[2] != "A")
