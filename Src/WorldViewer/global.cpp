@@ -12,6 +12,8 @@ cGlobal::cGlobal()
 	, m_scanRightBottom(129.657455f, 34.685825f)
 	, m_scanSpeed(10.f)
 	, m_scanLineOffset(30.f)
+	, m_isShowGPS(true)
+	, m_isTraceGPSPos(true)
 {
 	m_timer.Create();
 }

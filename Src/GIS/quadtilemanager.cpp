@@ -497,7 +497,7 @@ bool cQuadTileManager::LoadResource(graphic::cRenderer &renderer
 		// *.facility_build 파일 로딩 완료?
 		if ((2 == tile.m_modelLoadState) && tile.m_facilityIndex)
 		{
-			// *.xdo 건물 파일을 로딩한다.			
+			// *.xdo 건물 파일을 로딩한다.
 			LoadFacilities(renderer, tile, terrain, level, xLoc, yLoc, rect);
 		}
 		else if (3 == tile.m_modelLoadState)

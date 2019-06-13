@@ -15,6 +15,10 @@ public:
 public:
 	cGpsClient m_gpsClient;
 
+	// GPS
+	bool m_isShowGPS;
+	bool m_isTraceGPSPos;
+
 	// map scanning
 	bool m_isMapScanning; // 카메라를 정해진 경로로 움직일 때 true
 	bool m_isMoveRight;

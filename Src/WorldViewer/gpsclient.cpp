@@ -13,10 +13,11 @@ cGpsClient::cGpsClient()
 	, m_fileAnimationIdx(0)
 {
 	m_timer.Create();
+	m_paths.reserve(1024);
 }
 
 cGpsClient::~cGpsClient()
-{	
+{
 }
 
 
@@ -65,7 +66,10 @@ bool cGpsClient::GetGpsInfo(OUT gis::sGPRMC &out)
 	std::ofstream ofsGps("gps.txt", std::ios::app);
 	ofsGps << m_recvStr.c_str();
 
-	return ParseStr(m_recvStr, out);
+	const bool result = ParseStr(m_recvStr, out);
+	//if (result)
+	//	m_paths.push_back({ common::GetCurrentDateTime3(), out.lonLat });
+	return result;
 }
 
 
@@ -73,6 +77,18 @@ bool cGpsClient::FileReplay()
 {
 	m_state = eState::PathFile;
 	return true;
+}
+
+
+bool cGpsClient::IsFileReplay()
+{
+	return eState::PathFile == m_state;
+}
+
+
+bool cGpsClient::IsServer()
+{
+	return eState::Server == m_state;
 }
 
 
@@ -151,8 +167,9 @@ bool cGpsClient::ReadPathFile(const char *fileName)
 	m_paths.clear();
 	m_paths.reserve(1024);
 
+	int cnt = 0;
 	string line;
-	while (getline(ifs, line))
+	while (getline(ifs, line) && (cnt++ < 100))
 	{
 		vector<string> out;
 		common::tokenizer(line, ",", "", out);

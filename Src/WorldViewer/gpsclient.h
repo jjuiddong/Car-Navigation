@@ -16,6 +16,8 @@ public:
 	bool GetGpsInfo(OUT gis::sGPRMC &out);
 	bool FileReplay();
 	bool IsConnect();
+	bool IsFileReplay();
+	bool IsServer();
 	bool IsReadyConnect();
 	void Clear();
 

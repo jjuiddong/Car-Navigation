@@ -65,7 +65,8 @@ void cNavigationView::OnRender(const float deltaSeconds)
 	ImGui::Separator();
 	ImGui::Spacing();
 
-	ImGui::Text("Path Count = %d", g_root.m_track.size());
+	auto &track = g_global->m_gpsClient.m_paths;
+	ImGui::Text("Path Count = %d", track.size());
 	ImGui::Text("GPS Count = %d", g_global->m_gpsClient.m_recvCount);
 	ImGui::Checkbox("Quadtree", &terrain.m_isShowQuadTree);
 	ImGui::SameLine();
@@ -76,9 +77,9 @@ void cNavigationView::OnRender(const float deltaSeconds)
 	ImGui::Checkbox("Poi1", &terrain.m_isShowPoi1);
 	ImGui::SameLine();
 	ImGui::Checkbox("Poi2", &terrain.m_isShowPoi2);
-	ImGui::Checkbox("GPS", &g_root.m_isShowGPS);
+	ImGui::Checkbox("GPS", &g_global->m_isShowGPS);
 	ImGui::SameLine();
-	ImGui::Checkbox("Trace GPS", &g_root.m_isTraceGPSPos);
+	ImGui::Checkbox("Trace GPS", &g_global->m_isTraceGPSPos);
 	if (ImGui::Checkbox("Optimize Render", &terrain.m_isRenderOptimize))
 		if (!terrain.m_isRenderOptimize)
 			terrain.m_optimizeLevel = cQuadTree<sQuadData>::MAX_LEVEL;
@@ -121,20 +122,14 @@ void cNavigationView::OnRender(const float deltaSeconds)
 	ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.4f, 0.1f, 0, 1));
 	if (ImGui::Button("Clear Path"))
 	{
-		g_root.m_track.clear();
+		auto &track = g_global->m_gpsClient.m_paths;
+		track.clear();
 	}
 
 	if (ImGui::Button("Read Path File"))
 	{
 		if (g_global->m_gpsClient.ReadPathFile("path.txt"))
 		{
-			g_root.m_track.clear();
-			g_root.m_track.reserve(g_global->m_gpsClient.m_paths.size());
-			for (auto &p : g_global->m_gpsClient.m_paths)
-			{
-				const Vector3 pos = terrain.Get3DPos(p.lonLat);
-				g_root.m_track.push_back(pos);
-			}
 		}
 	}
 
@@ -142,7 +137,6 @@ void cNavigationView::OnRender(const float deltaSeconds)
 	{
 		if (g_global->m_gpsClient.ReadPathFile("path.txt"))
 		{
-			g_root.m_track.clear();
 			g_global->m_gpsClient.FileReplay();
 		}
 	}
