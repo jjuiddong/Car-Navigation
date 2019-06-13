@@ -10,6 +10,7 @@ cGpsClient::cGpsClient()
 	, m_port(60660)
 	, m_recvTime(0)
 	, m_recvCount(0)
+	, m_fileAnimationIdx(0)
 {
 	m_timer.Create();
 }
@@ -33,7 +34,10 @@ bool cGpsClient::ConnectGpsServer(const Str16 &ip, const int port)
 
 bool cGpsClient::GetGpsInfo(OUT gis::sGPRMC &out)
 {
-	const float ALIVE_TIME = 30.f;
+	const float ALIVE_TIME = 10.f;
+
+	if (eState::PathFile == m_state)
+		return GetGpsInfoFromFile(out);
 
 	if (!IsConnect())
 	{
@@ -58,12 +62,43 @@ bool cGpsClient::GetGpsInfo(OUT gis::sGPRMC &out)
 	m_recvCount++;
 	memcpy(m_recvStr.m_str, packet.m_data, min(m_recvStr.SIZE, (uint)packet.m_writeIdx));
 
-	const string date = common::GetCurrentDateTime();
 	std::ofstream ofsGps("gps.txt", std::ios::app);
-	ofsGps << "DATE," << date << std::endl;
 	ofsGps << m_recvStr.c_str();
 
 	return ParseStr(m_recvStr, out);
+}
+
+
+bool cGpsClient::FileReplay() 
+{
+	m_state = eState::PathFile;
+	return true;
+}
+
+
+// 파일에서 GPS정보를 읽어온다.
+bool cGpsClient::GetGpsInfoFromFile(OUT gis::sGPRMC &out)
+{
+	if (m_fileAnimationIdx >= (int)m_paths.size())
+		return false;
+
+	static Vector2d oldLonLat;
+	while (m_fileAnimationIdx < (int)m_paths.size())
+	{
+		const Vector2d lonLat = m_paths[m_fileAnimationIdx++].lonLat;
+		if (lonLat.IsEmpty())
+			continue;
+
+		if (oldLonLat != lonLat)
+		{
+			out.available = true;
+			out.lonLat = lonLat;
+			oldLonLat = lonLat;
+			break;
+		}
+	}
+	out.speed = 0.f;
+	return true;
 }
 
 

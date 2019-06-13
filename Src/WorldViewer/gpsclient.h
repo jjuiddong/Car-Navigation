@@ -14,6 +14,7 @@ public:
 	bool ConnectGpsServer(const Str16 &ip, const int port);
 	bool ReadPathFile(const char *fileName);
 	bool GetGpsInfo(OUT gis::sGPRMC &out);
+	bool FileReplay();
 	bool IsConnect();
 	bool IsReadyConnect();
 	void Clear();
@@ -21,6 +22,7 @@ public:
 
 protected:
 	bool ParseStr(const Str512 &str, OUT gis::sGPRMC &out);
+	bool GetGpsInfoFromFile(OUT gis::sGPRMC &out);
 
 
 public:
@@ -42,5 +44,6 @@ public:
 		uint64 t;
 		Vector2d lonLat;
 	};
-	vector<sPath> m_paths;	
+	vector<sPath> m_paths;
+	int m_fileAnimationIdx;
 };

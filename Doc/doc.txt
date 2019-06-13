@@ -33,6 +33,11 @@
 -----------------------------------------------------------
 - worklist
 
+	- gps path pump
+	- ghost drive 모드
+	- drive mode 부드럽게 출력
+	- line 고도 정확히
+	- 고도 그래프 출력
 	- path 정보 읽어오기, 펌프
 	- refactoring
 		- gps

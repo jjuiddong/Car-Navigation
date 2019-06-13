@@ -143,7 +143,7 @@ void cNavigationView::OnRender(const float deltaSeconds)
 		if (g_global->m_gpsClient.ReadPathFile("path.txt"))
 		{
 			g_root.m_track.clear();
-			g_global->m_gpsClient.m_state = cGpsClient::eState::PathFile;
+			g_global->m_gpsClient.FileReplay();
 		}
 	}
 
