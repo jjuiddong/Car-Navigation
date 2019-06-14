@@ -169,7 +169,7 @@ bool cGpsClient::ReadPathFile(const char *fileName)
 
 	int cnt = 0;
 	string line;
-	while (getline(ifs, line) && (cnt++ < 100))
+	while (getline(ifs, line))
 	{
 		vector<string> out;
 		common::tokenizer(line, ",", "", out);
