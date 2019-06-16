@@ -162,7 +162,8 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="worldviewer.cpp" />
+    <ClCompile Include="touch.cpp" />
+    <ClCompile Include="carnavi.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="global.h" />
@@ -171,7 +172,8 @@
     <ClInclude Include="mapview.h" />
     <ClInclude Include="navigationview.h" />
     <ClInclude Include="stdafx.h" />
-    <ClInclude Include="worldviewer.h" />
+    <ClInclude Include="touch.h" />
+    <ClInclude Include="carnavi.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\Common\AI\AI.vcxproj">

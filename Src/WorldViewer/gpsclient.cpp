@@ -63,9 +63,8 @@ bool cGpsClient::GetGpsInfo(OUT gis::sGPRMC &out)
 	m_recvCount++;
 	memcpy(m_recvStr.m_str, packet.m_data, min(m_recvStr.SIZE, (uint)packet.m_writeIdx));
 
-	std::ofstream ofsGps("gps.txt", std::ios::app);
-	ofsGps << m_recvStr.c_str();
-
+	dbg::Logp2("gps.txt", m_recvStr.c_str());
+	
 	const bool result = ParseStr(m_recvStr, out);
 	//if (result)
 	//	m_paths.push_back({ common::GetCurrentDateTime3(), out.lonLat });
@@ -169,7 +168,7 @@ bool cGpsClient::ReadPathFile(const char *fileName)
 
 	int cnt = 0;
 	string line;
-	while (getline(ifs, line))
+	while (getline(ifs, line) && (cnt++ < 10000))
 	{
 		vector<string> out;
 		common::tokenizer(line, ",", "", out);
@@ -180,6 +179,9 @@ bool cGpsClient::ReadPathFile(const char *fileName)
 		info.t = common::GetCurrentDateTime6(out[0]);
 		info.lonLat.x = atof(out[1].c_str());
 		info.lonLat.y = atof(out[2].c_str());
+		if (info.lonLat.IsEmpty())
+			continue;
+
 		m_paths.push_back(info);
 	}
 

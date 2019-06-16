@@ -3,7 +3,7 @@
 //
 #include "stdafx.h"
 #include "mapview.h"
-#include "worldviewer.h"
+#include "carnavi.h"
 #include "informationview.h"
 #include "navigationview.h"
 
@@ -24,7 +24,7 @@ cGlobal *g_global = NULL;
 cViewer::cViewer()
 {
 	m_windowName = L"Navigation";
-	m_isLazyMode = true;
+	//m_isLazyMode = true;
 	const RECT r = { 0, 0, 1024, 768 };
 	//const RECT r = { 0, 0, 1280, 960 };
 	m_windowRect = r;
@@ -69,8 +69,8 @@ bool cViewer::OnInit()
 	m_naviView = new cNavigationView("Navigation View");
 	m_naviView->Create(eDockState::DOCKWINDOW, eDockSlot::LEFT, this, m_mapView, 0.15f, framework::eDockSizingOption::PIXEL);
 
-	m_infoView = new cInformationView("Information View");
-	m_infoView->Create(eDockState::DOCKWINDOW, eDockSlot::TAB, this, m_naviView);
+	//m_infoView = new cInformationView("Information View");
+	//m_infoView->Create(eDockState::DOCKWINDOW, eDockSlot::TAB, this, m_naviView);
 
 	//m_observerView = new cObserverView("Observer View");
 	//m_observerView->Create(eDockState::DOCKWINDOW, eDockSlot::BOTTOM, this, m_simView, 0.3f);// 0.6f, framework::eDockSizingOption::PIXEL);
@@ -79,20 +79,10 @@ bool cViewer::OnInit()
 
 	g_root.m_mapView = m_mapView;
 	g_global = new cGlobal();
+	g_global->m_touch.Init(getSystemHandle());
 
 	m_gui.SetContext();
 	m_gui.SetStyleColorsDark();
-
-	// tablet touch event
-	// https://docs.microsoft.com/en-us/windows/desktop/wintouch/getting-started-with-multi-touch-messages
-	const int value = GetSystemMetrics(SM_DIGITIZER);
-	if (value & NID_READY) { //stack ready
-	}
-	if (value  & NID_MULTI_INPUT) { //digitizer is multitouch
-	}
-	if (value & NID_INTEGRATED_TOUCH) { // Integrated touch
-		RegisterTouchWindow(getSystemHandle(), 0);
-	}
 
 	//ShowWindow(getSystemHandle(), SW_MAXIMIZE);
 

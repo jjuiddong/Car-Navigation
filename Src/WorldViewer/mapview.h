@@ -47,7 +47,9 @@ public:
 	bool m_showGround;
 	bool m_showWireframe;
 	cTerrainQuadTree m_quadTree;
-	
+	float m_renderOverhead[5][500];
+	int m_graphIdx;
+
 	graphic::cSphere m_curPosObj;
 	gis::sGPRMC m_gpsInfo;
 	Vector2d m_curGpsPos;

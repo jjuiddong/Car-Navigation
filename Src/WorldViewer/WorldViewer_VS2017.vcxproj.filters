@@ -8,12 +8,13 @@
     <ClCompile Include="mapview.cpp">
       <Filter>view</Filter>
     </ClCompile>
-    <ClCompile Include="worldviewer.cpp" />
     <ClCompile Include="navigationview.cpp">
       <Filter>view</Filter>
     </ClCompile>
     <ClCompile Include="global.cpp" />
     <ClCompile Include="gpsclient.cpp" />
+    <ClCompile Include="touch.cpp" />
+    <ClCompile Include="carnavi.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h" />
@@ -23,12 +24,13 @@
     <ClInclude Include="mapview.h">
       <Filter>view</Filter>
     </ClInclude>
-    <ClInclude Include="worldviewer.h" />
     <ClInclude Include="navigationview.h">
       <Filter>view</Filter>
     </ClInclude>
     <ClInclude Include="global.h" />
     <ClInclude Include="gpsclient.h" />
+    <ClInclude Include="touch.h" />
+    <ClInclude Include="carnavi.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="view">

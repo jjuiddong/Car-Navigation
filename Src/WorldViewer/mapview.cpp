@@ -14,7 +14,9 @@ cMapView::cMapView(const string &name)
 	, m_showWireframe(false)
 	, m_lookAtDistance(0)
 	, m_lookAtYVector(0)
+	, m_graphIdx(0)
 {
+	ZeroMemory(m_renderOverhead, sizeof(m_renderOverhead));
 }
 
 cMapView::~cMapView() 
@@ -64,7 +66,8 @@ void cMapView::OnUpdate(const float deltaSeconds)
 	// 카메라가 가르키는 방향의 경위도를 구한다.
 	const Vector2d camLonLat = m_quadTree.GetLongLat(m_camera.GetRay());
 
-	m_quadTree.Update(GetRenderer(), camLonLat, deltaSeconds);
+	if (g_global->m_isShowTerrain)
+		m_quadTree.Update(GetRenderer(), camLonLat, deltaSeconds);
 	m_camera.Update(deltaSeconds);
 
 	UpdateGPS();
@@ -100,9 +103,8 @@ void cMapView::UpdateGPS()
 	if (g_global->m_gpsClient.IsServer())
 	{
 		const string date = common::GetCurrentDateTime();
-		std::ofstream ofs("path.txt", std::ios::app);
-		ofs.precision(std::numeric_limits<double>::max_digits10);
-		ofs << date << ", " << m_curGpsPos.x << ", " << m_curGpsPos.y << std::endl;
+		dbg::Logp2("path.txt", "%s, %.15f, %.15f\n"
+			, date.c_str(), m_curGpsPos.x, m_curGpsPos.y);
 	}
 
 	// 현재 위치를 향해 카메라 looAt을 조정한다.
@@ -112,7 +114,8 @@ void cMapView::UpdateGPS()
 	const Vector3 oldPos = m_quadTree.Get3DPos(oldGpsPos);
 
 	const bool isTraceGPSPos = g_global->m_isTraceGPSPos
-		&& !m_mouseDown[0] && !m_mouseDown[1] && IsTouchWindow(m_owner->getSystemHandle(), NULL);
+		&& !m_mouseDown[0] && !m_mouseDown[1] 
+		&& (g_global->m_touch.m_type != eTouchType::Gesture);
 
 	// 카메라 방향을 바꾼다. 이동하는 방향으로 향하게 한다.
 	// 최근 이동 궤적에서 n개의 벡터를 평균해서 최종 방향을 결정한다. (가중치 평균)
@@ -233,6 +236,9 @@ void cMapView::UpdateMapScanning(const float deltaSeconds)
 
 void cMapView::OnPreRender(const float deltaSeconds)
 {
+	double t0 = 0.f, t1 = 0.f, t2 = 0.f;
+	t0 = g_global->m_timer.GetSeconds();
+
 	cRenderer &renderer = GetRenderer();
 	cAutoCam cam(&m_camera);
 
@@ -263,7 +269,10 @@ void cMapView::OnPreRender(const float deltaSeconds)
 
 		cFrustum frustum;
 		frustum.SetFrustum(GetMainCamera().GetViewProjectionMatrix());
-		m_quadTree.Render(renderer, deltaSeconds, frustum, ray1, ray2);
+		if (g_global->m_isShowTerrain)
+			m_quadTree.Render(renderer, deltaSeconds, frustum, ray1, ray2);
+
+		//t1 = g_global->m_timer.GetSeconds();
 
 		// latLong position
 		{
@@ -343,52 +352,62 @@ void cMapView::OnPreRender(const float deltaSeconds)
 			renderer.GetDevContext()->OMSetDepthStencilState(states.DepthDefault(), 0);
 
 		} // ~if trackpos
-
 	}
 	m_renderTarget.End(renderer);
+
+	t2 = g_global->m_timer.GetSeconds();
+
+	g_global->m_renderT0 = t2 - t0;
 }
 
 
-void cMapView::OnRender(const float deltaSeconds) 
+void cMapView::OnRender(const float deltaSeconds)
 {
+	const double t0 = g_global->m_timer.GetSeconds();
+
 	ImVec2 pos = ImGui::GetCursorScreenPos();
 	m_viewPos = { (int)(pos.x), (int)(pos.y) };
 	m_viewRect = { pos.x + 5, pos.y, pos.x + m_rect.Width() - 30, pos.y + m_rect.Height() - 42 };
-	ImGui::Image(m_renderTarget.m_resolvedSRV, ImVec2(m_rect.Width() - 15, m_rect.Height() - 42));
 
 	// HUD
-	const float windowAlpha = 0.0f;
 	bool isOpen = true;
 	ImGuiWindowFlags flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse;
-	ImGui::SetNextWindowPos(pos);
-	ImGui::SetNextWindowBgAlpha(windowAlpha);
-	ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 0));
-	ImGui::SetNextWindowSize(ImVec2(min(m_viewRect.Width(), 500), 250));
-	if (ImGui::Begin("Information", &isOpen, ImVec2(500.f, 250.f), windowAlpha, flags))
-	{
-		// render datetime
-		{
-			static float incT = 0;
-			static ImVec4 color(0, 0, 0, 1);
-			incT += deltaSeconds;
-			if (incT > 0.5f)
-			{
-				color = (color.x == 0.f) ? ImVec4(1, 1, 1, 1) : ImVec4(0, 0, 0, 1);
-				incT = 0.f;
-			}
 
-			ImGui::PushStyleColor(ImGuiCol_Text, color);
+	// Render Date Information
+	const int dateH = 43;
+	ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 0));
+
+	if (g_global->m_isShowMapView)
+	{
+		ImGui::Image(m_renderTarget.m_resolvedSRV, ImVec2(m_rect.Width() - 15, m_rect.Height() - 42));
+
+		ImGui::SetNextWindowPos(pos);
+		ImGui::SetNextWindowBgAlpha(0.4f);
+		ImGui::SetNextWindowSize(ImVec2(min(m_viewRect.Width(), 400), dateH));
+		if (ImGui::Begin("Date Information", &isOpen, flags))
+		{
+			// render datetime
+			ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1, 1, 1, 1));
 			ImGui::PushFont(m_owner->m_fontBig);
 			const string dateTime = common::GetCurrentDateTime5();
 			ImGui::Text("%s, Speed: %.1f", dateTime.c_str(), m_gpsInfo.speed);
-
 			ImGui::PopStyleColor();
 			ImGui::PopFont();
+			ImGui::End();
 		}
+	}
 
+	// Render Information
+	ImGui::SetNextWindowPos(ImVec2(pos.x, pos.y + dateH));
+	ImGui::SetNextWindowBgAlpha(0.f);
+	ImGui::SetNextWindowSize(ImVec2(min(m_viewRect.Width(), 400), 300));
+	if (ImGui::Begin("Map Information", &isOpen, flags))
+	{
 		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1, 1, 0, 1));
-		ImGui::Text(IsTouchWindow(m_owner->getSystemHandle(), NULL) ? "Touch" : "Gesture");
+
+		const char *touchStr[] = { "Touch" ,"Gesture", "Mouse" };
+		ImGui::Text("%s", touchStr[(int)g_global->m_touch.m_type]);
 		ImGui::PopStyleColor();
 		ImGui::SameLine();
 		ImGui::Text("GPS = %.6f, %.6f", m_curGpsPos.y, m_curGpsPos.x);
@@ -397,7 +416,135 @@ void cMapView::OnRender(const float deltaSeconds)
 			ImGui::Text(g_global->m_gpsClient.m_recvStr.c_str());
 		ImGui::End();
 	}
+
+	// Render Terrain Calculation Time
+	if (g_global->m_isShowRenderGraph)
+	{
+		if (g_global->m_isCalcRenderGraph)
+		{
+			switch (g_global->m_analysisType)
+			{
+			case eAnalysisType::MapView:
+				m_renderOverhead[0][m_graphIdx] = (float)(g_global->m_renderT0 + g_global->m_renderT1);
+				m_renderOverhead[1][m_graphIdx] = (float)g_global->m_renderT0;
+				m_renderOverhead[2][m_graphIdx] = (float)g_global->m_renderT1;
+				m_renderOverhead[3][m_graphIdx] = (float)m_quadTree.m_t2;
+				m_renderOverhead[4][m_graphIdx] = (float)m_quadTree.m_tileMgr.m_cntRemoveTile;
+				break;
+
+			case eAnalysisType::Terrain:
+				m_renderOverhead[0][m_graphIdx] = (float)m_quadTree.m_t0;
+				m_renderOverhead[1][m_graphIdx] = (float)m_quadTree.m_t1;
+				m_renderOverhead[2][m_graphIdx] = (float)m_quadTree.m_t2;
+				m_renderOverhead[3][m_graphIdx] = (float)m_quadTree.m_tileMgr.m_cntRemoveTile;
+				break;
+
+			case eAnalysisType::GMain:
+				m_renderOverhead[0][m_graphIdx] = (float)g_application->m_deltaSeconds;
+				m_renderOverhead[1][m_graphIdx] = (float)m_owner->m_t0;
+				m_renderOverhead[2][m_graphIdx] = (float)m_owner->m_t1;
+				m_renderOverhead[3][m_graphIdx] = (float)m_owner->m_t2;
+				m_renderOverhead[4][m_graphIdx] = (float)m_owner->m_t3;
+				break;
+
+			default: assert(0); break;
+			}
+
+			m_graphIdx++;
+			m_graphIdx %= 500;
+		}
+
+		ImGui::SetNextWindowBgAlpha(0.f);
+		ImGui::SetNextWindowPos(ImVec2(pos.x, pos.y + 300));
+		ImGui::SetNextWindowSize(ImVec2(min(m_viewRect.Width(), 700)
+			, min(m_viewRect.Height() - 100, 550)));
+		if (ImGui::Begin("Render Graph", &isOpen, flags))
+		{
+			const ImVec4 bgColor = ImGui::GetStyleColorVec4(ImGuiCol_FrameBg);
+			ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(bgColor.x, bgColor.y, bgColor.z, 0.5f));
+
+			switch (g_global->m_analysisType)
+			{
+			case eAnalysisType::MapView:
+			{
+				ImGui::PlotLines("graph0", m_renderOverhead[0]
+					, IM_ARRAYSIZE(m_renderOverhead[0])
+					, m_graphIdx, "pre + onrender", 0, 0.05f, ImVec2(700, 100));
+
+				ImGui::PlotLines("graph1", m_renderOverhead[1]
+					, IM_ARRAYSIZE(m_renderOverhead[1])
+					, m_graphIdx, "pre render ", 0, 0.05f, ImVec2(700, 100));
+
+				ImGui::PlotLines("graph2", m_renderOverhead[2]
+					, IM_ARRAYSIZE(m_renderOverhead[2])
+					, m_graphIdx, "on render ", 0, 0.05f, ImVec2(700, 100));
+
+				ImGui::PlotLines("graph3", m_renderOverhead[3]
+					, IM_ARRAYSIZE(m_renderOverhead[3])
+					, m_graphIdx, "update", 0, 0.05f, ImVec2(700, 100));
+
+				ImGui::PlotLines("graph4", m_renderOverhead[4]
+					, IM_ARRAYSIZE(m_renderOverhead[4])
+					, m_graphIdx, "remove", 0, 10.f, ImVec2(700, 100));
+			}
+			break;
+
+			case eAnalysisType::Terrain:
+			{
+				ImGui::PlotLines("graph0", m_renderOverhead[0]
+					, IM_ARRAYSIZE(m_renderOverhead[0])
+					, m_graphIdx, "build", 0, 0.05f, ImVec2(700, 100));
+
+				ImGui::PlotLines("graph1", m_renderOverhead[1]
+					, IM_ARRAYSIZE(m_renderOverhead[1])
+					, m_graphIdx, "render", 0, 0.05f, ImVec2(700, 100));
+
+				ImGui::PlotLines("graph3", m_renderOverhead[2]
+					, IM_ARRAYSIZE(m_renderOverhead[2])
+					, m_graphIdx, "update", 0, 0.05f, ImVec2(700, 100));
+
+				ImGui::PlotLines("graph4", m_renderOverhead[3]
+					, IM_ARRAYSIZE(m_renderOverhead[3])
+					, m_graphIdx, "remove", 0, 10.f, ImVec2(700, 100));
+			}
+			break;
+
+			case eAnalysisType::GMain:
+			{
+				ImGui::PlotLines("graph0", m_renderOverhead[0]
+					, IM_ARRAYSIZE(m_renderOverhead[0])
+					, m_graphIdx, "dt", 0, 0.05f, ImVec2(700, 100));
+
+				ImGui::PlotLines("graph1", m_renderOverhead[1]
+					, IM_ARRAYSIZE(m_renderOverhead[1])
+					, m_graphIdx, "render window event", 0, 0.05f, ImVec2(700, 100));
+
+				ImGui::PlotLines("graph2", m_renderOverhead[2]
+					, IM_ARRAYSIZE(m_renderOverhead[2])
+					, m_graphIdx, "render window update", 0, 0.05f, ImVec2(700, 100));
+
+				ImGui::PlotLines("graph3", m_renderOverhead[3]
+					, IM_ARRAYSIZE(m_renderOverhead[3])
+					, m_graphIdx, "render window pre render", 0, 0.05f, ImVec2(700, 100));
+
+				ImGui::PlotLines("graph4", m_renderOverhead[4]
+					, IM_ARRAYSIZE(m_renderOverhead[4])
+					, m_graphIdx, "render window on render", 0, 0.05f, ImVec2(700, 100));
+			}
+			break;
+
+			default: assert(0); break;
+			}
+
+
+			ImGui::PopStyleColor();
+		}
+		ImGui::End();
+	}
 	ImGui::PopStyleColor();
+
+	const double t1 = g_global->m_timer.GetSeconds();
+	g_global->m_renderT1 = t1 - t0;
 }
 
 
@@ -446,8 +593,7 @@ void cMapView::OnWheelMove(const float delta, const POINT mousePt)
 	const int lv = m_quadTree.GetLevel(len);
 	float zoomLen = min(len * 0.1f, (float)(2 << (16-lv)));
 
-	if (m_isGestureInput 
-		&& !IsTouchWindow(m_owner->getSystemHandle(), NULL))
+	if (m_isGestureInput && g_global->m_touch.IsGestureMode())
 	{
 		zoomLen *= 5.f;
 	}
@@ -508,8 +654,8 @@ void cMapView::OnGestured(const int id, const POINT mousePt)
 
 	case GID_TWOFINGERTAP:
 	case GID_PRESSANDTAP:
-		if (!IsTouchWindow(m_owner->getSystemHandle(), NULL))
-			RegisterTouchWindow(m_owner->getSystemHandle(), 0);
+		if (g_global->m_touch.IsGestureMode(m_owner->getSystemHandle()))
+			g_global->m_touch.SetTouchMode(m_owner->getSystemHandle());
 		break;
 	}
 }

@@ -5,11 +5,12 @@
 
 using namespace graphic;
 
+const float cHeightmap::DEFAULT_H = 2.f;
+
 extern common::cMemoryPool2<65 * 65 * sizeof(float)> g_memPool65;
 extern common::cMemoryPool2<67 * 67 * sizeof(float)> g_memPool67;
 extern common::cMemoryPool2<258 * 258 * sizeof(float)> g_memPool258;
 extern common::cMemoryPool3<graphic::cTexture, 512> g_memPoolTex;
-
 
 cHeightmap::cHeightmap()
 	: m_level(0)

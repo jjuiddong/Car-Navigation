@@ -8,6 +8,7 @@ using namespace graphic;
 cQuadTileManager::cQuadTileManager()
 	: m_timeSortingLoadModel(0)
 	, m_timeLoadFileSorting(0)
+	, m_cntRemoveTile(0)
 {
 	m_timer.Create();
 	//m_vworldDownloader.m_isOfflineMode = true;
@@ -40,12 +41,16 @@ bool cQuadTileManager::Update(graphic::cRenderer &renderer, cTerrainQuadTree &te
 	limitTime = max((curT - oldT) * 2.f, limitTime); // FPS 가 낮을 경우를 대비
 	oldT = curT;
 
+	m_cntRemoveTile = 0;
+
 	for (auto &kv : m_tiles)
 	{
 		sTileMem &mem = kv.second;
 		cQuadTile *tile = mem.tile;
 		if ((curT - mem.accessTime) > limitTime)
 		{
+			++m_cntRemoveTile;
+
 			{
 				StrPath fileName = cHeightmap::GetFileName(g_mediaDir, tile->m_level, tile->m_loc.x, tile->m_loc.y);
 				m_hmaps.Remove(fileName.c_str());
@@ -64,6 +69,11 @@ bool cQuadTileManager::Update(graphic::cRenderer &renderer, cTerrainQuadTree &te
 			{
 				StrPath fileName = cPoiReader::GetFileName(g_mediaDir, tile->m_level, tile->m_loc.x, tile->m_loc.y, gis::eLayerName::POI_BOUND);
 				m_pmaps[1].Remove(fileName.c_str());
+			}
+
+			{
+				const int64 key = cQuadTree<sQuadData>::MakeKey(tile->m_level, tile->m_loc.x, tile->m_loc.y);
+				m_heights.erase(key);
 			}
 
 			if (tile->m_facilityIndex)
@@ -423,6 +433,20 @@ cQuadTile* cQuadTileManager::GetTile(graphic::cRenderer &renderer
 	, const int level, const int xLoc, const int yLoc
 	, const sRectf &rect)
 {
+	if ((level == 13)
+		&& (xLoc == 140360 /2)
+		&& (yLoc == 57690/2))
+	{
+		int a = 0;
+	}
+
+	if ((level == 14)
+		&& (xLoc == 140360)
+		&& (yLoc == 57690))
+	{
+		int a = 0;
+	}
+
 	if (!m_tileVtxBuff.m_vtxBuff)
 		CreateVertexBuffer(renderer);
 
@@ -452,8 +476,75 @@ cQuadTile* cQuadTileManager::FindTile(const int level, const int xLoc, const int
 	auto it = m_tiles.find(key);
 	if (m_tiles.end() != it)
 		return it->second.tile;
-
 	return NULL;
+}
+
+
+// 해당 타일의 가장 높은 높이값을 리턴한다.
+// tile에 저장되어 있음.
+float cQuadTileManager::GetMaximumHeight(const int level, const int xLoc, const int yLoc)
+{
+	const __int64 key = cQuadTree<sQuadData>::MakeKey(level, xLoc, yLoc);
+	auto it = m_heights.find(key);
+	if (m_heights.end() != it)
+		return it->second;
+
+	// 부모 타일을 검사해서 더 큰쪽으로 저장한다.
+	RETV(level <= 1, cHeightmap::DEFAULT_H);
+
+	const cQuadTile *tile = FindTile(level, xLoc, yLoc);
+	float height = cHeightmap::DEFAULT_H;
+	if (level > 1)
+	{
+		// find parent tile heightmap
+		int plevel = level - 1;
+		int pxLoc = xLoc >> 1;
+		int pyLoc = yLoc >> 1;
+		cHeightmap *ph = NULL;
+		cQuadTile *ptile = FindTile(plevel, pxLoc, pyLoc);
+		while (ptile && (plevel > 1))
+		{
+			if (ptile->m_hmap)
+			{
+				ph = ptile->m_hmap;
+				break;
+			}
+			else
+			{
+				--plevel;
+				pxLoc >>= 1;
+				pyLoc >>= 1;
+				ptile = FindTile(plevel, pxLoc, pyLoc);
+			}
+		}
+
+		cHeightmap *h = (tile && tile->m_hmap) ? tile->m_hmap : NULL;
+
+		if (ph && h)
+		{
+			height = max(ph->m_maxHeight, h->m_maxHeight);
+			m_heights.insert({ key, height });
+		}
+		else if (!ph && h)
+		{
+			height = h->m_maxHeight;
+		}
+		else if (ph && !h)
+		{
+			height = ph->m_maxHeight;
+		}
+	}
+	else
+	{
+		cHeightmap *h = (tile && tile->m_hmap) ? tile->m_hmap : NULL;
+		if (h)
+		{
+			height = h->m_maxHeight;
+			m_heights.insert({ key, height });
+		}
+	}
+
+	return height;
 }
 
 
@@ -1040,6 +1131,7 @@ void cQuadTileManager::Clear()
 	m_facilities.Clear();
 	m_facilitiesTex.Clear();
 	m_vworldDownloader.Clear();
+	m_heights.clear();
 
 	for (auto &kv : m_tiles)
 		delete kv.second.tile;

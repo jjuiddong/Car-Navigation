@@ -1,7 +1,7 @@
 
 #include "stdafx.h"
 #include "navigationview.h"
-#include "worldviewer.h"
+#include "carnavi.h"
 #include "mapview.h"
 
 using namespace graphic;
@@ -31,7 +31,7 @@ void cNavigationView::OnRender(const float deltaSeconds)
 	cGpsClient &gpsClient = g_global->m_gpsClient;
 
 	ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1, 1, 0, 1));
-	ImGui::Text(IsTouchWindow(m_owner->getSystemHandle(), NULL) ? "Touch Mode" : "Gesture Mode");
+	ImGui::Text(g_global->m_touch.IsTouchMode() ? "Touch Mode" : "Gesture Mode");
 	ImGui::PopStyleColor();
 
 	if (gpsClient.IsReadyConnect())
@@ -141,5 +141,41 @@ void cNavigationView::OnRender(const float deltaSeconds)
 		}
 	}
 
+	ImGui::Spacing();
+	ImGui::Spacing();
+	ImGui::Separator();
+
+	ImGui::RadioButton("MapView", (int*)&g_global->m_analysisType, 0);
+	ImGui::SameLine();
+	ImGui::RadioButton("Terrain", (int*)&g_global->m_analysisType, 1);
+	ImGui::RadioButton("Main", (int*)&g_global->m_analysisType, 2);
+
+	switch (g_global->m_analysisType)
+	{
+	case eAnalysisType::MapView:
+		//ImGui::Text("t0 = %f", g_global->m_renderT0);
+		//ImGui::Text("t1 = %f", g_global->m_renderT1);
+		//ImGui::Text("t0 + t1 = %f"
+		//	, g_global->m_renderT0 + g_global->m_renderT1);
+		break;
+
+	case eAnalysisType::Terrain:
+		//ImGui::Text("t0 = %f", viewer->m_mapView->m_quadTree.m_t0);
+		//ImGui::Text("t1 = %f", viewer->m_mapView->m_quadTree.m_t1);
+		//ImGui::Text("t0 + t1 = %f"
+		//	, viewer->m_mapView->m_quadTree.m_t0 + viewer->m_mapView->m_quadTree.m_t1);
+		break;
+
+	case eAnalysisType::GMain:
+		//ImGui::Text("t0 = %f", g_application->m_deltaSeconds);
+		break;
+
+	default: assert(0); break;
+	}
+	ImGui::Checkbox("Show Terrain", &g_global->m_isShowTerrain);
+	ImGui::Checkbox("Show MapView", &g_global->m_isShowMapView);
+	ImGui::Checkbox("Show Render Overhead", &g_global->m_isShowRenderGraph);
+	ImGui::Checkbox("Calc Render Overhead", &g_global->m_isCalcRenderGraph);
+	
 	ImGui::PopStyleColor(3);
 }

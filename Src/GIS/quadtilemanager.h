@@ -42,6 +42,8 @@ public:
 
 	cQuadTile* FindTile(const int level, const int xLoc, const int yLoc);
 
+	float GetMaximumHeight(const int level, const int xLoc, const int yLoc);
+	
 	bool LoadResource(graphic::cRenderer &renderer
 		, cTerrainQuadTree &terrain
 		, cQuadTile &tile
@@ -139,6 +141,7 @@ public:
 	graphic::cFileLoader<cReal3DModelIndexReader, 3000, graphic::sFileLoaderArg, sDistanceCompare> m_modelIndices;
 	graphic::cFileLoader<cXdoReader, 5000, graphic::sFileLoaderArg, sDistanceCompare> m_facilities;
 	graphic::cFileLoader<cTileTexture, 5000, graphic::sFileLoaderArg, sDistanceCompare> m_facilitiesTex;
+	map<int64, float> m_heights; // key = cQuadTree<sQuadData>::MakeKey(level, xLoc, yLoc)
 
 	gis::cVWorldWebDownloader m_vworldDownloader;
 	vector<gis::sDownloadData> m_downloadFiles;
@@ -148,6 +151,7 @@ public:
 	float m_timeLoadModel;
 	double m_timeLoadBalancing;
 	int m_cntLoadModelOneSecond;
+	int m_cntRemoveTile;
 	vector<sReadyLoadModel> m_readyLoadModel;
 
 	// delay load file sorting

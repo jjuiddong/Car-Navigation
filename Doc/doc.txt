@@ -33,19 +33,36 @@
 -----------------------------------------------------------
 - worklist
 
-	- gps path pump
+	-★ gps path pump
+	-★ line 고도 정확히
+	-★ path 정보 읽어오기, 펌프
+	-★ 카메라 회전 천천히
+	-★ touch, gesture, notebook 하드웨어 검사
+	-★ gps 파싱 최적화
+	-★ 시간, 속도 백그라운드
+
+	- rendering 분석
+		-★ render quadtree 시간 체크
+		-★ maximum height 최적화
+		- analysis
+		- build quadtree
+		- quadtree render 동적할당 제거
+
+	- 광원 normal
+	- path line 최적화
 	- ghost drive 모드
 	- drive mode 부드럽게 출력
-	- line 고도 정확히
+	- path pump
+		- play speed
+		- pause/resume
+		- download moving
+
 	- 고도 그래프 출력
-	- path 정보 읽어오기, 펌프
 	- refactoring
 		- gps
 		- camera
 		- global, root
 	- ip save
-	- 카메라 회전 천천히
-
 
 	- 도로정보 가져오기 poi_road, hybrid_road
 		http://xdworld.vworld.kr:8080/XDServer/requestLayerNode?APIKey=A3C8B7D2-1149-3C99-9862-04D6C24730E9&Layer=hybrid_road&Level=13&IDX=70126&IDY=29142

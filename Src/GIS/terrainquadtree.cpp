@@ -43,6 +43,9 @@ cTerrainQuadTree::cTerrainQuadTree()
 	, m_distributeType(0)
 	, m_fps(0)
 	, m_calcOptimizeTime(0)
+	, m_t0(0)
+	, m_t1(0)
+	, m_t2(0)
 {
 	m_techName[0] = "Light";
 	m_techName[1] = "NoTexture";
@@ -90,6 +93,7 @@ bool cTerrainQuadTree::Create(graphic::cRenderer &renderer
 	ReadResourceTDistribution("../Media/WorldTerrain/ResFiles/res_texture_distribution.txt");
 	ReadResourceHDistribution("../Media/WorldTerrain/ResFiles/res_height_distribution.txt");
 
+	m_timer.Create();
 	return true;
 }
 
@@ -98,7 +102,10 @@ bool cTerrainQuadTree::Create(graphic::cRenderer &renderer
 void cTerrainQuadTree::Update(graphic::cRenderer &renderer, 
 	const Vector2d &camLonLat, const float deltaSeconds)
 {
+	const double t0 = m_timer.GetSeconds();
 	m_tileMgr.Update(renderer, *this, camLonLat, deltaSeconds);
+	const double t1 = m_timer.GetSeconds();
+	m_t2 = t1 - t0;
 }
 
 
@@ -126,7 +133,12 @@ void cTerrainQuadTree::Render(graphic::cRenderer &renderer
 		}
 	}
 
+	const double t0 = m_timer.GetSeconds();
+
 	BuildQuadTree(frustum, ray);
+
+	const double t1 = m_timer.GetSeconds();
+	m_t0 = t1 - t0;
 
 	if (m_isShowTexture)
 	{
@@ -134,6 +146,9 @@ void cTerrainQuadTree::Render(graphic::cRenderer &renderer
 		//CalcSeamlessLevel();
 		RenderTessellation(renderer, deltaSeconds, frustum);
 	}
+
+	const double t2 = m_timer.GetSeconds();
+	m_t1 = t2 - t1;
 
 	if (m_isShowFacility)
 		RenderFacility(renderer, deltaSeconds, frustum);
@@ -178,7 +193,9 @@ void cTerrainQuadTree::BuildQuadTree(const graphic::cFrustum &frustum
 		sQuadTreeNode<sQuadData> *parentNode = g_stack[sp - 1].node;
 		--sp;
 
-		const float maxH = GetMaximumHeight(parentNode);
+		//const float maxH = GetMaximumHeight(parentNode);
+		const float maxH = parentNode ? m_tileMgr.GetMaximumHeight(parentNode->level
+			, parentNode->xLoc, parentNode->yLoc) : cHeightmap::DEFAULT_H;
 		if (!IsContain(frustum, rect, maxH))
 			continue;
 
@@ -257,7 +274,22 @@ void cTerrainQuadTree::RenderTessellation(graphic::cRenderer &renderer
 		sQuadTreeNode<sQuadData> *node = g_stack[sp - 1].node;
 		--sp;
 
-		const float maxH = GetMaximumHeight(node);
+		if ((node->level == 12)
+			&& (node->xLoc == 70081 / 2)
+			&& (node->yLoc == 28878 / 2))
+		{
+			int a = 0;
+		}
+
+		if ((node->level == 13)
+			&& (node->xLoc == 70081)
+			&& (node->yLoc == 28878))
+		{
+			int a = 0;
+		}
+
+		const float maxH = node? m_tileMgr.GetMaximumHeight(node->level
+			, node->xLoc, node->yLoc) : cHeightmap::DEFAULT_H;
 		const sRectf rect = m_qtree.GetNodeRect(node);
 		if (!IsContain(frustum, rect, maxH))
 			continue;
@@ -314,7 +346,8 @@ void cTerrainQuadTree::RenderFacility(graphic::cRenderer &renderer
 		sQuadTreeNode<sQuadData> *node = g_stack[sp - 1].node;
 		--sp;
 
-		const float maxH = GetMaximumHeight(node);
+		const float maxH = node ? m_tileMgr.GetMaximumHeight(node->level
+			, node->xLoc, node->yLoc) : cHeightmap::DEFAULT_H;
 		const sRectf rect = m_qtree.GetNodeRect(node);
 		if (!IsContain(frustum, rect, maxH))
 			continue;
@@ -375,7 +408,8 @@ void cTerrainQuadTree::RenderQuad(graphic::cRenderer &renderer
 		sQuadTreeNode<sQuadData> *node = g_stack[sp - 1].node;
 		--sp;
 
-		const float maxH = GetMaximumHeight(node);
+		const float maxH = node ? m_tileMgr.GetMaximumHeight(node->level
+			, node->xLoc, node->yLoc) : cHeightmap::DEFAULT_H;
 		const sRectf rect = m_qtree.GetNodeRect(node);
 		const bool isShow = IsContain(frustum, rect, maxH);
 		if (!isShow)
@@ -587,22 +621,21 @@ void cTerrainQuadTree::RenderRect3D(graphic::cRenderer &renderer
 
 // node의 가장 높은 높이를 리턴한다.
 // tile이 없으면, 부모노드를 검색해서 리턴한다.
-float cTerrainQuadTree::GetMaximumHeight(const sQuadTreeNode<sQuadData> *node)
-{
-	const float DEFAULT_H = 2.f;
-	RETV(!node, DEFAULT_H);
-
-	const cQuadTile *tile = m_tileMgr.FindTile(node->level, node->xLoc, node->yLoc);
-	if (tile && tile->m_hmap)
-		return max(DEFAULT_H, tile->m_hmap->m_maxHeight);
-
-	RETV(node->level <= 1, DEFAULT_H);
-
-	const int xLoc = node->xLoc >> 1;
-	const int yLoc = node->yLoc >> 1;
-	auto parent = m_qtree.GetNode(node->level-1, xLoc, yLoc);
-	return GetMaximumHeight(parent);
-}
+//float cTerrainQuadTree::GetMaximumHeight(const sQuadTreeNode<sQuadData> *node)
+//{
+//	RETV(!node, cHeightmap::DEFAULT_H);
+//
+//	const cQuadTile *tile = m_tileMgr.FindTile(node->level, node->xLoc, node->yLoc);
+//	if (tile && tile->m_hmap)
+//		return max(cHeightmap::DEFAULT_H, tile->m_hmap->m_maxHeight);
+//
+//	RETV(node->level <= 1, cHeightmap::DEFAULT_H);
+//
+//	const int xLoc = node->xLoc >> 1;
+//	const int yLoc = node->yLoc >> 1;
+//	auto parent = m_qtree.GetNode(node->level-1, xLoc, yLoc);
+//	return GetMaximumHeight(parent);
+//}
 
 
 // 다른 레벨의 쿼드가 인접해 있을 때, 테셀레이션을 이용해서, 마주보는 엣지의 버텍스 갯수를 맞춰준다.

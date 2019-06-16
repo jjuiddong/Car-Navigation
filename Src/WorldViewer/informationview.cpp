@@ -1,7 +1,7 @@
 
 #include "stdafx.h"
 #include "informationview.h"
-#include "worldviewer.h"
+#include "carnavi.h"
 #include "mapview.h"
 
 using namespace graphic;
