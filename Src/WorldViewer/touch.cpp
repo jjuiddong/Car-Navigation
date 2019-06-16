@@ -89,6 +89,14 @@ bool cTouch::SetTouchMode(const HWND hwnd)
 {
 	if (eTouchType::Mouse == m_type)
 		return false;
-
 	return RegisterTouchWindow(hwnd, 0) ? true : false;
+}
+
+
+bool cTouch::SetGestureMode(const HWND hwnd)
+{
+	if (eTouchType::Mouse == m_type)
+		return false;
+	UnregisterTouchWindow(hwnd);
+	return true;
 }

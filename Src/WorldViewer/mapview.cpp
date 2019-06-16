@@ -70,6 +70,8 @@ void cMapView::OnUpdate(const float deltaSeconds)
 		m_quadTree.Update(GetRenderer(), camLonLat, deltaSeconds);
 	m_camera.Update(deltaSeconds);
 
+	g_global->m_touch.CheckTouchType(m_owner->getSystemHandle());
+
 	UpdateGPS();
 	UpdateMapScanning(deltaSeconds);
 }
@@ -656,6 +658,8 @@ void cMapView::OnGestured(const int id, const POINT mousePt)
 	case GID_PRESSANDTAP:
 		if (g_global->m_touch.IsGestureMode(m_owner->getSystemHandle()))
 			g_global->m_touch.SetTouchMode(m_owner->getSystemHandle());
+		else
+			g_global->m_touch.SetGestureMode(m_owner->getSystemHandle());
 		break;
 	}
 }

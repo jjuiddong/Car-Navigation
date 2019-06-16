@@ -25,6 +25,7 @@ public:
 	bool IsGestureMode(const HWND hwnd);
 	eTouchType CheckTouchType(const HWND hwnd);
 	bool SetTouchMode(const HWND hwnd);
+	bool SetGestureMode(const HWND hwnd);
 
 
 public:
