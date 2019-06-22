@@ -11,6 +11,24 @@ using namespace framework;
 cNavigationView::cNavigationView(const StrId &name)
 	: framework::cDockWindow(name)
 {
+
+	// 시리얼 포트 열거, 콤보 박스 문자열로 변환한다.
+	common::EnumCOMPort(m_ports);
+	string str;
+	for (auto &port : m_ports)
+	{
+		StrId id = port.second;
+		str += id.utf8().c_str();
+		str += "^";
+	}
+	if (str.length() < m_comboStr.SIZE)
+	{
+		memcpy(m_comboStr.m_str, str.c_str(), str.length());
+		for (auto &c : m_comboStr.m_str)
+			if (c == '^')
+				c = '\0';
+	}
+
 }
 
 cNavigationView::~cNavigationView()
@@ -34,33 +52,68 @@ void cNavigationView::OnRender(const float deltaSeconds)
 	ImGui::Text(g_global->m_touch.IsTouchMode() ? "Touch Mode" : "Gesture Mode");
 	ImGui::PopStyleColor();
 
-	if (gpsClient.IsReadyConnect())
-	{
-		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1, 1, 0, 1));
-		ImGui::Text("Try Connect...");
-		ImGui::PopStyleColor();
-	}
-	else if (gpsClient.IsConnect())
-	{
-		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1, 1, 0, 1));
-		ImGui::Text("Success Connect GPS Server");
-		ImGui::PopStyleColor();
-	}
-	else
-	{
-		ImGui::Text("GPS Server IP/Port");
-		ImGui::InputText("IP", gpsClient.m_ip.m_str, gpsClient.m_ip.SIZE);
-		ImGui::InputInt("Port", &gpsClient.m_port);
+	ImGui::RadioButton("Serial", (int*)&gpsClient.m_inputType
+		, (int)cGpsClient::eInputType::Serial);
+	ImGui::SameLine();
+	ImGui::RadioButton("Network", (int*)&gpsClient.m_inputType
+		, (int)cGpsClient::eInputType::Network);
 
-		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0.6f, 0.f, 1));
-		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0, 0.8f, 0.f, 1));
-		ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0, 0.4f, 0.f, 1));
-		if (ImGui::Button("Connnect"))
+	if (cGpsClient::eInputType::Serial == gpsClient.m_inputType)
+	{
+		static int com = 0;
+		ImGui::Text("Serial");
+		ImGui::PushItemWidth(70);
+		ImGui::Combo("Port", &com, m_comboStr.c_str());
+		ImGui::SameLine();
+		ImGui::PopItemWidth();
+
+		if (gpsClient.m_serial.IsOpen())
 		{
-			gpsClient.ConnectGpsServer(gpsClient.m_ip.c_str(), gpsClient.m_port);
+			if (ImGui::Button("Close"))
+				gpsClient.m_serial.Close();
 		}
-		ImGui::PopStyleColor(3);
+		else
+		{
+			if (ImGui::Button("Open"))
+			{
+				if (gpsClient.m_serial.Open(m_ports[com].first, 9600))
+				{
+					int a = 0;
+				}
+			}
+		}
 	}
+	else if (cGpsClient::eInputType::Network == gpsClient.m_inputType)
+	{
+		if (gpsClient.IsReadyConnect())
+		{
+			ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1, 1, 0, 1));
+			ImGui::Text("Try Connect...");
+			ImGui::PopStyleColor();
+		}
+		else if (gpsClient.IsConnect())
+		{
+			ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1, 1, 0, 1));
+			ImGui::Text("Success Connect GPS Server");
+			ImGui::PopStyleColor();
+		}
+		else
+		{
+			ImGui::Text("GPS Server IP/Port");
+			ImGui::InputText("IP", gpsClient.m_ip.m_str, gpsClient.m_ip.SIZE);
+			ImGui::InputInt("Port", &gpsClient.m_port);
+
+			ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0.6f, 0.f, 1));
+			ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0, 0.8f, 0.f, 1));
+			ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0, 0.4f, 0.f, 1));
+			if (ImGui::Button("Connnect"))
+			{
+				gpsClient.ConnectGpsServer(gpsClient.m_ip.c_str(), gpsClient.m_port);
+			}
+			ImGui::PopStyleColor(3);
+		}
+	}
+
 	ImGui::Spacing();
 	ImGui::Separator();
 	ImGui::Spacing();

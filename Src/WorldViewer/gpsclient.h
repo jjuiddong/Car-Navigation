@@ -31,12 +31,17 @@ public:
 	enum class eState {
 		Server, PathFile, GpsFile
 	};
+	enum class eInputType {
+		Network, Serial
+	};
 
 	eState m_state;
+	eInputType m_inputType;
 	cTimer m_timer;
 	Str16 m_ip;
 	int m_port;
 	network2::cTcpClient m_client;
+	common::cSerialAsync m_serial;
 	Str512 m_recvStr;
 	int m_recvCount;
 	double m_recvTime;

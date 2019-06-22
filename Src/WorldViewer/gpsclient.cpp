@@ -13,6 +13,7 @@ cGpsClient::cGpsClient()
 	, m_recvTime(0)
 	, m_recvCount(0)
 	, m_fileAnimationIdx(0)
+	, m_inputType(eInputType::Serial)
 {
 	m_timer.Create();
 	m_paths.reserve(1024);
@@ -55,28 +56,57 @@ bool cGpsClient::GetGpsInfo(OUT gis::sGPRMC &out)
 		return false;
 	}
 
-	// 일정시간동안 패킷을 받지못했다면 커넥션을 끊는다.
+	// 일정시간동안 패킷을 받지못했다면 커넥션을 끊는다. (Network type)
 	const double curT = m_timer.GetSeconds();
 	if (m_recvTime == 0.f)
 		m_recvTime = curT;
 
-	network2::cPacket packet(m_client.m_packetHeader);
-	if (!m_client.m_recvQueue.Front(packet))
+	switch (m_inputType)
 	{
-		if (curT - m_recvTime > ALIVE_TIME)
-			m_client.Close();
-		return false;
-	}
+	case eInputType::Network:
+	{
+		network2::cPacket packet(m_client.m_packetHeader);
+		if (!m_client.m_recvQueue.Front(packet))
+		{
+			if (curT - m_recvTime > ALIVE_TIME)
+				m_client.Close();
+			return false;
+		}
 
-	m_recvTime = curT;
-	m_recvCount++;
-	memcpy(m_recvStr.m_str, packet.m_data, min(m_recvStr.SIZE, (uint)packet.m_writeIdx));
+		m_recvTime = curT;
+		m_recvCount++;
+		memcpy(m_recvStr.m_str, packet.m_data, min(m_recvStr.SIZE, (uint)packet.m_writeIdx));
+	}
+	break;
+
+	case eInputType::Serial:
+	{
+		int len = 0;
+		const bool result = m_serial.m_serial.ReadStringUntil('\n'
+			, m_recvStr.m_str, len, m_recvStr.SIZE);
+		if (result && (len > 0))
+		{
+			if (m_recvStr.SIZE > (unsigned int)len)
+				m_recvStr.m_str[len] = NULL;
+
+			m_recvTime = curT;
+			m_recvCount++;
+		}
+		else
+		{
+			//if (curT - m_recvTime > ALIVE_TIME)
+			//	m_serial.Close();
+			return false;
+		}
+	}
+	break;
+
+	default: assert(0); break;
+	}
 
 	dbg::Logp2("gps.txt", m_recvStr.c_str());
 	
 	const bool result = ParseStr(m_recvStr, out);
-	//if (result)
-	//	m_paths.push_back({ common::GetCurrentDateTime3(), out.lonLat });
 	return result;
 }
 
@@ -128,7 +158,15 @@ bool cGpsClient::GetGpsInfoFromFile(OUT gis::sGPRMC &out)
 
 bool cGpsClient::IsConnect()
 {
-	return m_client.IsConnect();
+	switch (m_inputType)
+	{
+	case eInputType::Network:
+		return m_client.IsConnect();
+	case eInputType::Serial:
+		return m_serial.IsOpen();
+	default: assert(0); break;
+	}
+	return false;
 }
 
 
