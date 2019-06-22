@@ -10,7 +10,6 @@ cMapView::cMapView(const string &name)
 	: framework::cDockWindow(name)
 	, m_groundPlane1(Vector3(0, 1, 0), 0)
 	, m_groundPlane2(Vector3(0, -1, 0), 0)
-	, m_showGround(false)
 	, m_showWireframe(false)
 	, m_lookAtDistance(0)
 	, m_lookAtYVector(0)
@@ -39,8 +38,6 @@ bool cMapView::Init(cRenderer &renderer)
 	vp.m_vp.Height = (float)size.y;
 	m_renderTarget.Create(renderer, vp, DXGI_FORMAT_R8G8B8A8_UNORM, true, true
 		, DXGI_FORMAT_D24_UNORM_S8_UINT);
-
-	m_ground.Create(renderer, 100, 100, 10, 10);
 
 	if (!m_quadTree.Create(renderer, true))
 		return false;
@@ -182,57 +179,34 @@ void cMapView::UpdateGPS()
 
 
 // 카메라를 이동하면서 파일을 다운로드 받는다.
+// 카메라 위치로 위경도를 파악하고, 특정 범위안에서 움직이도록 한다.
 void cMapView::UpdateMapScanning(const float deltaSeconds)
 {
 	if (!g_global->m_isMapScanning)
 		return;
 
-	// 카메라 위치로 위경도를 파악하고, 특정 범위안에서 움직이도록 한다.
+	// 파일을 다운로드 중이라면 대기한다.
+	if (m_quadTree.m_tileMgr.m_vworldDownloader.m_requestIds.size() > 0)
+		return;
+
+	Vector3 curPos = g_global->m_scanPos;
+	curPos.y = 0;
+
+	Vector3 eyePos = curPos;
+	eyePos.y = g_global->m_scanHeight;
+
+	const Vector3 nextPos = curPos + g_global->m_scanDir * g_global->m_scanSpeed;
+	const Vector3 lookAt = curPos + g_global->m_scanDir * 30.f;
 	
-	// 스캔할 범위 위경도 좌표
-	const Vector2d leftTop = g_global->m_scanLeftTop;
-	const Vector2d rightBottom = g_global->m_scanRightBottom;
-	const Vector3 lookAt = m_camera.GetLookAt();
-	const Vector2d longLat = m_quadTree.GetWGS84(lookAt);
-	const float speed = g_global->m_scanSpeed;
-	const float lineOffset = g_global->m_scanLineOffset;
+	m_camera.SetCamera(eyePos, lookAt, Vector3(0, 1, 0));
 
-	// check horizontal moving
-	if (g_global->m_isMoveRight) // right move
-	{
-		if (longLat.x > rightBottom.x)
-		{
-			g_global->m_isMoveRight = false;
-			m_camera.MoveCancel();
-
-			const float len = m_camera.GetLookAt().Distance(m_camera.GetEyePos());
-			const Vector3 lt = m_quadTree.Get3DPos(leftTop - Vector2d(1.f, 0));
-			const Vector3 target(lt.x, 0, lookAt.z - lineOffset);
-			const Vector3 eyePos = target + Vector3(0, m_camera.GetEyePos().y, 0);
-			m_camera.Move(eyePos, target, speed);
-		}
-	}
-	else // left move
-	{
-		if (longLat.x < leftTop.x)
-		{
-			g_global->m_isMoveRight = true;
-			m_camera.MoveCancel();
-
-			const float len = m_camera.GetLookAt().Distance(m_camera.GetEyePos());
-			const Vector3 rb = m_quadTree.Get3DPos(rightBottom + Vector2d(1.f,0));
-			const Vector3 target(rb.x, 0, lookAt.z - lineOffset);
-			const Vector3 eyePos = target + Vector3(0, m_camera.GetEyePos().y, 0);
-			m_camera.Move(eyePos, target, speed);
-		}
-	}
-
-	// check vertical moving
-	if (longLat.y < rightBottom.y)
-	{
-		m_camera.MoveCancel();
-		g_global->m_isMapScanning = false;
-	}
+	Vector3 center = g_global->m_scanCenterPos;
+	Vector3 dir = (nextPos - center);
+	dir.y = 0.f;
+	dir.Normalize();
+	g_global->m_scanDir = Vector3(0, 1, 0).CrossProduct(dir).Normal();
+	g_global->m_scanDir += dir * 0.3f * deltaSeconds; // 조금씩 밖으로 방향을 튼다.
+	g_global->m_scanPos = nextPos;
 }
 
 
@@ -262,9 +236,6 @@ void cMapView::OnPreRender(const float deltaSeconds)
 			renderer.GetDevContext()->RSSetState(states.CullCounterClockwise());
 			m_skybox.Render(renderer);
 		}
-
-		if (m_showGround)
-			m_ground.Render(renderer);
 
 		const Ray ray1 = GetMainCamera().GetRay();
 		const Ray ray2 = GetMainCamera().GetRay(m_mousePos.x, m_mousePos.y);
@@ -732,23 +703,18 @@ void cMapView::OnMouseDown(const sf::Mouse::Button &button, const POINT mousePt)
 		const Ray ray = GetMainCamera().GetRay(mousePt.x, mousePt.y);
 		auto result = m_quadTree.Pick(ray);
 		Vector3 p1 = result.second;
-
-		m_rotateLen = (p1 - ray.orig).Length();// min(500.f, (p1 - ray.orig).Length());
+		m_rotateLen = (p1 - ray.orig).Length();
 
 		cAutoCam cam(&m_camera);
-		const Vector2d longLat = m_quadTree.GetWGS84(p1);
-		gis::LatLonToUTMXY(longLat.y, longLat.x, 52, g_root.m_utmLoc.x, g_root.m_utmLoc.y);
-		g_root.m_lonLat = Vector2((float)longLat.x, (float)longLat.y);
+		const Vector2d lonLat = m_quadTree.GetWGS84(p1);
+		gis::LatLonToUTMXY(lonLat.y, lonLat.x, 52, g_root.m_utmLoc.x, g_root.m_utmLoc.y);
+		g_root.m_lonLat = Vector2((float)lonLat.x, (float)lonLat.y);
 
-		if (eState::PICK_RANGE == m_state)
+		if (g_global->m_isSelectMapScanningCenter)
 		{
-			m_pickRange.push_back(longLat);
+			g_global->m_scanCenter = lonLat;
+			g_global->m_isSelectMapScanningCenter = false;
 		}
-
-		if (g_global->m_pickScanLeftTop)
-			g_global->m_scanLeftTop = longLat;
-		if (g_global->m_pickScanRightBottom)
-			g_global->m_scanRightBottom = longLat;
 	}
 	break;
 

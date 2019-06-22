@@ -11,7 +11,6 @@ enum class eAnalysisType : int
 	, GMain
 };
 
-
 #include "touch.h"
 
 
@@ -37,13 +36,14 @@ public:
 
 	// map scanning
 	bool m_isMapScanning; // 카메라를 정해진 경로로 움직일 때 true
-	bool m_isMoveRight;
-	bool m_pickScanLeftTop;
-	bool m_pickScanRightBottom;
-	Vector2d m_scanLeftTop;
-	Vector2d m_scanRightBottom;
+	bool m_isSelectMapScanningCenter; // 스캐닝 할 중점을 선택한다.
+	Vector2d m_scanCenter;
+	Vector3 m_scanCenterPos;
+	Vector3 m_scanPos;
+	Vector3 m_scanDir;
+	float m_scanRadius;
+	float m_scanHeight;
 	float m_scanSpeed; // m/s
-	float m_scanLineOffset; // meter
 
 	// analysis
 	eAnalysisType m_analysisType; //0:mapview, 1:terrain renderer

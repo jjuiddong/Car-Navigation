@@ -5,13 +5,7 @@
 
 cGlobal::cGlobal()
 	: m_isMapScanning(false)
-	, m_isMoveRight(false)
-	, m_pickScanLeftTop(false)
-	, m_pickScanRightBottom(false)
-	, m_scanLeftTop(125.646400f, 38.00f)
-	, m_scanRightBottom(129.657455f, 34.685825f)
-	, m_scanSpeed(10.f)
-	, m_scanLineOffset(30.f)
+	, m_isSelectMapScanningCenter(false)
 	, m_isShowGPS(true)
 	, m_isTraceGPSPos(true)
 	, m_isShowTerrain(true)
@@ -22,6 +16,9 @@ cGlobal::cGlobal()
 	, m_renderT1(0.f)
 	, m_renderT2(0.f)
 	, m_isShowMapView(true)
+	, m_scanRadius(1.f)
+	, m_scanHeight(10.f)
+	, m_scanSpeed(1.f)
 {
 	m_timer.Create();
 }

@@ -32,21 +32,11 @@ protected:
 
 
 public:
-	struct eState {
-		enum Enum {
-			NORMAL, PICK_RANGE,
-		};
-	};
-
-	eState::Enum m_state;
 	graphic::cSkyBoxCube m_skybox;
-	graphic::cGridLine m_ground;
 	graphic::cRenderTarget m_renderTarget;
-	vector<Vector2d> m_pickRange;
-
-	bool m_showGround;
-	bool m_showWireframe;
 	cTerrainQuadTree m_quadTree;
+
+	bool m_showWireframe;
 	float m_renderOverhead[5][500];
 	int m_graphIdx;
 
@@ -56,7 +46,6 @@ public:
 	float m_lookAtDistance;
 	float m_lookAtYVector;
 	Vector3 m_avrDir;
-
 	bool m_isGestureInput;
 
 	// MouseMove Variable

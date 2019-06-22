@@ -67,10 +67,11 @@ bool cViewer::OnInit()
 	assert(result);
 
 	m_naviView = new cNavigationView("Navigation View");
-	m_naviView->Create(eDockState::DOCKWINDOW, eDockSlot::LEFT, this, m_mapView, 0.15f, framework::eDockSizingOption::PIXEL);
+	m_naviView->Create(eDockState::DOCKWINDOW, eDockSlot::LEFT, this
+		, m_mapView, 0.35f, framework::eDockSizingOption::PIXEL);
 
-	//m_infoView = new cInformationView("Information View");
-	//m_infoView->Create(eDockState::DOCKWINDOW, eDockSlot::TAB, this, m_naviView);
+	m_infoView = new cInformationView("Information View");
+	m_infoView->Create(eDockState::DOCKWINDOW, eDockSlot::TAB, this, m_naviView);
 
 	//m_observerView = new cObserverView("Observer View");
 	//m_observerView->Create(eDockState::DOCKWINDOW, eDockSlot::BOTTOM, this, m_simView, 0.3f);// 0.6f, framework::eDockSizingOption::PIXEL);
