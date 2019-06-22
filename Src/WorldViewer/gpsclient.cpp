@@ -1,6 +1,8 @@
 
 #include "stdafx.h"
 #include "gpsclient.h"
+#include "carnavi.h"
+#include "mapview.h"
 
 
 cGpsClient::cGpsClient()
@@ -38,7 +40,14 @@ bool cGpsClient::GetGpsInfo(OUT gis::sGPRMC &out)
 	const float ALIVE_TIME = 10.f;
 
 	if (eState::PathFile == m_state)
+	{
+		cViewer *viewer = (cViewer*)g_application;
+		cTerrainQuadTree &terrain = viewer->m_mapView->m_quadTree;
+		if (terrain.m_tileMgr.m_vworldDownloader.m_requestIds.size() > 0)
+			return false;
+
 		return GetGpsInfoFromFile(out);
+	}
 
 	if (!IsConnect())
 	{
@@ -168,7 +177,9 @@ bool cGpsClient::ReadPathFile(const char *fileName)
 
 	int cnt = 0;
 	string line;
-	while (getline(ifs, line) && (cnt++ < 10000))
+	while (getline(ifs, line) 
+		//&& (cnt++ < 10000)
+		)
 	{
 		vector<string> out;
 		common::tokenizer(line, ",", "", out);
