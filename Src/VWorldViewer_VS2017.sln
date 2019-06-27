@@ -19,6 +19,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GIS", "GIS\GIS.vcxproj", "{
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Network2-VS2017", "..\..\Common\Network2\Network2-VS2017.vcxproj", "{B98E9721-F7A3-4E2D-A7A1-7708CB2D0D6E}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GpsParser", "GpsParser\GpsParser.vcxproj", "{9DA23EC0-BC9E-4418-A5B6-295082418A8A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug_MD|x64 = Debug_MD|x64
@@ -190,6 +192,26 @@ Global
 		{B98E9721-F7A3-4E2D-A7A1-7708CB2D0D6E}.Release|x64.Build.0 = Release|x64
 		{B98E9721-F7A3-4E2D-A7A1-7708CB2D0D6E}.Release|x86.ActiveCfg = Release|Win32
 		{B98E9721-F7A3-4E2D-A7A1-7708CB2D0D6E}.Release|x86.Build.0 = Release|Win32
+		{9DA23EC0-BC9E-4418-A5B6-295082418A8A}.Debug_MD|x64.ActiveCfg = Debug|x64
+		{9DA23EC0-BC9E-4418-A5B6-295082418A8A}.Debug_MD|x64.Build.0 = Debug|x64
+		{9DA23EC0-BC9E-4418-A5B6-295082418A8A}.Debug_MD|x86.ActiveCfg = Debug|Win32
+		{9DA23EC0-BC9E-4418-A5B6-295082418A8A}.Debug_MD|x86.Build.0 = Debug|Win32
+		{9DA23EC0-BC9E-4418-A5B6-295082418A8A}.Debug_MT|x64.ActiveCfg = Debug|x64
+		{9DA23EC0-BC9E-4418-A5B6-295082418A8A}.Debug_MT|x64.Build.0 = Debug|x64
+		{9DA23EC0-BC9E-4418-A5B6-295082418A8A}.Debug_MT|x86.ActiveCfg = Debug|Win32
+		{9DA23EC0-BC9E-4418-A5B6-295082418A8A}.Debug_MT|x86.Build.0 = Debug|Win32
+		{9DA23EC0-BC9E-4418-A5B6-295082418A8A}.Debug|x64.ActiveCfg = Debug|x64
+		{9DA23EC0-BC9E-4418-A5B6-295082418A8A}.Debug|x64.Build.0 = Debug|x64
+		{9DA23EC0-BC9E-4418-A5B6-295082418A8A}.Debug|x86.ActiveCfg = Debug|Win32
+		{9DA23EC0-BC9E-4418-A5B6-295082418A8A}.Debug|x86.Build.0 = Debug|Win32
+		{9DA23EC0-BC9E-4418-A5B6-295082418A8A}.Release_MD|x64.ActiveCfg = Release|x64
+		{9DA23EC0-BC9E-4418-A5B6-295082418A8A}.Release_MD|x64.Build.0 = Release|x64
+		{9DA23EC0-BC9E-4418-A5B6-295082418A8A}.Release_MD|x86.ActiveCfg = Release|Win32
+		{9DA23EC0-BC9E-4418-A5B6-295082418A8A}.Release_MD|x86.Build.0 = Release|Win32
+		{9DA23EC0-BC9E-4418-A5B6-295082418A8A}.Release|x64.ActiveCfg = Release|x64
+		{9DA23EC0-BC9E-4418-A5B6-295082418A8A}.Release|x64.Build.0 = Release|x64
+		{9DA23EC0-BC9E-4418-A5B6-295082418A8A}.Release|x86.ActiveCfg = Release|Win32
+		{9DA23EC0-BC9E-4418-A5B6-295082418A8A}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

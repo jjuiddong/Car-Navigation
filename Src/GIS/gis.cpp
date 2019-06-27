@@ -137,6 +137,15 @@ float gis::Meter23DUnit(const float meter)
 // https://drkein.tistory.com/113
 // lat: 37 + 37.084380/60
 // lon: 126 + 50.121679/60
+// date: 
+//		- DDMMYY
+//		- year: 2019
+//		- month: 05
+//		- day : 19
+//		HHMMSS.SS
+//		- hour: 10
+//		- min: 39
+//		- sec: 6.0
 // return : x=longitude, y=latitude
 bool gis::GetGPRMCLonLat(const Str512 &gprmc, OUT sGPRMC &out)
 {
@@ -184,6 +193,74 @@ bool gis::GetGPRMCLonLat(const Str512 &gprmc, OUT sGPRMC &out)
 	out.speed = (float)atof(strs[7].c_str()) * 1.8f;
 	out.angle = (float)atof(strs[8].c_str());
 	out.north = (float)atof(strs[10].c_str());
+
+	// date
+	out.date = 0;
+	{
+		// hhmmss.ss
+		int h = 0, m = 0, s = 0, mm = 0;
+		const char *p = strs[1].c_str();
+		if (*p)
+			h = (int)(*p - '0') * 10;
+		++p;
+		if (*p)
+			h += (int)(*p - '0') * 1;
+		++p;
+		if (*p)
+			m = (int)(*p - '0') * 10;
+		++p;
+		if (*p)
+			m += (int)(*p - '0') * 1;
+		++p;
+		if (*p)
+			s = (int)(*p - '0') * 10;
+		++p;
+		if (*p)
+			s += (int)(*p - '0') * 1;
+
+		++p;
+		if (*p && (*p == '.'))
+		{
+			++p;
+			if (*p)
+				mm = (int)(*p - '0') * 100;
+			++p;
+			if (*p)
+				mm += (int)(*p - '0') * 10;
+		}
+
+		out.date += (uint64)h * 10000000;
+		out.date += (uint64)m * 100000;
+		out.date += (uint64)s * 1000;
+		out.date += (uint64)mm * 1;
+	}
+
+	{
+		// DDMMYY
+		int Y = 0, M = 0, D = 0;
+		const char *p = strs[9].c_str();
+		if (*p)
+			D = (int)(*p - '0') * 10;
+		++p;
+		if (*p)
+			D += (int)(*p - '0') * 1;
+		++p;
+		if (*p)
+			M = (int)(*p - '0') * 10;
+		++p;
+		if (*p)
+			M += (int)(*p - '0') * 1;
+		++p;
+		if (*p)
+			Y = (int)(*p - '0') * 10;
+		++p;
+		if (*p)
+			Y += (int)(*p - '0') * 1;
+
+		out.date += (uint64)Y * 10000000000000 + 20000000000000000;
+		out.date += (uint64)M * 100000000000;
+		out.date += (uint64)D * 1000000000;
+	}
 
 	return true;
 }
