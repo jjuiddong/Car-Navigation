@@ -99,7 +99,7 @@ void cMapView::UpdateGPS()
 	}
 
 	// path 로그 파일에 저장
-	if (g_global->m_gpsClient.IsServer())
+	if (g_global->m_gpsClient.IsConnect())
 	{
 		const string date = common::GetCurrentDateTime();
 		dbg::Logp2("path.txt", "%s, %.15f, %.15f\n"

@@ -46,6 +46,7 @@ cTerrainQuadTree::cTerrainQuadTree()
 	, m_t0(0)
 	, m_t1(0)
 	, m_t2(0)
+	, m_treeNodes(NULL)
 {
 	m_techName[0] = "Light";
 	m_techName[1] = "NoTexture";
@@ -960,4 +961,5 @@ std::pair<bool, Vector3> cTerrainQuadTree::Pick(const Ray &ray)
 void cTerrainQuadTree::Clear()
 {
 	m_tileMgr.Clear();
+	SAFE_DELETEA(m_treeNodes);
 }
