@@ -76,7 +76,8 @@ void cNavigationView::OnRender(const float deltaSeconds)
 		{
 			if (ImGui::Button("Open"))
 			{
-				if (gpsClient.m_serial.Open(m_ports[com].first, 9600))
+				if (((int)m_ports.size() > com)
+					&& gpsClient.m_serial.Open(m_ports[com].first, 9600))
 				{
 					int a = 0;
 				}
