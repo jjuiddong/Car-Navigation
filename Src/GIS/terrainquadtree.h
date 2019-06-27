@@ -71,7 +71,7 @@ public:
 	int m_distributeType; //0=texture, 1=heightmap
 	vector<Vector3> m_resTDistribute; // texture
 	vector<Vector3> m_resHDistribute; // heightmap
-	sQuadTreeNode<sQuadData> *m_treeNodes; // reserved nodes
+	sQuadTreeNode<sQuadData> *m_nodeBuffer; // reserved tree nodes
 
 	bool m_isShowTexture;
 	bool m_isShowFacility;

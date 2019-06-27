@@ -44,6 +44,7 @@ public:
 	bool Insert(sQuadTreeNode<T> *node);
 	bool Remove(sQuadTreeNode<T> *node, const bool isRmTree = true);
 	bool InsertChildren(sQuadTreeNode<T> *node);
+	bool InsertChildren(sQuadTreeNode<T> *node, sQuadTreeNode<T> *child[4]);
 	bool RemoveChildren(sQuadTreeNode<T> *node, const bool isRmTree = true);
 	sQuadTreeNode<T>* GetNode(const sRectf &rect);
 	sQuadTreeNode<T>* GetNode(const int level, const int xLoc, const int yLoc);
@@ -57,7 +58,7 @@ public:
 	Vector3 GetGlobalPos(const Vector3 &relPos) const;
 	Vector3 GetRelationPos(const Vector3 &globalPos) const;
 	static __int64 MakeKey(const int level, const int xLoc, const int yLoc);
-	void Clear();
+	void Clear(const bool isRmTree = true);
 
 
 public:
@@ -149,9 +150,24 @@ inline bool cQuadTree<T>::Remove(sQuadTreeNode<T> *node
 }
 
 
-// node의 chilren에 node를 추가한다.
+// node의 children에 node를 추가한다.
 template<class T>
 inline bool cQuadTree<T>::InsertChildren(sQuadTreeNode<T> *node)
+{
+	RETV((node->level + 1) >= MAX_LEVEL, false);
+
+	sQuadTreeNode<T> *p0 = new sQuadTreeNode<T>;
+	sQuadTreeNode<T> *p1 = new sQuadTreeNode<T>;
+	sQuadTreeNode<T> *p2 = new sQuadTreeNode<T>;
+	sQuadTreeNode<T> *p3 = new sQuadTreeNode<T>;
+	sQuadTreeNode<T> *pp[4] = { p0, p1, p2, p3 };
+	return InsertChildren(node, pp);
+}
+
+
+// node의 children에 node를 추가한다.
+template<class T>
+inline bool cQuadTree<T>::InsertChildren(sQuadTreeNode<T> *node, sQuadTreeNode<T> *child[4])
 {
 	RETV((node->level + 1) >= MAX_LEVEL, false);
 
@@ -159,7 +175,7 @@ inline bool cQuadTree<T>::InsertChildren(sQuadTreeNode<T> *node)
 
 	for (int i = 0; i < 4; ++i)
 	{
-		sQuadTreeNode<T> *p = new sQuadTreeNode<T>;
+		sQuadTreeNode<T> *p = child[i];
 		p->xLoc = (node->xLoc << 1) + locs[i * 2];
 		p->yLoc = (node->yLoc << 1) + locs[i * 2 + 1];
 		p->level = node->level + 1;
@@ -399,12 +415,15 @@ inline Vector3 cQuadTree<T>::GetRelationPos(const Vector3 &globalPos) const
 
 
 template<class T>
-inline void cQuadTree<T>::Clear()
+inline void cQuadTree<T>::Clear(
+	const bool isRmTree //= true
+)
 {
 	for (int i = 0; i < MAX_LEVEL; ++i)
 	{
 		for (auto kv : m_nodeTable[i])
-			delete kv.second;
+			if (isRmTree)
+				delete kv.second;
 		m_nodeTable[i].clear();
 	}
 	m_roots.clear();

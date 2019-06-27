@@ -46,7 +46,7 @@ cTerrainQuadTree::cTerrainQuadTree()
 	, m_t0(0)
 	, m_t1(0)
 	, m_t2(0)
-	, m_treeNodes(NULL)
+	, m_nodeBuffer(NULL)
 {
 	m_techName[0] = "Light";
 	m_techName[1] = "NoTexture";
@@ -54,6 +54,8 @@ cTerrainQuadTree::cTerrainQuadTree()
 	m_techName[3] = "Light_Heightmap";
 	m_techName[4] = "Unlit";
 	m_txtColor = Vector3(1, 0, 0);
+
+	m_nodeBuffer = new sQuadTreeNode<sQuadData>[1024];
 }
 
 cTerrainQuadTree::cTerrainQuadTree(sRectf &rect)
@@ -166,13 +168,24 @@ void cTerrainQuadTree::Render(graphic::cRenderer &renderer
 void cTerrainQuadTree::BuildQuadTree(const graphic::cFrustum &frustum
 	, const Ray &ray)
 {
-	m_qtree.Clear();
+	m_qtree.Clear(false);
+	for (int i = 0; i < 1024; ++i)
+	{
+		m_nodeBuffer[i].parent = NULL;
+		m_nodeBuffer[i].children[0] = NULL;
+		m_nodeBuffer[i].children[1] = NULL;
+		m_nodeBuffer[i].children[2] = NULL;
+		m_nodeBuffer[i].children[3] = NULL;
+		m_nodeBuffer[i].data.tile = NULL;
+	}
 
+	int nodeCnt = 0;
 	for (int x = 0; x < 10; ++x)
 	{
 		for (int y = 0; y < 5; ++y)
 		{
-			sQuadTreeNode<sQuadData> *node = new sQuadTreeNode<sQuadData>;
+			//sQuadTreeNode<sQuadData> *node = new sQuadTreeNode<sQuadData>;
+			sQuadTreeNode<sQuadData> *node = &m_nodeBuffer[nodeCnt++];
 			node->xLoc = x;
 			node->yLoc = y;
 			node->level = 0;
@@ -238,7 +251,14 @@ void cTerrainQuadTree::BuildQuadTree(const graphic::cFrustum &frustum
 		if (isSkipThisNode && !isChildShow)
 			continue;
 
-		m_qtree.InsertChildren(parentNode);
+		sQuadTreeNode<sQuadData> *pp[4] = { &m_nodeBuffer[nodeCnt]
+			, &m_nodeBuffer[nodeCnt + 1]
+			, &m_nodeBuffer[nodeCnt + 2]
+			, &m_nodeBuffer[nodeCnt + 3] };
+		m_qtree.InsertChildren(parentNode, pp);
+		nodeCnt += 4;
+
+		//m_qtree.InsertChildren(parentNode);
 
 		g_stack[sp++] = { sRectf::Rect(rect.left, rect.top, hw, hh), lv+1, parentNode->children[0] };
 		g_stack[sp++] = { sRectf::Rect(rect.left + hw, rect.top, hw, hh), lv+1, parentNode->children[1] };
@@ -961,5 +981,6 @@ std::pair<bool, Vector3> cTerrainQuadTree::Pick(const Ray &ray)
 void cTerrainQuadTree::Clear()
 {
 	m_tileMgr.Clear();
-	SAFE_DELETEA(m_treeNodes);
+	m_qtree.Clear(false);
+	SAFE_DELETEA(m_nodeBuffer);
 }
