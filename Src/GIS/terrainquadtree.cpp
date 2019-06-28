@@ -164,7 +164,6 @@ void cTerrainQuadTree::Render(graphic::cRenderer &renderer
 }
 
 
-
 void cTerrainQuadTree::BuildQuadTree(const graphic::cFrustum &frustum
 	, const Ray &ray)
 {
@@ -303,20 +302,6 @@ void cTerrainQuadTree::RenderTessellation(graphic::cRenderer &renderer
 	{
 		sQuadTreeNode<sQuadData> *node = g_stack[sp - 1].node;
 		--sp;
-
-		if ((node->level == 12)
-			&& (node->xLoc == 70081 / 2)
-			&& (node->yLoc == 28878 / 2))
-		{
-			int a = 0;
-		}
-
-		if ((node->level == 13)
-			&& (node->xLoc == 70081)
-			&& (node->yLoc == 28878))
-		{
-			int a = 0;
-		}
 
 		const float maxH = node? m_tileMgr.GetMaximumHeight(node->level
 			, node->xLoc, node->yLoc) : cHeightmap::DEFAULT_H;
