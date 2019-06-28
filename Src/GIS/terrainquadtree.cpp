@@ -55,7 +55,7 @@ cTerrainQuadTree::cTerrainQuadTree()
 	m_techName[4] = "Unlit";
 	m_txtColor = Vector3(1, 0, 0);
 
-	m_nodeBuffer = new sQuadTreeNode<sQuadData>[1024];
+	m_nodeBuffer = new sQuadTreeNode<sQuadData>[1024 * 2];
 }
 
 cTerrainQuadTree::cTerrainQuadTree(sRectf &rect)
@@ -169,7 +169,7 @@ void cTerrainQuadTree::BuildQuadTree(const graphic::cFrustum &frustum
 	, const Ray &ray)
 {
 	m_qtree.Clear(false);
-	for (int i = 0; i < 1024; ++i)
+	for (int i = 0; i < 50; ++i)
 	{
 		m_nodeBuffer[i].parent = NULL;
 		m_nodeBuffer[i].children[0] = NULL;
@@ -184,7 +184,6 @@ void cTerrainQuadTree::BuildQuadTree(const graphic::cFrustum &frustum
 	{
 		for (int y = 0; y < 5; ++y)
 		{
-			//sQuadTreeNode<sQuadData> *node = new sQuadTreeNode<sQuadData>;
 			sQuadTreeNode<sQuadData> *node = &m_nodeBuffer[nodeCnt++];
 			node->xLoc = x;
 			node->yLoc = y;
@@ -250,6 +249,16 @@ void cTerrainQuadTree::BuildQuadTree(const graphic::cFrustum &frustum
 
 		if (isSkipThisNode && !isChildShow)
 			continue;
+
+		for (int i = nodeCnt; i < nodeCnt + 4; ++i)
+		{
+			m_nodeBuffer[i].parent = NULL;
+			m_nodeBuffer[i].children[0] = NULL;
+			m_nodeBuffer[i].children[1] = NULL;
+			m_nodeBuffer[i].children[2] = NULL;
+			m_nodeBuffer[i].children[3] = NULL;
+			m_nodeBuffer[i].data.tile = NULL;
+		}
 
 		sQuadTreeNode<sQuadData> *pp[4] = { &m_nodeBuffer[nodeCnt]
 			, &m_nodeBuffer[nodeCnt + 1]
