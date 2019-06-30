@@ -23,6 +23,7 @@ public:
 protected:
 	void UpdateGPS();
 	void UpdateMapScanning(const float deltaSeconds);
+	void UpdateCameraTraceLookat(const bool isUpdateDistance = true);
 	void UpdateLookAt();
 	void OnWheelMove(const float delta, const POINT mousePt);
 	void OnMouseMove(const POINT mousePt);
@@ -35,6 +36,7 @@ public:
 	graphic::cSkyBoxCube m_skybox;
 	graphic::cRenderTarget m_renderTarget;
 	cTerrainQuadTree m_quadTree;
+	StrPath m_pathFilename;
 
 	bool m_showWireframe;
 	float m_renderOverhead[5][500];

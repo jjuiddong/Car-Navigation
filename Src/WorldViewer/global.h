@@ -14,6 +14,10 @@ enum class eAnalysisType : int
 #include "touch.h"
 
 
+class cMapView;
+class cInformationView;
+class cNavigationView;
+
 class cGlobal
 {
 public:
@@ -22,6 +26,11 @@ public:
 
 
 public:
+	// view
+	cMapView *m_mapView;
+	cInformationView *m_infoView;
+	cNavigationView *m_naviView;
+
 	cTouch m_touch;
 	cGpsClient m_gpsClient;
 
@@ -44,6 +53,9 @@ public:
 	float m_scanRadius;
 	float m_scanHeight;
 	float m_scanSpeed; // m/s
+
+	// path
+	graphic::cDbgLineList m_lineList;
 
 	// analysis
 	eAnalysisType m_analysisType; //0:mapview, 1:terrain renderer

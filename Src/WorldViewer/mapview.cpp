@@ -54,6 +54,10 @@ bool cMapView::Init(cRenderer &renderer)
 	m_curPosObj.Create(renderer, 1.f, 10, 10
 		, (eVertexType::POSITION | eVertexType::NORMAL), cColor::RED);
 
+	// 날짜 단위로 path 경로 로그를 저장한다.
+	m_pathFilename = "path_";
+	m_pathFilename += common::GetCurrentDateTime4();
+	m_pathFilename += ".txt";
 	return true;
 }
 
@@ -94,7 +98,7 @@ void cMapView::UpdateGPS()
 
 	if (m_lookAtDistance == 0)
 	{
-		m_lookAtDistance = min(100, m_camera.GetEyePos().Distance(m_camera.GetLookAt()));
+		m_lookAtDistance = min(50, m_camera.GetEyePos().Distance(m_camera.GetLookAt()));
 		m_lookAtYVector = m_camera.GetDirection().y;
 	}
 
@@ -102,7 +106,7 @@ void cMapView::UpdateGPS()
 	if (g_global->m_gpsClient.IsConnect())
 	{
 		const string date = common::GetCurrentDateTime();
-		dbg::Logp2("path.txt", "%s, %.15f, %.15f\n"
+		dbg::Logp2(m_pathFilename.c_str(), "%s, %.15f, %.15f\n"
 			, date.c_str(), m_curGpsPos.x, m_curGpsPos.y);
 	}
 
@@ -124,8 +128,8 @@ void cMapView::UpdateGPS()
 		// 나머지 n2개 50% 가중치
 		const int n1 = 5;
 		const int n2 = 5;
-		const float r1 = 50.f / (float)n1;
-		const float r2 = 50.f / (float)n2;
+		const float r1 = 80.f / (float)n1;
+		const float r2 = 20.f / (float)n2;
 
 		int cnt = 0;
 		auto &track = g_global->m_gpsClient.m_paths;
@@ -147,34 +151,29 @@ void cMapView::UpdateGPS()
 		m_avrDir = avrDir;
 	}
 
+	Vector3 dir = avrDir;
+	dir.y = m_lookAtYVector;
+	const float lookAtDis = pos.Distance(m_camera.GetEyePos());
+	const float offsetY = max(1.f, min(8.f, (lookAtDis - 25.f) * 0.2f));
+	const Vector3 lookAtPos = pos + Vector3(0, offsetY, 0);
+	const Vector3 newEyePos = lookAtPos + dir * -m_lookAtDistance;
+	float cameraSpeed = 30.f;
+	const float eyeDistance = newEyePos.Distance(m_camera.GetEyePos());
+	if (eyeDistance > m_lookAtDistance * 3)
+		cameraSpeed = eyeDistance * 1.f;
+
 	if (oldPos.Distance(pos) > MIN_LENGTH)
 	{
-		Vector3 dir = avrDir;
-		dir.y = m_lookAtYVector;
-		const Vector3 newEyePos = pos + dir * -m_lookAtDistance;
-
-		float cameraSpeed = 30.f;
-		if (newEyePos.Distance(m_camera.GetEyePos()) > m_lookAtDistance * 3)
-			cameraSpeed = 3000.f;
-
 		// 제스처 입력 시에는 카메라를 자동으로 움직이지 않는다.
 		if (isTraceGPSPos)
-			m_camera.Move(newEyePos, pos, cameraSpeed);
+			m_camera.Move(newEyePos, lookAtPos, cameraSpeed);
 
 		oldGpsPos = m_curGpsPos;
 		oldEyePos = newEyePos;
 	}
 	else if (isTraceGPSPos)
 	{
-		Vector3 dir = avrDir;
-		dir.y = m_lookAtYVector;
-		const Vector3 newEyePos = pos + dir * -m_lookAtDistance;
-
-		float cameraSpeed = 30.f;
-		if (newEyePos.Distance(m_camera.GetEyePos()) > m_lookAtDistance * 3)
-			cameraSpeed = 3000.f;
-
-		m_camera.Move(oldEyePos, pos, cameraSpeed);
+		m_camera.Move(oldEyePos, lookAtPos, cameraSpeed);
 	}
 
 	// 이동궤적 저장
@@ -594,13 +593,22 @@ void cMapView::OnWheelMove(const float delta, const POINT mousePt)
 		m_camera.SetEyePos(newPos);
 	}
 
-	// 이동 경로와의 거리를 업데이트 한다.
-	// 이 거리를 유지하면서 GPS 좌표를 추적한다.
+	UpdateCameraTraceLookat();
+}
+
+
+// 이동 경로와의 거리를 업데이트 한다.
+// 이 거리를 유지하면서 GPS 좌표를 추적한다.
+void cMapView::UpdateCameraTraceLookat(
+	const bool isUpdateDistance //=true
+)
+{
 	auto &track = g_global->m_gpsClient.m_paths;
 	if (g_global->m_isTraceGPSPos && !track.empty())
 	{
 		const Vector3 p0 = m_quadTree.Get3DPos(track.back().lonLat);
-		m_lookAtDistance = min(100, m_camera.GetEyePos().Distance(p0));
+		if (isUpdateDistance)
+			m_lookAtDistance = min(50, m_camera.GetEyePos().Distance(p0));
 		m_lookAtYVector = m_camera.GetDirection().y;
 	}
 }
@@ -688,15 +696,7 @@ void cMapView::OnMouseMove(const POINT mousePt)
 		m_camera.SetEyePos(newPos);
 	}
 
-	// 이동 경로와의 거리를 업데이트 한다.
-	// 이 거리를 유지하면서 GPS 좌표를 추적한다.
-	auto &track = g_global->m_gpsClient.m_paths;
-	if (g_global->m_isTraceGPSPos && !track.empty())
-	{
-		const Vector3 p0 = m_quadTree.Get3DPos(track.back().lonLat);
-		m_lookAtDistance = min(100, m_camera.GetEyePos().Distance(p0));
-		m_lookAtYVector = m_camera.GetDirection().y;
-	}
+	UpdateCameraTraceLookat();
 }
 
 
@@ -786,10 +786,25 @@ void cMapView::OnEventProc(const sf::Event &evt)
 		}
 		break;
 
-		case sf::Keyboard::Left: m_camera.MoveRight2(-0.5f); break;
-		case sf::Keyboard::Right: m_camera.MoveRight2(0.5f); break;
-		case sf::Keyboard::Up: m_camera.MoveUp2(0.5f); break;
-		case sf::Keyboard::Down: m_camera.MoveUp2(-0.5f); break;
+		case sf::Keyboard::Left: 
+			m_camera.MoveRight2(-0.5f); 
+			UpdateCameraTraceLookat(false);
+			break;
+
+		case sf::Keyboard::Right: 
+			m_camera.MoveRight2(0.5f); 
+			UpdateCameraTraceLookat(false);
+			break;
+
+		case sf::Keyboard::Up: 
+			m_camera.MoveUp2(0.5f);
+			UpdateCameraTraceLookat(false);
+			break;
+
+		case sf::Keyboard::Down: 
+			m_camera.MoveUp2(-0.5f);
+			UpdateCameraTraceLookat(false);
+			break;
 		}
 		break;
 

@@ -61,6 +61,8 @@ bool cGpsClient::GetGpsInfo(OUT gis::sGPRMC &out)
 	if (m_recvTime == 0.f)
 		m_recvTime = curT;
 
+	bool isRead = false;
+
 	switch (m_inputType)
 	{
 	case eInputType::Network:
@@ -76,38 +78,49 @@ bool cGpsClient::GetGpsInfo(OUT gis::sGPRMC &out)
 		m_recvTime = curT;
 		m_recvCount++;
 		memcpy(m_recvStr.m_str, packet.m_data, min(m_recvStr.SIZE, (uint)packet.m_writeIdx));
+
+		dbg::Logp2("gps.txt", m_recvStr.c_str());
+
+		if (ParseStr(m_recvStr, out))
+			isRead = true;
 	}
 	break;
 
 	case eInputType::Serial:
 	{
-		int len = 0;
-		const bool result = m_serial.m_serial.ReadStringUntil('\n'
-			, m_recvStr.m_str, len, m_recvStr.SIZE);
-		if (result && (len > 0))
+		while (1)
 		{
+			int len = 0;
+			const bool result = m_serial.m_serial.ReadStringUntil('\n'
+				, m_recvStr.m_str, len, m_recvStr.SIZE);
+			if (!result || (len <= 0))
+				break;
+
 			if (m_recvStr.SIZE > (unsigned int)len)
 				m_recvStr.m_str[len] = NULL;
 
 			m_recvTime = curT;
 			m_recvCount++;
+
+			dbg::Logp2("gps.txt", m_recvStr.c_str());
+
+			gis::sGPRMC tmp;
+			if (ParseStr(m_recvStr, tmp))
+			{
+				isRead = true;
+				out = tmp;
+			}
 		}
-		else
-		{
-			//if (curT - m_recvTime > ALIVE_TIME)
-			//	m_serial.Close();
-			return false;
-		}
+
+		if (curT - m_recvTime > ALIVE_TIME)
+			m_serial.Close();
 	}
 	break;
 
 	default: assert(0); break;
 	}
 
-	dbg::Logp2("gps.txt", m_recvStr.c_str());
-	
-	const bool result = ParseStr(m_recvStr, out);
-	return result;
+	return isRead;
 }
 
 
@@ -202,7 +215,7 @@ bool cGpsClient::ParseStr(const Str512 &str, OUT gis::sGPRMC &out)
 }
 
 
-// path.txt 파일을 로딩한다.
+// path 파일을 로딩한다.
 bool cGpsClient::ReadPathFile(const char *fileName)
 {
 	using namespace std;

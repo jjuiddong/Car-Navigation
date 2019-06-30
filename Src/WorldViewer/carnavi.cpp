@@ -80,6 +80,9 @@ bool cViewer::OnInit()
 
 	g_root.m_mapView = m_mapView;
 	g_global = new cGlobal();
+	g_global->m_mapView = m_mapView;
+	g_global->m_infoView = m_infoView;
+	g_global->m_naviView = m_naviView;
 	g_global->m_touch.Init(getSystemHandle());
 
 	m_gui.SetContext();
@@ -110,8 +113,7 @@ void cViewer::OnEventProc(const sf::Event &evt)
 	switch (evt.type)
 	{
 	case sf::Event::KeyPressed:
-		switch (evt.key.code)
-		{
+		switch (evt.key.code) {
 		case sf::Keyboard::Escape: close(); break;
 		}
 		break;
