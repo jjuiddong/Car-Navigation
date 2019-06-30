@@ -78,7 +78,7 @@ void cMapView::OnUpdate(const float deltaSeconds)
 // receive from gps server (mobile phone)
 void cMapView::UpdateGPS()
 {
-	const float MIN_LENGTH = 0.5f;
+	const float MIN_LENGTH = 0.1f;
 
 	gis::sGPRMC gpsInfo;
 	if (!g_global->m_gpsClient.GetGpsInfo(gpsInfo))
@@ -94,7 +94,7 @@ void cMapView::UpdateGPS()
 
 	if (m_lookAtDistance == 0)
 	{
-		m_lookAtDistance = m_camera.GetEyePos().Distance(m_camera.GetLookAt());
+		m_lookAtDistance = min(100, m_camera.GetEyePos().Distance(m_camera.GetLookAt()));
 		m_lookAtYVector = m_camera.GetDirection().y;
 	}
 
@@ -122,8 +122,8 @@ void cMapView::UpdateGPS()
 	{
 		// 최근 n1개 50% 가중치
 		// 나머지 n2개 50% 가중치
-		const int n1 = 10;
-		const int n2 = 50;
+		const int n1 = 5;
+		const int n2 = 5;
 		const float r1 = 50.f / (float)n1;
 		const float r2 = 50.f / (float)n2;
 
@@ -153,16 +153,28 @@ void cMapView::UpdateGPS()
 		dir.y = m_lookAtYVector;
 		const Vector3 newEyePos = pos + dir * -m_lookAtDistance;
 
+		float cameraSpeed = 30.f;
+		if (newEyePos.Distance(m_camera.GetEyePos()) > m_lookAtDistance * 3)
+			cameraSpeed = 3000.f;
+
 		// 제스처 입력 시에는 카메라를 자동으로 움직이지 않는다.
 		if (isTraceGPSPos)
-			m_camera.Move(newEyePos, pos, 30.0f);
+			m_camera.Move(newEyePos, pos, cameraSpeed);
 
 		oldGpsPos = m_curGpsPos;
 		oldEyePos = newEyePos;
 	}
 	else if (isTraceGPSPos)
 	{
-		m_camera.Move(oldEyePos, pos, 30.0f);
+		Vector3 dir = avrDir;
+		dir.y = m_lookAtYVector;
+		const Vector3 newEyePos = pos + dir * -m_lookAtDistance;
+
+		float cameraSpeed = 30.f;
+		if (newEyePos.Distance(m_camera.GetEyePos()) > m_lookAtDistance * 3)
+			cameraSpeed = 3000.f;
+
+		m_camera.Move(oldEyePos, pos, cameraSpeed);
 	}
 
 	// 이동궤적 저장
@@ -588,7 +600,7 @@ void cMapView::OnWheelMove(const float delta, const POINT mousePt)
 	if (g_global->m_isTraceGPSPos && !track.empty())
 	{
 		const Vector3 p0 = m_quadTree.Get3DPos(track.back().lonLat);
-		m_lookAtDistance = m_camera.GetEyePos().Distance(p0);
+		m_lookAtDistance = min(100, m_camera.GetEyePos().Distance(p0));
 		m_lookAtYVector = m_camera.GetDirection().y;
 	}
 }
@@ -682,7 +694,7 @@ void cMapView::OnMouseMove(const POINT mousePt)
 	if (g_global->m_isTraceGPSPos && !track.empty())
 	{
 		const Vector3 p0 = m_quadTree.Get3DPos(track.back().lonLat);
-		m_lookAtDistance = m_camera.GetEyePos().Distance(p0);
+		m_lookAtDistance = min(100, m_camera.GetEyePos().Distance(p0));
 		m_lookAtYVector = m_camera.GetDirection().y;
 	}
 }
