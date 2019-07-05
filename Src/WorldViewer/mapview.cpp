@@ -197,7 +197,7 @@ void cMapView::UpdateMapScanning(const float deltaSeconds)
 		return;
 
 	// 파일을 다운로드 중이라면 대기한다.
-	if (m_quadTree.m_tileMgr.m_vworldDownloader.m_requestIds.size() > 0)
+	if (m_quadTree.m_tileMgr.m_vworldDownloader.m_requestIds.size() > 1)
 		return;
 
 	Vector3 curPos = g_global->m_scanPos;

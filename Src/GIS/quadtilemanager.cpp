@@ -54,21 +54,33 @@ bool cQuadTileManager::Update(graphic::cRenderer &renderer, cTerrainQuadTree &te
 			{
 				StrPath fileName = cHeightmap::GetFileName(g_mediaDir, tile->m_level, tile->m_loc.x, tile->m_loc.y);
 				m_hmaps.Remove(fileName.c_str());
+
+				StrPath fileName2 = cHeightmap::GetFileName(g_mediaDir2, tile->m_level, tile->m_loc.x, tile->m_loc.y);
+				m_hmaps.Remove(fileName2.c_str());
 			}
 
 			{
 				StrPath fileName = cTileTexture::GetFileName(g_mediaDir, tile->m_level, tile->m_loc.x, tile->m_loc.y);
 				m_tmaps.Remove(fileName.c_str());
+
+				StrPath fileName2 = cTileTexture::GetFileName(g_mediaDir2, tile->m_level, tile->m_loc.x, tile->m_loc.y);
+				m_tmaps.Remove(fileName2.c_str());
 			}
 
 			{
 				StrPath fileName = cPoiReader::GetFileName(g_mediaDir, tile->m_level, tile->m_loc.x, tile->m_loc.y, gis::eLayerName::POI_BASE);
 				m_pmaps[0].Remove(fileName.c_str());
+
+				StrPath fileName2 = cPoiReader::GetFileName(g_mediaDir2, tile->m_level, tile->m_loc.x, tile->m_loc.y, gis::eLayerName::POI_BASE);
+				m_pmaps[0].Remove(fileName2.c_str());
 			}
 
 			{
 				StrPath fileName = cPoiReader::GetFileName(g_mediaDir, tile->m_level, tile->m_loc.x, tile->m_loc.y, gis::eLayerName::POI_BOUND);
 				m_pmaps[1].Remove(fileName.c_str());
+
+				StrPath fileName2 = cPoiReader::GetFileName(g_mediaDir2, tile->m_level, tile->m_loc.x, tile->m_loc.y, gis::eLayerName::POI_BOUND);
+				m_pmaps[1].Remove(fileName2.c_str());
 			}
 
 			{
@@ -88,6 +100,10 @@ bool cQuadTileManager::Update(graphic::cRenderer &renderer, cTerrainQuadTree &te
 							StrPath fileName = cTileTexture::GetFileName(g_mediaDir, tile->m_level, tile->m_loc.x, tile->m_loc.y
 								, facility->m_xdos[0].imageName);
 							m_facilitiesTex.Remove(fileName.c_str());
+
+							StrPath fileName2 = cTileTexture::GetFileName(g_mediaDir2, tile->m_level, tile->m_loc.x, tile->m_loc.y
+								, facility->m_xdos[0].imageName);
+							m_facilitiesTex.Remove(fileName2.c_str());
 						}
 					}
 
@@ -96,14 +112,20 @@ bool cQuadTileManager::Update(graphic::cRenderer &renderer, cTerrainQuadTree &te
 						StrPath fileName = cXdoReader::GetFileName(g_mediaDir, tile->m_level, tile->m_loc.x, tile->m_loc.y
 							, obj.dataFile);
 						m_facilities.Remove(fileName.c_str());
-					}
 
+						StrPath fileName2 = cXdoReader::GetFileName(g_mediaDir2, tile->m_level, tile->m_loc.x, tile->m_loc.y
+							, obj.dataFile);
+						m_facilities.Remove(fileName2.c_str());
+					}
 				}
 			}
 
 			{
 				StrPath fileName = cReal3DModelIndexReader::GetFileName(g_mediaDir, tile->m_level, tile->m_loc.x, tile->m_loc.y);
 				m_modelIndices.Remove(fileName.c_str());
+
+				StrPath fileName2 = cReal3DModelIndexReader::GetFileName(g_mediaDir2, tile->m_level, tile->m_loc.x, tile->m_loc.y);
+				m_modelIndices.Remove(fileName2.c_str());
 			}
 
 			delete mem.tile;
@@ -190,7 +212,7 @@ void cQuadTileManager::UpdateDownloadFile(graphic::cRenderer &renderer)
 			cQuadTile *tile = FindTile(file.level, file.xLoc, file.yLoc);
 			if (tile && !tile->m_hmap)
 			{
-				StrPath fileName = cHeightmap::GetFileName(g_mediaDir, file.level, file.xLoc, file.yLoc);
+				StrPath fileName = cHeightmap::GetFileName(g_mediaDir2, file.level, file.xLoc, file.yLoc);
 				m_hmaps.LoadParallel(renderer, fileName.c_str(), &tile->m_loadFlag[file.layer], (void**)&tile->m_hmap, true);
 			}
 		}
@@ -202,7 +224,7 @@ void cQuadTileManager::UpdateDownloadFile(graphic::cRenderer &renderer)
 			cQuadTile *tile = FindTile(file.level, file.xLoc, file.yLoc);
 			if (tile && !tile->m_texture)
 			{
-				StrPath fileName = cTileTexture::GetFileName(g_mediaDir, file.level, file.xLoc, file.yLoc);
+				StrPath fileName = cTileTexture::GetFileName(g_mediaDir2, file.level, file.xLoc, file.yLoc);
 				m_tmaps.LoadParallel(renderer, fileName.c_str(), &tile->m_loadFlag[file.layer], (void**)&tile->m_texture, true);
 			}
 		}
@@ -214,7 +236,7 @@ void cQuadTileManager::UpdateDownloadFile(graphic::cRenderer &renderer)
 			cQuadTile *tile = FindTile(file.level, file.xLoc, file.yLoc);
 			if (tile && !tile->m_poi[0])
 			{
-				StrPath fileName = cPoiReader::GetFileName(g_mediaDir, file.level, file.xLoc, file.yLoc, gis::eLayerName::POI_BASE);
+				StrPath fileName = cPoiReader::GetFileName(g_mediaDir2, file.level, file.xLoc, file.yLoc, gis::eLayerName::POI_BASE);
 				m_pmaps[0].LoadParallel(renderer, fileName.c_str(), &tile->m_loadFlag[file.layer], (void**)&tile->m_poi[0], true);
 			}
 		}
@@ -226,7 +248,7 @@ void cQuadTileManager::UpdateDownloadFile(graphic::cRenderer &renderer)
 			cQuadTile *tile = FindTile(file.level, file.xLoc, file.yLoc);
 			if (tile && !tile->m_poi[1])
 			{
-				StrPath fileName = cPoiReader::GetFileName(g_mediaDir, file.level, file.xLoc, file.yLoc, gis::eLayerName::POI_BOUND);
+				StrPath fileName = cPoiReader::GetFileName(g_mediaDir2, file.level, file.xLoc, file.yLoc, gis::eLayerName::POI_BOUND);
 				m_pmaps[1].LoadParallel(renderer, fileName.c_str(), &tile->m_loadFlag[file.layer], (void**)&tile->m_poi[1], true);
 			}
 		}
@@ -243,7 +265,7 @@ void cQuadTileManager::UpdateDownloadFile(graphic::cRenderer &renderer)
 				sDistanceCompare compData;
 				compData.lonLat = gis::TileLoc2WGS84(tile->m_level, tile->m_loc.x, tile->m_loc.y);
 
-				StrPath fileName = cReal3DModelIndexReader::GetFileName(g_mediaDir, file.level, file.xLoc, file.yLoc);
+				StrPath fileName = cReal3DModelIndexReader::GetFileName(g_mediaDir2, file.level, file.xLoc, file.yLoc);
 				m_modelIndices.LoadParallel(renderer, fileName.c_str(), &tile->m_loadFlag[file.layer], (void**)&tile->m_facilityIndex, false, compData);
 			}
 			else
@@ -268,7 +290,7 @@ void cQuadTileManager::UpdateDownloadFile(graphic::cRenderer &renderer)
 				sDistanceCompare compData;
 				compData.lonLat = tile->m_facilityIndex->m_objs[file.idx].centerPos;
 
-				StrPath fileName = cXdoReader::GetFileName(g_mediaDir, file.level, file.xLoc, file.yLoc
+				StrPath fileName = cXdoReader::GetFileName(g_mediaDir2, file.level, file.xLoc, file.yLoc
 					, file.dataFile.c_str());
 				m_facilities.LoadParallel(renderer, fileName.c_str(), &tile->m_loadFlag[file.layer]
 					, (void**)&tile->m_facilities[file.idx], false, compData);
@@ -289,7 +311,7 @@ void cQuadTileManager::UpdateDownloadFile(graphic::cRenderer &renderer)
 				&& (tile->m_facilitiesTex.size() > (u_int)file.idx) 
 				&& !tile->m_facilitiesTex[file.idx])
 			{
-				StrPath fileName = cTileTexture::GetFileName(g_mediaDir, file.level, file.xLoc, file.yLoc
+				StrPath fileName = cTileTexture::GetFileName(g_mediaDir2, file.level, file.xLoc, file.yLoc
 					, file.dataFile.c_str());
 				m_facilitiesTex.LoadParallel(renderer, fileName.c_str(), &tile->m_loadFlag[file.layer]
 					, (void**)&tile->m_facilitiesTex[file.idx], true);
@@ -615,9 +637,17 @@ bool cQuadTileManager::LoadResource(graphic::cRenderer &renderer
 					// Loading Texture
 					const StrPath fileName = cTileTexture::GetFileName(g_mediaDir, level, xLoc, yLoc
 						, xdo->m_xdos[0].imageName);
+					const StrPath fileName2 = cTileTexture::GetFileName(g_mediaDir2, level, xLoc, yLoc
+						, xdo->m_xdos[0].imageName);
 					if (fileName.IsFileExist())
 					{
 						m_facilitiesTex.LoadParallel(renderer, fileName.c_str()
+							, &tile.m_loadFlag[gis::eLayerName::FACILITY_BUILD_GET_JPG]
+							, (void**)&tile.m_facilitiesTex[i], true);
+					}
+					else if (fileName2.IsFileExist())
+					{
+						m_facilitiesTex.LoadParallel(renderer, fileName2.c_str()
 							, &tile.m_loadFlag[gis::eLayerName::FACILITY_BUILD_GET_JPG]
 							, (void**)&tile.m_facilitiesTex[i], true);
 					}
@@ -710,6 +740,7 @@ bool cQuadTileManager::LoadFacilities(graphic::cRenderer &renderer
 		// 모델 파일을 로딩한다. 없다면 다운로드 받는다.
 		{
 			const StrPath fileName = cXdoReader::GetFileName(g_mediaDir, level, xLoc, yLoc, obj.dataFile);
+			const StrPath fileName2 = cXdoReader::GetFileName(g_mediaDir2, level, xLoc, yLoc, obj.dataFile);
 			if (fileName.IsFileExist())
 			{
 				sDistanceCompare compData;
@@ -719,6 +750,20 @@ bool cQuadTileManager::LoadFacilities(graphic::cRenderer &renderer
 					, &tile.m_loadFlag[gis::eLayerName::FACILITY_BUILD_GET]
 					, (void**)&tile.m_facilities[i], false, compData);
 				
+				if (tile.m_facilities[i])
+				{
+					tile.m_facilities[i]->m_loadState = cXdoReader::READ_MODEL;
+				}
+			}
+			else if (fileName2.IsFileExist())
+			{
+				sDistanceCompare compData;
+				compData.lonLat = obj.centerPos;
+
+				m_facilities.LoadParallel(renderer, fileName2.c_str()
+					, &tile.m_loadFlag[gis::eLayerName::FACILITY_BUILD_GET]
+					, (void**)&tile.m_facilities[i], false, compData);
+
 				if (tile.m_facilities[i])
 				{
 					tile.m_facilities[i]->m_loadState = cXdoReader::READ_MODEL;
@@ -821,10 +866,16 @@ void cQuadTileManager::LoadTexture(graphic::cRenderer &renderer
 {
 	// 파일이 있다면, 텍스쳐를 로딩한다.
 	StrPath fileName = cTileTexture::GetFileName(g_mediaDir, level, xLoc, yLoc);
+	StrPath fileName2 = cTileTexture::GetFileName(g_mediaDir2, level, xLoc, yLoc);
 
 	if (fileName.IsFileExist())
 	{
 		m_tmaps.LoadParallel(renderer, fileName.c_str(), &tile.m_loadFlag[gis::eLayerName::TILE]
+			, (void**)&tile.m_texture, true);
+	}
+	else if (fileName2.IsFileExist())
+	{
+		m_tmaps.LoadParallel(renderer, fileName2.c_str(), &tile.m_loadFlag[gis::eLayerName::TILE]
 			, (void**)&tile.m_texture, true);
 	}
 	else
@@ -849,6 +900,7 @@ bool cQuadTileManager::LoadHeightMap(graphic::cRenderer &renderer
 		return true;
 
 	StrPath fileName = cHeightmap::GetFileName(g_mediaDir, level, xLoc, yLoc);
+	StrPath fileName2 = cHeightmap::GetFileName(g_mediaDir2, level, xLoc, yLoc);
 	if (fileName.IsFileExist())
 	{
 		//if ((tile.m_level == 15) && (fileName.FileSize() < 150))
@@ -859,6 +911,19 @@ bool cQuadTileManager::LoadHeightMap(graphic::cRenderer &renderer
 		else
 		{
 			m_hmaps.LoadParallel(renderer, fileName.c_str(), &tile.m_loadFlag[gis::eLayerName::DEM]
+				, (void**)&tile.m_hmap, true);
+		}
+	}
+	else if (fileName2.IsFileExist())
+	{
+		//if ((tile.m_level == 15) && (fileName.FileSize() < 150))
+		if ((tile.m_level >= 14) && (fileName2.FileSize() < 150))
+		{
+			// null heightmap, no load this file
+		}
+		else
+		{
+			m_hmaps.LoadParallel(renderer, fileName2.c_str(), &tile.m_loadFlag[gis::eLayerName::DEM]
 				, (void**)&tile.m_hmap, true);
 		}
 	}
@@ -887,9 +952,15 @@ bool cQuadTileManager::LoadPoiFile(graphic::cRenderer &renderer
 	if (!tile.m_poi[0])
 	{
 		StrPath fileName = cPoiReader::GetFileName(g_mediaDir, level, xLoc, yLoc, gis::eLayerName::POI_BASE);
+		StrPath fileName2 = cPoiReader::GetFileName(g_mediaDir2, level, xLoc, yLoc, gis::eLayerName::POI_BASE);
 		if (fileName.IsFileExist())
 		{
 			m_pmaps[0].LoadParallel(renderer, fileName.c_str(), &tile.m_loadFlag[gis::eLayerName::POI_BASE]
+				, (void**)&tile.m_poi[0], true);
+		}
+		else if (fileName2.IsFileExist())
+		{
+			m_pmaps[0].LoadParallel(renderer, fileName2.c_str(), &tile.m_loadFlag[gis::eLayerName::POI_BASE]
 				, (void**)&tile.m_poi[0], true);
 		}
 		else
@@ -901,9 +972,15 @@ bool cQuadTileManager::LoadPoiFile(graphic::cRenderer &renderer
 	if (!tile.m_poi[1])
 	{
 		StrPath fileName = cPoiReader::GetFileName(g_mediaDir, level, xLoc, yLoc, gis::eLayerName::POI_BOUND);
+		StrPath fileName2 = cPoiReader::GetFileName(g_mediaDir2, level, xLoc, yLoc, gis::eLayerName::POI_BOUND);
 		if (fileName.IsFileExist())
 		{
 			m_pmaps[1].LoadParallel(renderer, fileName.c_str(), &tile.m_loadFlag[gis::eLayerName::POI_BOUND]
+				, (void**)&tile.m_poi[1], true);
+		}
+		else if (fileName2.IsFileExist())
+		{
+			m_pmaps[1].LoadParallel(renderer, fileName2.c_str(), &tile.m_loadFlag[gis::eLayerName::POI_BOUND]
 				, (void**)&tile.m_poi[1], true);
 		}
 		else
@@ -927,6 +1004,7 @@ bool cQuadTileManager::LoadFacilityIndex(graphic::cRenderer &renderer
 		return true;
 
 	StrPath fileName = cReal3DModelIndexReader::GetFileName(g_mediaDir, level, xLoc, yLoc);
+	StrPath fileName2 = cReal3DModelIndexReader::GetFileName(g_mediaDir2, level, xLoc, yLoc);
 	if (fileName.IsFileExist())
 	{
 		tile.m_modelLoadState = 2;
@@ -934,6 +1012,15 @@ bool cQuadTileManager::LoadFacilityIndex(graphic::cRenderer &renderer
 		sDistanceCompare compData;
 		compData.lonLat = gis::TileLoc2WGS84(level, xLoc, yLoc);
 		m_modelIndices.LoadParallel(renderer, fileName.c_str(), &tile.m_loadFlag[gis::eLayerName::FACILITY_BUILD]
+			, (void**)&tile.m_facilityIndex, false, compData);
+	}
+	else if (fileName2.IsFileExist())
+	{
+		tile.m_modelLoadState = 2;
+
+		sDistanceCompare compData;
+		compData.lonLat = gis::TileLoc2WGS84(level, xLoc, yLoc);
+		m_modelIndices.LoadParallel(renderer, fileName2.c_str(), &tile.m_loadFlag[gis::eLayerName::FACILITY_BUILD]
 			, (void**)&tile.m_facilityIndex, false, compData);
 	}
 	else
