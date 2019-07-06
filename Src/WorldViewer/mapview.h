@@ -23,6 +23,7 @@ public:
 protected:
 	void UpdateGPS();
 	void UpdateMapScanning(const float deltaSeconds);
+	void UpdateMapTrace(const float deltaSeconds);
 	void UpdateCameraTraceLookat(const bool isUpdateDistance = true);
 	void UpdateLookAt();
 	void OnWheelMove(const float delta, const POINT mousePt);

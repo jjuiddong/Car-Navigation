@@ -66,15 +66,27 @@ void cMapView::OnUpdate(const float deltaSeconds)
 {
 	// 카메라가 가르키는 방향의 경위도를 구한다.
 	const Vector2d camLonLat = m_quadTree.GetLongLat(m_camera.GetRay());
+	cGpsClient &gpsClient = g_global->m_gpsClient;
 
 	if (g_global->m_isShowTerrain)
 		m_quadTree.Update(GetRenderer(), camLonLat, deltaSeconds);
-	m_camera.Update(deltaSeconds);
+
+	float dt = deltaSeconds;
+	// 꽁수.
+	// FileReplay 중일 때, 파일을 다운로드 중이라면 대기한다.
+	// 카메라를 이동하지 않는다.
+	if (gpsClient.IsFileReplay()
+		&& (m_quadTree.m_tileMgr.m_vworldDownloader.m_requestIds.size() > 1))
+	{
+		dt = 0.f;
+	}
+	m_camera.Update(dt);
 
 	g_global->m_touch.CheckTouchType(m_owner->getSystemHandle());
 
 	UpdateGPS();
 	UpdateMapScanning(deltaSeconds);
+	UpdateMapTrace(deltaSeconds);
 }
 
 
@@ -218,6 +230,54 @@ void cMapView::UpdateMapScanning(const float deltaSeconds)
 	g_global->m_scanDir = Vector3(0, 1, 0).CrossProduct(dir).Normal();
 	g_global->m_scanDir += dir * 0.3f * deltaSeconds; // 조금씩 밖으로 방향을 튼다.
 	g_global->m_scanPos = nextPos;
+}
+
+
+void cMapView::UpdateMapTrace(const float deltaSeconds)
+{
+	cGpsClient &gpsClient = g_global->m_gpsClient;
+	if (!gpsClient.IsFileReplay())
+		return;
+
+	// 파일을 다운로드 중이라면, 목표점을 이동하지 않는다.
+	if (m_quadTree.m_tileMgr.m_vworldDownloader.m_requestIds.size() > 1)
+		return;
+
+	// 카메라가 목표 위치에 이동 중이라면, 목표점을 바꾸지 않는다.
+	if (!g_global->m_prevTracePos.IsEmpty())
+	{
+		Vector3 eyePos = m_camera.GetEyePos();
+		eyePos.y = 0;
+		const float dist = g_global->m_prevTracePos.Distance(eyePos);
+		if (dist > 5.f)
+			return;
+	}
+
+	gis::sGPRMC gpsInfo;
+	if (!gpsClient.GetGpsInfoFromFile(gpsInfo))
+		return;
+
+	Vector3 pos = m_quadTree.Get3DPos(gpsInfo.lonLat);
+	pos.y = 0.f;
+	if (g_global->m_prevTracePos.IsEmpty())
+	{
+		g_global->m_prevTracePos = pos;
+		m_camera.SetEyePos(pos);
+		return;
+	}
+
+	Vector3 p0 = g_global->m_prevTracePos;
+	p0.y = 0.f;
+	Vector3 dir = (pos - p0).Normal();
+	const float dist = pos.Distance(p0);
+
+	Vector3 eyePos = pos;
+	eyePos.y = g_global->m_scanHeight;
+	Vector3 lookAt = pos + dir * dist;
+	lookAt.y = pos.y;
+	m_camera.SetLookAt(lookAt);
+	m_camera.Move(eyePos, lookAt, 30.f);
+	g_global->m_prevTracePos = pos;
 }
 
 
@@ -726,6 +786,13 @@ void cMapView::OnMouseDown(const sf::Mouse::Button &button, const POINT mousePt)
 		{
 			g_global->m_scanCenter = lonLat;
 			g_global->m_isSelectMapScanningCenter = false;
+		}
+		else if (g_global->m_isMakeTracePath && GetAsyncKeyState(VK_LCONTROL))
+		{
+			cGpsClient::sPath path;
+			path.t = 0;
+			path.lonLat = lonLat;
+			g_global->m_gpsClient.m_paths.push_back(path);
 		}
 	}
 	break;

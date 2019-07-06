@@ -41,14 +41,15 @@ bool cGpsClient::GetGpsInfo(OUT gis::sGPRMC &out)
 	const float ALIVE_TIME = 10.f;
 
 	if (eState::PathFile == m_state)
-	{
-		cViewer *viewer = (cViewer*)g_application;
-		cTerrainQuadTree &terrain = viewer->m_mapView->m_quadTree;
-		if (terrain.m_tileMgr.m_vworldDownloader.m_requestIds.size() > 0)
-			return false;
+		return false;
 
-		return GetGpsInfoFromFile(out);
-	}
+	//{
+	//	cViewer *viewer = (cViewer*)g_application;
+	//	cTerrainQuadTree &terrain = viewer->m_mapView->m_quadTree;
+	//	if (terrain.m_tileMgr.m_vworldDownloader.m_requestIds.size() > 0)
+	//		return false;
+	//	return GetGpsInfoFromFile(out);
+	//}
 
 	if (!IsConnect())
 	{
@@ -127,6 +128,14 @@ bool cGpsClient::GetGpsInfo(OUT gis::sGPRMC &out)
 bool cGpsClient::FileReplay() 
 {
 	m_state = eState::PathFile;
+	return true;
+}
+
+
+bool cGpsClient::StopFileReplay()
+{
+	m_state = eState::Server;
+	m_fileAnimationIdx = 0; 
 	return true;
 }
 

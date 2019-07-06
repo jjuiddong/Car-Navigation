@@ -19,6 +19,7 @@ cGlobal::cGlobal()
 	, m_scanRadius(1.f)
 	, m_scanHeight(10.f)
 	, m_scanSpeed(1.f)
+	, m_isMakeTracePath(false)
 {
 	m_timer.Create();
 }

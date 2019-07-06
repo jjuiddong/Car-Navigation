@@ -14,7 +14,9 @@ public:
 	bool ConnectGpsServer(const Str16 &ip, const int port);
 	bool ReadPathFile(const char *fileName);
 	bool GetGpsInfo(OUT gis::sGPRMC &out);
+	bool GetGpsInfoFromFile(OUT gis::sGPRMC &out);
 	bool FileReplay();
+	bool StopFileReplay();
 	bool IsConnect();
 	bool IsFileReplay();
 	bool IsServer();
@@ -24,7 +26,6 @@ public:
 
 protected:
 	bool ParseStr(const Str512 &str, OUT gis::sGPRMC &out);
-	bool GetGpsInfoFromFile(OUT gis::sGPRMC &out);
 
 
 public:

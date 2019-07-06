@@ -133,9 +133,9 @@ namespace
 	const static char *g_heightmapDir = "..\\media\\VWorld";
 	const static char *g_mediaDir = "..\\media\\VWorld";
 
-	const static char *g_textureDir2 = "F:\\data";
-	const static char *g_heightmapDir2 = "F:\\data";
-	const static char *g_mediaDir2 = "F:\\data";
+	const static char *g_textureDir2 = "D:\\media\\VWorld";
+	const static char *g_heightmapDir2 = "D:\\media\\VWorld";
+	const static char *g_mediaDir2 = "D:\\media\\VWorld";
 
 	//const static char *g_textureDir = "G:\\media\\VWorld";
 	//const static char *g_heightmapDir = "G:\\media\\VWorld";

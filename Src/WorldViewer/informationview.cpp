@@ -91,11 +91,42 @@ void cInformationView::OnRender(const float deltaSeconds)
 		ImGui::Text("load texture %d"
 			, terrain.m_tileMgr.m_tmaps.m_tpLoader.m_tasks.size());
 
-		XMFLOAT4 fog;
-		fog.x = m_fogColor.x;
-		fog.y = m_fogColor.y;
-		fog.z = m_fogColor.z;
-		fog.w = 1 / (viewer->m_mapView->m_camera.GetEyePos().y * m_fogDistanceRate);
-		renderer.m_cbPerFrame.m_v->fogColor = XMLoadFloat4(&fog);
+		if (g_global->m_isMakeTracePath)
+		{
+			if (ImGui::Button("End Make Trace Line"))
+			{
+				g_global->m_isMakeTracePath = false;
+			}
+		}
+		else
+		{
+			if (ImGui::Button("Make Trace Line"))
+			{
+				g_global->m_isMakeTracePath = true;
+			}
+		}
+
+		if (g_global->m_gpsClient.IsFileReplay())
+		{
+			if (ImGui::Button("End File Trace"))
+			{
+				g_global->m_gpsClient.StopFileReplay();
+			}
+		}
+		else
+		{
+			if (ImGui::Button("Start File Trace"))
+			{
+				g_global->m_gpsClient.FileReplay();
+				g_global->m_prevTracePos = Vector3::Zeroes;
+			}
+		}
+
+		//XMFLOAT4 fog;
+		//fog.x = m_fogColor.x;
+		//fog.y = m_fogColor.y;
+		//fog.z = m_fogColor.z;
+		//fog.w = 1 / (viewer->m_mapView->m_camera.GetEyePos().y * m_fogDistanceRate);
+		//renderer.m_cbPerFrame.m_v->fogColor = XMLoadFloat4(&fog);
 	}
 }

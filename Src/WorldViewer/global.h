@@ -54,6 +54,10 @@ public:
 	float m_scanHeight;
 	float m_scanSpeed; // m/s
 
+	// map trace
+	bool m_isMakeTracePath;
+	Vector3 m_prevTracePos;
+
 	// path
 	graphic::cDbgLineList m_lineList;
 
