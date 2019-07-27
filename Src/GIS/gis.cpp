@@ -158,7 +158,7 @@ bool gis::GetGPRMCLonLat(const Str512 &gprmc, OUT sGPRMC &out)
 	vector<string> strs;
 	common::tokenizer(gprmc.c_str(), ",", "", strs);
 
-	if (strs.size() < 11)
+	if (strs.size() < 7)
 		return false;
 
 	if (strs[2] != "A")
@@ -190,9 +190,15 @@ bool gis::GetGPRMCLonLat(const Str512 &gprmc, OUT sGPRMC &out)
 
 	out.available = true;
 	out.lonLat = lonLat;
-	out.speed = (float)atof(strs[7].c_str()) * 1.8f;
-	out.angle = (float)atof(strs[8].c_str());
-	out.north = (float)atof(strs[10].c_str());
+	out.speed = 0.f;
+	out.angle = 0.f;
+	out.north = 0;
+	if (strs.size() >= 8)
+		out.speed = (float)atof(strs[7].c_str()) * 1.8f;
+	if (strs.size() >= 9)
+		out.angle = (float)atof(strs[8].c_str());
+	if (strs.size() >= 11)
+		out.north = (float)atof(strs[10].c_str());
 
 	// date
 	out.date = 0;
@@ -235,6 +241,7 @@ bool gis::GetGPRMCLonLat(const Str512 &gprmc, OUT sGPRMC &out)
 		out.date += (uint64)mm * 1;
 	}
 
+	if (strs.size() >= 10)
 	{
 		// DDMMYY
 		int Y = 0, M = 0, D = 0;
@@ -261,6 +268,31 @@ bool gis::GetGPRMCLonLat(const Str512 &gprmc, OUT sGPRMC &out)
 		out.date += (uint64)M * 100000000000;
 		out.date += (uint64)D * 1000000000;
 	}
+
+	return true;
+}
+
+
+// GPATT 문자열로 위경도를 리턴한다.
+// $GPATT, 37.939707, 126.836799, 44.3, 143.2, 7.3, 6.6, *71
+bool gis::GetGPATTLonLat(const Str512 &gpatt, OUT sGPRMC &out)
+{
+	if (gpatt.size() < 6)
+		return false;
+
+	if (strncmp(gpatt.m_str, "$GPATT", 6))
+		return false;
+
+	vector<string> strs;
+	common::tokenizer(gpatt.c_str(), ",", "", strs);
+
+	if (strs.size() < 3)
+		return false;
+
+	ZeroMemory(&out, sizeof(out));
+	out.available = true;
+	out.lonLat.y = atof(strs[1].c_str());
+	out.lonLat.x = atof(strs[2].c_str());
 
 	return true;
 }
