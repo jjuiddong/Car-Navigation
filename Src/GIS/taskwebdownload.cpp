@@ -66,14 +66,18 @@ common::cTask::eRunResult::Enum cTaskWebDownload::Run(const double deltaSeconds)
 	switch (m_dnData.layer)
 	{
 	case eLayerName::DEM:
-		cmd = "requestLayerNode";
-		layerName = "dem";
-		break;
+		//cmd = "requestLayerNode";
+		//layerName = "dem";
+		//break;
+		m_webDownloader->Remove(m_dnData);
+		return eRunResult::END;
 
 	case eLayerName::TILE:
-		cmd = "requestLayerNode";
-		layerName = "tile";
-		break;
+		//cmd = "requestLayerNode";
+		//layerName = "tile";
+		//break;
+		m_webDownloader->Remove(m_dnData);
+		return eRunResult::END;
 
 	case eLayerName::POI_BASE:
 		cmd = "requestLayerNode";
@@ -86,19 +90,25 @@ common::cTask::eRunResult::Enum cTaskWebDownload::Run(const double deltaSeconds)
 		break;
 
 	case eLayerName::FACILITY_BUILD:
-		cmd = "requestLayerNode";
-		layerName = "facility_build";
-		break;
+		//cmd = "requestLayerNode";
+		//layerName = "facility_build";
+		//break;
+		m_webDownloader->Remove(m_dnData);
+		return eRunResult::END;
 
 	case eLayerName::FACILITY_BUILD_GET:
-		cmd = "requestLayerObject";
-		layerName = "facility_build";
-		break;
+		//cmd = "requestLayerObject";
+		//layerName = "facility_build";
+		//break;
+		m_webDownloader->Remove(m_dnData);
+		return eRunResult::END;
 
 	case eLayerName::FACILITY_BUILD_GET_JPG:
-		cmd = "requestLayerObject";
-		layerName = "facility_build";
-		break;
+		//cmd = "requestLayerObject";
+		//layerName = "facility_build";
+		//break;
+		m_webDownloader->Remove(m_dnData);
+		return eRunResult::END;
 
 	default: assert(0); break;
 	}

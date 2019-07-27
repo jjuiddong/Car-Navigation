@@ -21,7 +21,7 @@ public:
 
 
 protected:
-	void UpdateGPS();
+	void UpdateGPS(const float deltaSeconds);
 	void UpdateMapScanning(const float deltaSeconds);
 	void UpdateMapTrace(const float deltaSeconds);
 	void UpdateCameraTraceLookat(const bool isUpdateDistance = true);
@@ -50,6 +50,7 @@ public:
 	float m_lookAtYVector;
 	Vector3 m_avrDir;
 	bool m_isGestureInput;
+	float m_gpsUpdateDelta;
 
 	// MouseMove Variable
 	POINT m_viewPos;

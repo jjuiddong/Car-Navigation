@@ -43,14 +43,6 @@ bool cGpsClient::GetGpsInfo(OUT gis::sGPRMC &out)
 	if (eState::PathFile == m_state)
 		return false;
 
-	//{
-	//	cViewer *viewer = (cViewer*)g_application;
-	//	cTerrainQuadTree &terrain = viewer->m_mapView->m_quadTree;
-	//	if (terrain.m_tileMgr.m_vworldDownloader.m_requestIds.size() > 0)
-	//		return false;
-	//	return GetGpsInfoFromFile(out);
-	//}
-
 	if (!IsConnect())
 	{
 		m_recvTime = 0.f;
@@ -77,13 +69,15 @@ bool cGpsClient::GetGpsInfo(OUT gis::sGPRMC &out)
 		}
 
 		m_recvTime = curT;
-		m_recvCount++;
 		memcpy(m_recvStr.m_str, packet.m_data, min(m_recvStr.SIZE, (uint)packet.m_writeIdx));
 
 		dbg::Logp2("gps.txt", m_recvStr.c_str());
 
 		if (ParseStr(m_recvStr, out))
+		{
 			isRead = true;
+			m_recvCount++;
+		}
 	}
 	break;
 
@@ -101,7 +95,6 @@ bool cGpsClient::GetGpsInfo(OUT gis::sGPRMC &out)
 				m_recvStr.m_str[len] = NULL;
 
 			m_recvTime = curT;
-			m_recvCount++;
 
 			dbg::Logp2("gps.txt", m_recvStr.c_str());
 
@@ -110,6 +103,7 @@ bool cGpsClient::GetGpsInfo(OUT gis::sGPRMC &out)
 			{
 				isRead = true;
 				out = tmp;
+				m_recvCount++;
 			}
 		}
 
@@ -203,12 +197,20 @@ bool cGpsClient::ParseStr(const Str512 &str, OUT gis::sGPRMC &out)
 	vector<string> lines;
 	common::tokenizer(str.m_str, "\n", "", lines);
 
+	int state = 0;
 	out.available = false;
 	for (auto &line : lines)
 	{
 		gis::sGPRMC gps;
 		if (gis::GetGPRMCLonLat(line.c_str(), gps))
+		{
 			out = gps;
+			state = 1;
+		}
+		else if ((state != 1) && (gis::GetGPATTLonLat(line.c_str(), gps)))
+		{
+			out = gps;
+		}
 	}
 
 	if (!out.available)

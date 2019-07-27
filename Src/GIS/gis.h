@@ -107,6 +107,7 @@ namespace gis
 	};
 
 	bool GetGPRMCLonLat(const Str512 &gprmc, OUT sGPRMC &out);
+	bool GetGPATTLonLat(const Str512 &gpatt, OUT sGPRMC &out);
 }
 
 
@@ -129,13 +130,13 @@ namespace gis
 
 namespace
 {
-	const static char *g_textureDir = "..\\media\\VWorld";
-	const static char *g_heightmapDir = "..\\media\\VWorld";
-	const static char *g_mediaDir = "..\\media\\VWorld";
+	const static char *g_textureDir = "..\\media\\data";
+	const static char *g_heightmapDir = "..\\media\\data";
+	const static char *g_mediaDir = "..\\media\\data";
 
-	const static char *g_textureDir2 = "D:\\media\\VWorld";
-	const static char *g_heightmapDir2 = "D:\\media\\VWorld";
-	const static char *g_mediaDir2 = "D:\\media\\VWorld";
+	const static char *g_textureDir2 = "D:\\media\\data";
+	const static char *g_heightmapDir2 = "D:\\media\\data";
+	const static char *g_mediaDir2 = "D:\\media\\data";
 
 	//const static char *g_textureDir = "G:\\media\\VWorld";
 	//const static char *g_heightmapDir = "G:\\media\\VWorld";
