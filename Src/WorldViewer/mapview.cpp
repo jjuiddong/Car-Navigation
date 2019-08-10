@@ -14,6 +14,7 @@ cMapView::cMapView(const string &name)
 	, m_lookAtDistance(0)
 	, m_lookAtYVector(0)
 	, m_graphIdx(0)
+	, m_gpsUpdateDelta(0)
 {
 	ZeroMemory(m_renderOverhead, sizeof(m_renderOverhead));
 }
@@ -84,7 +85,7 @@ void cMapView::OnUpdate(const float deltaSeconds)
 
 	g_global->m_touch.CheckTouchType(m_owner->getSystemHandle());
 
-	UpdateGPS();
+	UpdateGPS(deltaSeconds);
 	UpdateMapScanning(deltaSeconds);
 	UpdateMapTrace(deltaSeconds);
 }
@@ -92,9 +93,11 @@ void cMapView::OnUpdate(const float deltaSeconds)
 
 // GPS 서버로 부터 위치정보를 받아 업데이트 한다.
 // receive from gps server (mobile phone)
-void cMapView::UpdateGPS()
+void cMapView::UpdateGPS(const float deltaSeconds)
 {
 	const float MIN_LENGTH = 0.1f;
+	const float MAX_LENGTH = 1.0f; // 짧은 시간에 차이가 큰 값이 들어오면 무시한다.
+	m_gpsUpdateDelta += deltaSeconds;
 
 	gis::sGPRMC gpsInfo;
 	if (!g_global->m_gpsClient.GetGpsInfo(gpsInfo))
@@ -104,13 +107,16 @@ void cMapView::UpdateGPS()
 	m_curGpsPos = gpsInfo.lonLat;
 
 	static Vector2d oldGpsPos;
+	static Vector2d oldGpsPos2; // for trace gps position
 	static Vector3 oldEyePos;
 	if (oldGpsPos.IsEmpty())
 		oldGpsPos = m_curGpsPos;
+	if (oldGpsPos2.IsEmpty())
+		oldGpsPos2 = m_curGpsPos;
 
 	if (m_lookAtDistance == 0)
 	{
-		m_lookAtDistance = min(50, m_camera.GetEyePos().Distance(m_camera.GetLookAt()));
+		m_lookAtDistance = min(200.f, m_camera.GetEyePos().Distance(m_camera.GetLookAt()));
 		m_lookAtYVector = m_camera.GetDirection().y;
 	}
 
@@ -118,8 +124,13 @@ void cMapView::UpdateGPS()
 	if (g_global->m_gpsClient.IsConnect())
 	{
 		const string date = common::GetCurrentDateTime();
-		dbg::Logp2(m_pathFilename.c_str(), "%s, %.15f, %.15f\n"
-			, date.c_str(), m_curGpsPos.x, m_curGpsPos.y);
+		static Vector2d prevGpsPos;
+		if (prevGpsPos != m_curGpsPos)
+		{
+			dbg::Logp2(m_pathFilename.c_str(), "%s, %.15f, %.15f\n"
+				, date.c_str(), m_curGpsPos.x, m_curGpsPos.y);
+			prevGpsPos = m_curGpsPos;
+		}
 	}
 
 	// 현재 위치를 향해 카메라 looAt을 조정한다.
@@ -127,6 +138,7 @@ void cMapView::UpdateGPS()
 	g_root.m_lonLat = Vector2((float)m_curGpsPos.x, (float)m_curGpsPos.y);
 	const Vector3 pos = m_quadTree.Get3DPos(m_curGpsPos);
 	const Vector3 oldPos = m_quadTree.Get3DPos(oldGpsPos);
+	const Vector3 oldPos2 = m_quadTree.Get3DPos(oldGpsPos2);
 
 	const bool isTraceGPSPos = g_global->m_isTraceGPSPos
 		&& !m_mouseDown[0] && !m_mouseDown[1] 
@@ -174,16 +186,26 @@ void cMapView::UpdateGPS()
 	if (eyeDistance > m_lookAtDistance * 3)
 		cameraSpeed = eyeDistance * 1.f;
 
-	if (oldPos.Distance(pos) > MIN_LENGTH)
+	const Vector3 p0(pos.x, 0, pos.z);
+	const Vector3 p1(oldPos2.x, 0, oldPos2.z);
+	const bool isIgnoreTrace = (p1.Distance(p0) > MAX_LENGTH) && (m_gpsUpdateDelta < 3.f);
+	m_gpsUpdateDelta = 0.f;
+
+	if (oldPos2.Distance(pos) > MIN_LENGTH)
 	{
 		// 제스처 입력 시에는 카메라를 자동으로 움직이지 않는다.
-		if (isTraceGPSPos)
+		if (isTraceGPSPos && !avrDir.IsEmpty() && !isIgnoreTrace)
 			m_camera.Move(newEyePos, lookAtPos, cameraSpeed);
 
-		oldGpsPos = m_curGpsPos;
-		oldEyePos = newEyePos;
+		if (!isIgnoreTrace)
+		{
+			oldGpsPos = m_curGpsPos;
+			oldEyePos = newEyePos;
+		}
+
+		oldGpsPos2 = m_curGpsPos;
 	}
-	else if (isTraceGPSPos)
+	else if (isTraceGPSPos && !avrDir.IsEmpty() && !isIgnoreTrace)
 	{
 		m_camera.Move(oldEyePos, lookAtPos, cameraSpeed);
 	}
@@ -668,7 +690,7 @@ void cMapView::UpdateCameraTraceLookat(
 	{
 		const Vector3 p0 = m_quadTree.Get3DPos(track.back().lonLat);
 		if (isUpdateDistance)
-			m_lookAtDistance = min(50, m_camera.GetEyePos().Distance(p0));
+			m_lookAtDistance = min(200, m_camera.GetEyePos().Distance(p0));
 		m_lookAtYVector = m_camera.GetDirection().y;
 	}
 }

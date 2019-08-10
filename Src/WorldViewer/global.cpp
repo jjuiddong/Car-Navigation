@@ -21,10 +21,21 @@ cGlobal::cGlobal()
 	, m_scanSpeed(1.f)
 	, m_isMakeTracePath(false)
 {
-	m_timer.Create();
 }
 
 cGlobal::~cGlobal()
 {
+	m_config.Write("carnavi_config.txt");
 }
 
+
+bool cGlobal::Init(HWND hwnd)
+{
+	m_config.Read("carnavi_config.txt");
+
+	m_timer.Create();
+	m_touch.Init(hwnd);
+	m_gpsClient.Init();
+
+	return true;
+}

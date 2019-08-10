@@ -11,7 +11,9 @@ public:
 	cGpsClient();
 	virtual ~cGpsClient();
 
+	bool Init();
 	bool ConnectGpsServer(const Str16 &ip, const int port);
+	bool ConnectGpsSerial(const int portNum, const int baudRate);
 	bool ReadPathFile(const char *fileName);
 	bool GetGpsInfo(OUT gis::sGPRMC &out);
 	bool GetGpsInfoFromFile(OUT gis::sGPRMC &out);
@@ -46,6 +48,8 @@ public:
 	Str512 m_recvStr;
 	int m_recvCount;
 	double m_recvTime;
+	double m_speedRecvTime; // GPRMC에서 받은 정보를 GPATT에 적용하기위해 쓰임
+	float m_speed;
 
 	// path pump
 	struct sPath {
