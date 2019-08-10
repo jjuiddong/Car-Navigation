@@ -9,6 +9,9 @@ using namespace common;
 #include "../gis/gis.h"
 
 #include "gpsclient.h"
+#include "path.h"
+#include "pathrenderer.h"
+#include "landmark.h"
 #include "global.h"
 
 extern cGlobal *g_global;

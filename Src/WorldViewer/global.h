@@ -23,7 +23,14 @@ class cGlobal
 public:
 	cGlobal();
 	virtual ~cGlobal();
+	
 	bool Init(HWND hwnd);
+	bool ReadPathFiles(graphic::cRenderer &renderer, cTerrainQuadTree &terrain
+		, const StrPath pathDirectoryName);
+	bool Read3DPosFiles(graphic::cRenderer &renderer, const StrPath pathDirectoryName);
+	bool ReadAndConvertPathFiles(graphic::cRenderer &renderer, cTerrainQuadTree &terrain
+		, const StrPath pathDirectoryName);
+	void Clear();
 
 
 public:
@@ -61,7 +68,18 @@ public:
 	Vector3 m_prevTracePos;
 
 	// path
-	graphic::cDbgLineList m_lineList;
+	bool m_isShowPrevPath;
+	vector<cPathRenderer*> m_pathRenderers;
+
+	// landmark
+	bool m_isShowLandMark;
+	int m_landMarkSelectState; //0=none, 1=ready, 2=set
+	cLandMark m_landMark;
+
+	// landmark2, temporal landmark
+	bool m_isShowLandMark2;
+	int m_landMarkSelectState2; //0=none, 1=ready, 2=set
+	cLandMark m_landMark2;
 
 	// analysis
 	eAnalysisType m_analysisType; //0:mapview, 1:terrain renderer

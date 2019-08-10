@@ -27,8 +27,10 @@ cMapView::~cMapView()
 
 bool cMapView::Init(cRenderer &renderer) 
 {
-	const Vector3 eyePos(331843.563f, 478027.719f, 55058.8672f);
-	const Vector3 lookAt(331004.031f, 0.000000000f, 157745.281f);
+	//const Vector3 eyePos(331843.563f, 478027.719f, 55058.8672f);
+	//const Vector3 lookAt(331004.031f, 0.000000000f, 157745.281f);
+	const Vector3 eyePos(3040.59766f, 10149.6260f, -4347.90381f);
+	const Vector3 lookAt(2825.30078f, 0.000000000f, 2250.73193f);
 	m_camera.SetCamera(eyePos, lookAt, Vector3(0, 1, 0));
 	m_camera.SetProjection(MATH_PI / 4.f, m_rect.Width() / m_rect.Height(), 1.f, 1000000.f);
 	m_camera.SetViewPort(m_rect.Width(), m_rect.Height());
@@ -54,11 +56,23 @@ bool cMapView::Init(cRenderer &renderer)
 
 	m_curPosObj.Create(renderer, 1.f, 10, 10
 		, (eVertexType::POSITION | eVertexType::NORMAL), cColor::RED);
+	m_landMarkObj.Create(renderer, 1.f, 10, 10
+		, (eVertexType::POSITION), cColor(0.2f, 0.8f, 0.2f, 1.f));
+	m_landMarkObj2.Create(renderer, 1.f, 10, 10
+		, (eVertexType::POSITION), cColor(0.8f, 0.8f, 0.2f, 1.f));
 
 	// 날짜 단위로 path 경로 로그를 저장한다.
-	m_pathFilename = "path_";
-	m_pathFilename += common::GetCurrentDateTime4();
-	m_pathFilename += ".txt";
+	int fileId = 0;
+	do
+	{
+		m_pathFilename = "./path/path_";
+		m_pathFilename += common::GetCurrentDateTime4();
+		if (fileId > 0)
+			m_pathFilename += common::format("-%d", fileId);
+		m_pathFilename += ".txt";
+		++fileId;
+	} while (m_pathFilename.IsFileExist());
+
 	return true;
 }
 
@@ -418,6 +432,50 @@ void cMapView::OnPreRender(const float deltaSeconds)
 			renderer.GetDevContext()->OMSetDepthStencilState(states.DepthDefault(), 0);
 
 		} // ~if trackpos
+
+		if (g_global->m_isShowPrevPath)
+		{
+			for (auto &p : g_global->m_pathRenderers)
+				p->Render(renderer);
+		}
+
+		if (g_global->m_isShowLandMark)
+		{
+			for (auto &landMark : g_global->m_landMark.m_landMarks)
+			{
+				const Vector3 p0 = m_quadTree.Get3DPos(landMark.lonLat);
+
+				// 카메라와의 거리에 따라 크기를 변경한다. (항상 같은 크기로 보이기 위함)
+				renderer.m_dbgLine.SetColor(cColor::WHITE);
+				renderer.m_dbgLine.SetLine(p0, p0 + Vector3(0, 1, 0), 0.01f);
+				renderer.m_dbgLine.Render(renderer);
+
+				m_landMarkObj.m_transform.pos = p0 + Vector3(0, 1, 0);
+				const float dist = GetMainCamera().GetEyePos().Distance(p0);
+				const float scale = common::clamp(0.2f, 1000.f, (dist * 1.5f) / 140.f);
+				m_landMarkObj.m_transform.scale = Vector3::Ones * scale;
+				m_landMarkObj.Render(renderer);
+			}
+		}
+
+		if (g_global->m_isShowLandMark2)
+		{
+			for (auto &landMark : g_global->m_landMark2.m_landMarks)
+			{
+				const Vector3 p0 = m_quadTree.Get3DPos(landMark.lonLat);
+
+				// 카메라와의 거리에 따라 크기를 변경한다. (항상 같은 크기로 보이기 위함)
+				renderer.m_dbgLine.SetColor(cColor::WHITE);
+				renderer.m_dbgLine.SetLine(p0, p0 + Vector3(0, 1, 0), 0.01f);
+				renderer.m_dbgLine.Render(renderer);
+
+				m_landMarkObj2.m_transform.pos = p0 + Vector3(0, 1, 0);
+				const float dist = GetMainCamera().GetEyePos().Distance(p0);
+				const float scale = common::clamp(0.2f, 1000.f, (dist * 1.5f) / 140.f);
+				m_landMarkObj2.m_transform.scale = Vector3::Ones * scale;
+				m_landMarkObj2.Render(renderer);
+			}
+		}
 	}
 	m_renderTarget.End(renderer);
 
@@ -815,6 +873,16 @@ void cMapView::OnMouseDown(const sf::Mouse::Button &button, const POINT mousePt)
 			path.t = 0;
 			path.lonLat = lonLat;
 			g_global->m_gpsClient.m_paths.push_back(path);
+		}
+		else if (g_global->m_landMarkSelectState == 1)
+		{
+			g_global->m_landMarkSelectState = 0;
+			g_global->m_landMark.AddLandMark("LandMark", lonLat);
+		}
+		else if (g_global->m_landMarkSelectState2 == 1)
+		{
+			g_global->m_landMarkSelectState2 = 0;
+			g_global->m_landMark2.AddLandMark("LandMark", lonLat);
 		}
 	}
 	break;

@@ -455,20 +455,6 @@ cQuadTile* cQuadTileManager::GetTile(graphic::cRenderer &renderer
 	, const int level, const int xLoc, const int yLoc
 	, const sRectf &rect)
 {
-	if ((level == 13)
-		&& (xLoc == 140360 /2)
-		&& (yLoc == 57690/2))
-	{
-		int a = 0;
-	}
-
-	if ((level == 14)
-		&& (xLoc == 140360)
-		&& (yLoc == 57690))
-	{
-		int a = 0;
-	}
-
 	if (!m_tileVtxBuff.m_vtxBuff)
 		CreateVertexBuffer(renderer);
 
@@ -942,6 +928,31 @@ bool cQuadTileManager::LoadHeightMap(graphic::cRenderer &renderer
 }
 
 
+// 높이맵 로딩, 싱글쓰레딩
+bool cQuadTileManager::LoadHeightMapDirect(graphic::cRenderer &renderer
+	, cQuadTile &tile
+	, cTerrainQuadTree &terrain
+	, const int level, const int xLoc, const int yLoc
+	, const sRectf &rect)
+{
+	if (tile.m_hmap)
+		return true;
+
+	const StrPath fileName = cHeightmap::GetFileName(g_mediaDir, level, xLoc, yLoc);
+	if (!fileName.IsFileExist() || (fileName.FileSize() < 150))
+		return false;
+
+	tile.m_hmap = new cHeightmap();
+	if (!tile.m_hmap->Read(fileName.c_str()))
+	{
+		SAFE_DELETE(tile.m_hmap);
+		return false;
+	}
+
+	return true;
+}
+
+
 // 지역정보, 행정경계 파일 요청 poi_base, poi_bound
 bool cQuadTileManager::LoadPoiFile(graphic::cRenderer &renderer
 	, cQuadTile &tile
@@ -1209,7 +1220,6 @@ void cQuadTileManager::Clear()
 	m_readyLoadModel.clear();
 	m_vworldDownloader.Clear();
 
-	m_tiles.clear();
 	m_tmaps.Clear();
 	m_hmaps.Clear();
 	for (int i = 0; i < 2; ++i)
@@ -1222,6 +1232,7 @@ void cQuadTileManager::Clear()
 
 	for (auto &kv : m_tiles)
 		delete kv.second.tile;
+	m_tiles.clear();
 }
 
 

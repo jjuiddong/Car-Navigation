@@ -51,8 +51,15 @@ void cNavigationView::OnRender(const float deltaSeconds)
 	ImGui::RadioButton("Network", (int*)&gpsClient.m_inputType
 		, (int)cGpsClient::eInputType::Network);
 
-	const ImVec2 wndSize = (gpsClient.m_inputType == cGpsClient::eInputType::Network) ?
-		ImVec2(0, 95) : ImVec2(0, 25);
+	ImVec2 wndSize = ImVec2(0, 25);
+	if (gpsClient.m_inputType == cGpsClient::eInputType::Network)
+	{
+		if (gpsClient.IsReadyConnect() || gpsClient.IsConnect())
+			wndSize = ImVec2(0, 25);
+		else
+			wndSize = ImVec2(0, 95);
+	}
+
 	const ImVec4 bgColor = gpsClient.IsConnect() ? ImVec4(0, 1, 0, 0.7f) : ImVec4(1, 0, 0, 0.7f);
 	ImGui::PushStyleColor(ImGuiCol_ChildBg, bgColor);
 
@@ -125,9 +132,9 @@ void cNavigationView::OnRender(const float deltaSeconds)
 	ImGui::EndChild();
 	ImGui::PopStyleColor(1);
 
-	ImGui::Spacing();
+	//ImGui::Spacing();
 	ImGui::Separator();
-	ImGui::Spacing();
+	//ImGui::Spacing();
 
 	auto &track = g_global->m_gpsClient.m_paths;
 	ImGui::Text("Path Count = %d", track.size());
@@ -137,20 +144,30 @@ void cNavigationView::OnRender(const float deltaSeconds)
 	ImGui::Checkbox("Quadtree", &terrain.m_isShowQuadTree);
 	ImGui::SameLine();
 	ImGui::Checkbox("Lv", &terrain.m_isShowLevel);
-	ImGui::Checkbox("Poi1", &terrain.m_isShowPoi1);
-	ImGui::SameLine();
+	//ImGui::Checkbox("Poi1", &terrain.m_isShowPoi1);
+	//ImGui::SameLine();
 	ImGui::Checkbox("Poi2", &terrain.m_isShowPoi2);
-	ImGui::Checkbox("GPS", &g_global->m_isShowGPS);
 	ImGui::SameLine();
+	ImGui::Checkbox("GPS", &g_global->m_isShowGPS);
+	//ImGui::SameLine();
 	ImGui::Checkbox("Trace GPS", &g_global->m_isTraceGPSPos);
 	if (ImGui::Checkbox("Optimize Render", &terrain.m_isRenderOptimize))
 		if (!terrain.m_isRenderOptimize)
 			terrain.m_optimizeLevel = cQuadTree<sQuadData>::MAX_LEVEL;
 
-	ImGui::Spacing();
+	if (ImGui::Checkbox("Show Prev Path", &g_global->m_isShowPrevPath))
+	{
+		if (g_global->m_isShowPrevPath)
+			g_global->ReadAndConvertPathFiles(g_global->m_mapView->GetRenderer()
+				, g_global->m_mapView->m_quadTree, "./path/");
+	}
 
+	ImGui::Checkbox("Show LandMark", &g_global->m_isShowLandMark);
+	ImGui::Checkbox("Show LandMark2", &g_global->m_isShowLandMark2);
+
+	//ImGui::Spacing();
 	ImGui::Separator();
-	ImGui::Spacing();
+	//ImGui::Spacing();
 
 	// Information
 	ImGui::Text("tile memory %d", terrain.m_tileMgr.m_tiles.size());
@@ -172,8 +189,41 @@ void cNavigationView::OnRender(const float deltaSeconds)
 		const Vector3 lookAt = mapView->m_quadTree.Get3DPos(mapView->m_curGpsPos);
 		const Vector3 eyePos = lookAt + Vector3(1, 1, 1) * 250.f;
 		camera.Move(eyePos, lookAt);
-
 	}
+
+	ImGui::Spacing();
+	ImGui::Spacing();
+	ImGui::Spacing();
+
+	switch (g_global->m_landMarkSelectState)
+	{
+	case 0:
+		if (ImGui::Button("LandMark"))
+			g_global->m_landMarkSelectState = 1;
+		break;
+	case 1:
+	case 2:
+		ImGui::Button("Set LandMark");
+		break;
+	default: assert(0); break;
+	}
+
+	ImGui::Spacing();
+	ImGui::Spacing();
+
+	switch (g_global->m_landMarkSelectState2)
+	{
+	case 0:
+		if (ImGui::Button("LandMark2"))
+			g_global->m_landMarkSelectState2 = 1;
+		break;
+	case 1:
+	case 2:
+		ImGui::Button("Set LandMark2");
+		break;
+	default: assert(0); break;
+	}
+
 	ImGui::PopStyleColor(3);
 	ImGui::Spacing();
 
@@ -183,62 +233,69 @@ void cNavigationView::OnRender(const float deltaSeconds)
 	ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.6f, 0.1f, 0, 1));
 	ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.8f, 0.1f, 0, 1));
 	ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.4f, 0.1f, 0, 1));
-	if (ImGui::Button("Clear Path"))
-	{
-		auto &track = g_global->m_gpsClient.m_paths;
-		track.clear();
-	}
+	//if (ImGui::Button("Clear Path"))
+	//{
+	//	auto &track = g_global->m_gpsClient.m_paths;
+	//	track.clear();
+	//}
 
-	if (ImGui::Button("Read Path File"))
-	{
-		if (g_global->m_gpsClient.ReadPathFile("path.txt"))
-		{
-		}
-	}
+	//if (ImGui::Button("Read Path File"))
+	//{
+	//	if (g_global->m_gpsClient.ReadPathFile("path.txt"))
+	//	{
+	//	}
+	//}
 
-	if (ImGui::Button("GPS Path Pump"))
-	{
-		if (g_global->m_gpsClient.ReadPathFile("path.txt"))
-		{
-			g_global->m_gpsClient.FileReplay();
-		}
-	}
+	//if (ImGui::Button("GPS Path Pump"))
+	//{
+	//	if (g_global->m_gpsClient.ReadPathFile("path.txt"))
+	//	{
+	//		g_global->m_gpsClient.FileReplay();
+	//	}
+	//}
+	ImGui::PopStyleColor(3);
 
-	ImGui::Spacing();
-	ImGui::Spacing();
+	//ImGui::Spacing();
+	//ImGui::Spacing();
 	ImGui::Separator();
 
-	ImGui::RadioButton("MapView", (int*)&g_global->m_analysisType, 0);
-	ImGui::SameLine();
-	ImGui::RadioButton("Terrain", (int*)&g_global->m_analysisType, 1);
-	ImGui::RadioButton("Main", (int*)&g_global->m_analysisType, 2);
+	static bool isAnalysis = false;
+	ImGui::Checkbox("Analysis Rendering", &isAnalysis);
 
-	switch (g_global->m_analysisType)
+	if (isAnalysis)
 	{
-	case eAnalysisType::MapView:
-		//ImGui::Text("t0 = %f", g_global->m_renderT0);
-		//ImGui::Text("t1 = %f", g_global->m_renderT1);
-		//ImGui::Text("t0 + t1 = %f"
-		//	, g_global->m_renderT0 + g_global->m_renderT1);
-		break;
+		ImGui::RadioButton("MapView", (int*)&g_global->m_analysisType, 0);
+		ImGui::SameLine();
+		ImGui::RadioButton("Terrain", (int*)&g_global->m_analysisType, 1);
+		ImGui::RadioButton("Main", (int*)&g_global->m_analysisType, 2);
 
-	case eAnalysisType::Terrain:
-		//ImGui::Text("t0 = %f", viewer->m_mapView->m_quadTree.m_t0);
-		//ImGui::Text("t1 = %f", viewer->m_mapView->m_quadTree.m_t1);
-		//ImGui::Text("t0 + t1 = %f"
-		//	, viewer->m_mapView->m_quadTree.m_t0 + viewer->m_mapView->m_quadTree.m_t1);
-		break;
+		switch (g_global->m_analysisType)
+		{
+		case eAnalysisType::MapView:
+			//ImGui::Text("t0 = %f", g_global->m_renderT0);
+			//ImGui::Text("t1 = %f", g_global->m_renderT1);
+			//ImGui::Text("t0 + t1 = %f"
+			//	, g_global->m_renderT0 + g_global->m_renderT1);
+			break;
 
-	case eAnalysisType::GMain:
-		//ImGui::Text("t0 = %f", g_application->m_deltaSeconds);
-		break;
+		case eAnalysisType::Terrain:
+			//ImGui::Text("t0 = %f", viewer->m_mapView->m_quadTree.m_t0);
+			//ImGui::Text("t1 = %f", viewer->m_mapView->m_quadTree.m_t1);
+			//ImGui::Text("t0 + t1 = %f"
+			//	, viewer->m_mapView->m_quadTree.m_t0 + viewer->m_mapView->m_quadTree.m_t1);
+			break;
 
-	default: assert(0); break;
+		case eAnalysisType::GMain:
+			//ImGui::Text("t0 = %f", g_application->m_deltaSeconds);
+			break;
+
+		default: assert(0); break;
+		}
+
+		ImGui::Checkbox("Show Terrain", &g_global->m_isShowTerrain);
+		ImGui::Checkbox("Show MapView", &g_global->m_isShowMapView);
+		ImGui::Checkbox("Show Render Overhead", &g_global->m_isShowRenderGraph);
+		ImGui::Checkbox("Calc Render Overhead", &g_global->m_isCalcRenderGraph);
 	}
-	ImGui::Checkbox("Show Terrain", &g_global->m_isShowTerrain);
-	ImGui::Checkbox("Show MapView", &g_global->m_isShowMapView);
-	ImGui::Checkbox("Show Render Overhead", &g_global->m_isShowRenderGraph);
-	ImGui::Checkbox("Calc Render Overhead", &g_global->m_isCalcRenderGraph);
-	
-	ImGui::PopStyleColor(3);
+
 }

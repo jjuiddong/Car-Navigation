@@ -44,6 +44,8 @@ public:
 	int m_graphIdx;
 
 	graphic::cSphere m_curPosObj;
+	graphic::cSphere m_landMarkObj;
+	graphic::cSphere m_landMarkObj2;
 	gis::sGPRMC m_gpsInfo;
 	Vector2d m_curGpsPos;
 	float m_lookAtDistance;

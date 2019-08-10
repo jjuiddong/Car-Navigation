@@ -54,8 +54,6 @@ cTerrainQuadTree::cTerrainQuadTree()
 	m_techName[3] = "Light_Heightmap";
 	m_techName[4] = "Unlit";
 	m_txtColor = Vector3(1, 0, 0);
-
-	m_nodeBuffer = new sQuadTreeNode<sQuadData>[1024 * 2];
 }
 
 cTerrainQuadTree::cTerrainQuadTree(sRectf &rect)
@@ -168,6 +166,8 @@ void cTerrainQuadTree::BuildQuadTree(const graphic::cFrustum &frustum
 	, const Ray &ray)
 {
 	m_qtree.Clear(false);
+	if (!m_nodeBuffer)
+		m_nodeBuffer = new sQuadTreeNode<sQuadData>[1024 * 2];
 	for (int i = 0; i < 50; ++i)
 	{
 		m_nodeBuffer[i].parent = NULL;
@@ -861,7 +861,8 @@ Vector3 cTerrainQuadTree::Get3DPos(const Vector2d &lonLat)
 {
 	const Vector3 globalPos = gis::WGS842Pos(lonLat);
 	Vector3 relPos = gis::GetRelationPos(globalPos);
-	const sQuadTreeNode<sQuadData> *node = m_qtree.GetNode(sRectf::Rect(globalPos.x, globalPos.z, 0,0));
+	const sQuadTreeNode<sQuadData> *node = 
+		m_qtree.GetNode(sRectf::Rect(globalPos.x, globalPos.z, 0,0));
 	if (node && node->data.tile)
 	{
 		cQuadTile *tile = node->data.tile;
@@ -870,6 +871,60 @@ Vector3 cTerrainQuadTree::Get3DPos(const Vector2d &lonLat)
 		const float v = 1.f + (tile->m_rect.top - relPos.z) / tile->m_rect.Height();
 		//relPos.y = (tile->m_hmap->GetHeight(Vector2(u,v)) - 0.1f) * 2500.f;
 		relPos.y = tile->GetHeight(Vector2(u, v)) * 2500.f;
+	}
+
+	return relPos;
+}
+
+
+// 경위도에 해당하는 3D 위치를 리턴한다. (상대좌표계)
+// lonLat에 해당하는 파일이 로드되지 않았다면, 파일을 로딩한다.
+// 속도가 느릴 수 있다.
+// 높이맵 파일은 로딩하지만, 렌더링을 위한 텍스쳐를 생성하지 않기 때문에, 높이 정보만 
+// 얻어온 후, 제거해야 문제가 없다.
+Vector3 cTerrainQuadTree::Get3DPosPrecise(graphic::cRenderer &renderer, const Vector2d &lonLat)
+{
+	const Vector3 globalPos = gis::WGS842Pos(lonLat);
+	Vector3 relPos = gis::GetRelationPos(globalPos);
+	const sRectf rect = sRectf::Rect(globalPos.x, globalPos.z, 0, 0);
+	const auto result = m_qtree.GetNodeLevel(rect);
+	if (std::get<0>(result) < 0)
+		return relPos;
+
+	int level = std::get<0>(result);
+	int x = std::get<1>(result);
+	int y = std::get<2>(result);
+
+	while (level >= 0)
+	{
+		cQuadTile *tile = m_tileMgr.GetTile(renderer, level, x, y, rect);
+		if (!tile)
+			break;
+
+		if (!tile->m_hmap
+			&& m_tileMgr.LoadHeightMapDirect(renderer, *tile, *this, level, x, y, rect))
+		{
+			// insert heightmap fileloader for clear memory
+			const StrPath fileName = cHeightmap::GetFileName(g_mediaDir, level, x, y);
+			typedef graphic::cFileLoader<cHeightmap, 1000, sHeightmapArgs> FileLoaderType;
+			FileLoaderType::sChunk chunk;
+			chunk.accessTime = 0.f;
+			chunk.state = FileLoaderType::COMPLETE;
+			chunk.data = tile->m_hmap;
+			m_tileMgr.m_hmaps.m_files.insert({ fileName.GetHashCode(), chunk });
+		}
+
+		if (tile->m_hmap)
+		{
+			const float u = (relPos.x - tile->m_rect.left) / tile->m_rect.Width();
+			const float v = 1.f + (tile->m_rect.top - relPos.z) / tile->m_rect.Height();
+			relPos.y = tile->GetHeight(Vector2(u, v)) * 2500.f;
+			break;
+		}
+
+		x >>= 1;
+		y >>= 1;
+		level--;
 	}
 
 	return relPos;

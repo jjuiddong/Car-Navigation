@@ -48,6 +48,7 @@ public:
 	bool RemoveChildren(sQuadTreeNode<T> *node, const bool isRmTree = true);
 	sQuadTreeNode<T>* GetNode(const sRectf &rect);
 	sQuadTreeNode<T>* GetNode(const int level, const int xLoc, const int yLoc);
+	std::tuple<int,int,int> GetNodeLevel(const sRectf &rect);
 	sQuadTreeNode<T>* GetNorthNeighbor(const sQuadTreeNode<T> *node);
 	sQuadTreeNode<T>* GetSouthNeighbor(const sQuadTreeNode<T> *node);
 	sQuadTreeNode<T>* GetWestNeighbor(const sQuadTreeNode<T> *node);
@@ -209,9 +210,38 @@ inline bool cQuadTree<T>::RemoveChildren(sQuadTreeNode<T> *node
 template<class T>
 inline sQuadTreeNode<T>* cQuadTree<T>::GetNode(const sRectf &rect)
 {
+	const auto result = GetNodeLevel(rect);
+	if (std::get<0>(result) < 0)
+		return NULL;
+
+	int nodeLevel = std::get<0>(result);
+	int x = std::get<1>(result);
+	int y = std::get<2>(result);
+
+	sQuadTreeNode<T> *ret = NULL;
+	do
+	{
+		ret = GetNode(nodeLevel, x, y);
+		if (nodeLevel <= 0)
+			break;
+
+		// goto parent level
+		x >>= 1;
+		y >>= 1;
+		--nodeLevel;
+	} while (ret == NULL);
+
+	return ret;
+}
+
+
+// return nodeLeve, x, y correspond rect
+template<class T>
+std::tuple<int, int, int> cQuadTree<T>::GetNodeLevel(const sRectf &rect)
+{
 	if ((rect.left > m_rootRect.right) || (rect.top > m_rootRect.bottom)
 		|| (rect.right < 0) || (rect.bottom < 0))
-		return NULL;
+		return std::make_tuple(-1,0,0);
 
 	int x1 = (int)(rect.left * m_quadScale);
 	int y1 = (int)(rect.top * m_quadScale);
@@ -232,21 +262,7 @@ inline sQuadTreeNode<T>* cQuadTree<T>::GetNode(const sRectf &rect)
 
 	x1 >>= shiftCount;
 	y1 >>= shiftCount;
-
-	sQuadTreeNode<T> *ret = NULL;
-	do
-	{
-		ret = GetNode(nodeLevel, x1, y1);
-		if (nodeLevel <= 0)
-			break;
-
-		// goto parent level
-		x1 >>= 1;
-		y1 >>= 1;
-		--nodeLevel;
-	} while (ret == NULL);
-
-	return ret;
+	return std::make_tuple(nodeLevel, x1, y1);
 }
 
 

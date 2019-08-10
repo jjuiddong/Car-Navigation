@@ -15,6 +15,15 @@
     <ClCompile Include="gpsclient.cpp" />
     <ClCompile Include="touch.cpp" />
     <ClCompile Include="carnavi.cpp" />
+    <ClCompile Include="path.cpp">
+      <Filter>path</Filter>
+    </ClCompile>
+    <ClCompile Include="pathrenderer.cpp">
+      <Filter>path</Filter>
+    </ClCompile>
+    <ClCompile Include="landmark.cpp">
+      <Filter>path</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h" />
@@ -31,10 +40,22 @@
     <ClInclude Include="gpsclient.h" />
     <ClInclude Include="touch.h" />
     <ClInclude Include="carnavi.h" />
+    <ClInclude Include="path.h">
+      <Filter>path</Filter>
+    </ClInclude>
+    <ClInclude Include="pathrenderer.h">
+      <Filter>path</Filter>
+    </ClInclude>
+    <ClInclude Include="landmark.h">
+      <Filter>path</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="view">
       <UniqueIdentifier>{c340b6c8-956b-4052-aba2-63b7458f079b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="path">
+      <UniqueIdentifier>{bcc95158-be69-459f-8d97-ef0a27957664}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

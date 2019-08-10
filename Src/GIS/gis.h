@@ -130,9 +130,12 @@ namespace gis
 
 namespace
 {
-	const static char *g_textureDir = "..\\media\\data";
-	const static char *g_heightmapDir = "..\\media\\data";
-	const static char *g_mediaDir = "..\\media\\data";
+	//const static char *g_textureDir = "..\\media\\data";
+	//const static char *g_heightmapDir = "..\\media\\data";
+	//const static char *g_mediaDir = "..\\media\\data";
+	const static char *g_textureDir = "D:\\media\\data";
+	const static char *g_heightmapDir = "D:\\media\\data";
+	const static char *g_mediaDir = "D:\\media\\data";
 
 	const static char *g_textureDir2 = "D:\\media\\data";
 	const static char *g_heightmapDir2 = "D:\\media\\data";

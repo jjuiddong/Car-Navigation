@@ -61,6 +61,9 @@ bool cViewer::OnInit()
 
 	m_gui.SetContext();
 
+	g_global = new cGlobal();
+	g_global->Init(getSystemHandle());
+
 	m_mapView = new cMapView("Map View");
 	m_mapView->Create(eDockState::DOCKWINDOW, eDockSlot::TAB, this, NULL);
 	bool result = m_mapView->Init(m_renderer);
@@ -70,8 +73,8 @@ bool cViewer::OnInit()
 	m_naviView->Create(eDockState::DOCKWINDOW, eDockSlot::LEFT, this
 		, m_mapView, 0.15f, framework::eDockSizingOption::PIXEL);
 
-	m_infoView = new cInformationView("Information View");
-	m_infoView->Create(eDockState::DOCKWINDOW, eDockSlot::TAB, this, m_naviView);
+	//m_infoView = new cInformationView("Information View");
+	//m_infoView->Create(eDockState::DOCKWINDOW, eDockSlot::TAB, this, m_naviView);
 
 	//m_observerView = new cObserverView("Observer View");
 	//m_observerView->Create(eDockState::DOCKWINDOW, eDockSlot::BOTTOM, this, m_simView, 0.3f);// 0.6f, framework::eDockSizingOption::PIXEL);
@@ -79,11 +82,12 @@ bool cViewer::OnInit()
 	//assert(result);
 
 	g_root.m_mapView = m_mapView;
-	g_global = new cGlobal();
 	g_global->m_mapView = m_mapView;
 	g_global->m_infoView = m_infoView;
 	g_global->m_naviView = m_naviView;
-	g_global->Init(getSystemHandle());
+
+	if (g_global->m_isShowPrevPath)
+		g_global->ReadAndConvertPathFiles(m_renderer, m_mapView->m_quadTree, "./path/");
 
 	m_gui.SetContext();
 	m_gui.SetStyleColorsDark();

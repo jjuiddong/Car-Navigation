@@ -35,11 +35,11 @@ public:
 
 	Vector2d GetLongLat(const Ray &ray);
 	Vector3 Get3DPos(const Vector2d &lonLat);
+	Vector3 Get3DPosPrecise(graphic::cRenderer &renderer, const Vector2d &lonLat);
 	Vector2d GetWGS84(const Vector3 &relPos);
 	float GetHeight(const Vector2 &relPos);
 	inline int GetLevel(const float distance);
 	std::pair<bool,Vector3> Pick(const Ray &ray);
-
 	void Clear();
 
 

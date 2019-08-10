@@ -54,6 +54,12 @@ public:
 		, cTerrainQuadTree &terrain
 		, sQuadTreeNode<sQuadData> *node);
 
+	bool LoadHeightMapDirect(graphic::cRenderer &renderer
+		, cQuadTile &tile
+		, cTerrainQuadTree &terrain
+		, const int level, const int xLoc, const int yLoc
+		, const sRectf &rect);
+
 	void Clear();
 
 
