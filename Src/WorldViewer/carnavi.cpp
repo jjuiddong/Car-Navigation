@@ -83,7 +83,7 @@ bool cViewer::OnInit()
 	g_global->m_mapView = m_mapView;
 	g_global->m_infoView = m_infoView;
 	g_global->m_naviView = m_naviView;
-	g_global->m_touch.Init(getSystemHandle());
+	g_global->Init(getSystemHandle());
 
 	m_gui.SetContext();
 	m_gui.SetStyleColorsDark();

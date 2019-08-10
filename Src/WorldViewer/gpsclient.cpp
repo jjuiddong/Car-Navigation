@@ -11,7 +11,9 @@ cGpsClient::cGpsClient()
 	, m_ip("192.168.1.102")
 	, m_port(60660)
 	, m_recvTime(0)
+	, m_speedRecvTime(0)
 	, m_recvCount(0)
+	, m_speed(0.f)
 	, m_fileAnimationIdx(0)
 	, m_inputType(eInputType::Serial)
 {
@@ -24,6 +26,16 @@ cGpsClient::~cGpsClient()
 }
 
 
+bool cGpsClient::Init()
+{
+	m_ip = g_global->m_config.GetString("gps_server_ip", "192.168.1.102");
+	m_port = g_global->m_config.GetInt("gps_server_port", 60660);
+	m_inputType = (eInputType)g_global->m_config.GetInt("gps_input_type", 0);
+
+	return true;
+}
+
+
 bool cGpsClient::ConnectGpsServer(const Str16 &ip, const int port)
 {
 	m_client.Close();
@@ -32,22 +44,35 @@ bool cGpsClient::ConnectGpsServer(const Str16 &ip, const int port)
 	m_port = port;
 	m_client.Init(ip, port);
 
+	g_global->m_config.SetValue("gps_server_ip", ip.c_str());
+	g_global->m_config.SetValue("gps_server_port", port);
+	g_global->m_config.SetValue("gps_input_type", (int)m_inputType);
+
 	return true;
+}
+
+
+bool cGpsClient::ConnectGpsSerial(const int portNum, const int baudRate)
+{
+	const bool result = m_serial.Open(portNum, baudRate);
+	g_global->m_config.SetValue("gps_input_type", (int)m_inputType);
+	return result;
 }
 
 
 bool cGpsClient::GetGpsInfo(OUT gis::sGPRMC &out)
 {
-	const float ALIVE_TIME = 10.f;
-
 	if (eState::PathFile == m_state)
 		return false;
 
 	if (!IsConnect())
 	{
 		m_recvTime = 0.f;
+		m_speedRecvTime = 0.f;
 		return false;
 	}
+
+	const float ALIVE_TIME = 10.f;
 
 	// 일정시간동안 패킷을 받지못했다면 커넥션을 끊는다. (Network type)
 	const double curT = m_timer.GetSeconds();
@@ -64,20 +89,31 @@ bool cGpsClient::GetGpsInfo(OUT gis::sGPRMC &out)
 		if (!m_client.m_recvQueue.Front(packet))
 		{
 			if (curT - m_recvTime > ALIVE_TIME)
-				m_client.Close();
+				m_client.Close(); // long time disconnectio, close network
 			return false;
 		}
 
-		m_recvTime = curT;
 		memcpy(m_recvStr.m_str, packet.m_data, min(m_recvStr.SIZE, (uint)packet.m_writeIdx));
-
-		dbg::Logp2("gps.txt", m_recvStr.c_str());
-
 		if (ParseStr(m_recvStr, out))
 		{
+			if (out.speed == 0.f)
+			{
+				const double dt = curT - m_speedRecvTime;
+				if (dt < 3.f)
+					out.speed = m_speed;
+			}
+			else
+			{
+				m_speed = out.speed;
+				m_speedRecvTime = curT;
+			}
+
 			isRead = true;
 			m_recvCount++;
 		}
+
+		m_recvTime = curT;
+		dbg::Logp2("gps.txt", m_recvStr.c_str());
 	}
 	break;
 
@@ -197,17 +233,20 @@ bool cGpsClient::ParseStr(const Str512 &str, OUT gis::sGPRMC &out)
 	vector<string> lines;
 	common::tokenizer(str.m_str, "\n", "", lines);
 
-	int state = 0;
 	out.available = false;
+
+	int state = 0;
+	gis::sGPRMC gps;
+	ZeroMemory(&gps, sizeof(gps));
 	for (auto &line : lines)
 	{
-		gis::sGPRMC gps;
 		if (gis::GetGPRMCLonLat(line.c_str(), gps))
 		{
 			out = gps;
 			state = 1;
 		}
-		else if ((state != 1) && (gis::GetGPATTLonLat(line.c_str(), gps)))
+		else if ((state != 1) 
+			&& (gis::GetGPATTLonLat(line.c_str(), gps)))
 		{
 			out = gps;
 		}

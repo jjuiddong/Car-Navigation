@@ -45,10 +45,6 @@ void cNavigationView::OnRender(const float deltaSeconds)
 	cTerrainQuadTree &terrain = g_global->m_mapView->m_quadTree;
 	cGpsClient &gpsClient = g_global->m_gpsClient;
 
-	//ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1, 1, 0, 1));
-	//ImGui::Text(g_global->m_touch.IsTouchMode() ? "Touch Mode" : "Gesture Mode");
-	//ImGui::PopStyleColor();
-
 	ImGui::RadioButton("Serial", (int*)&gpsClient.m_inputType
 		, (int)cGpsClient::eInputType::Serial);
 	ImGui::SameLine();
@@ -83,7 +79,7 @@ void cNavigationView::OnRender(const float deltaSeconds)
 				if (ImGui::Button("Open"))
 				{
 					if (((int)m_ports.size() > com)
-						&& gpsClient.m_serial.Open(m_ports[com].first, 9600))
+						&& gpsClient.ConnectGpsSerial(m_ports[com].first, 9600))
 					{
 						// nothing~
 					}
@@ -107,8 +103,12 @@ void cNavigationView::OnRender(const float deltaSeconds)
 			else
 			{
 				ImGui::Text("GPS Server IP/Port");
+				ImGui::PushItemWidth(100);
 				ImGui::InputText("IP", gpsClient.m_ip.m_str, gpsClient.m_ip.SIZE);
+				ImGui::PopItemWidth();
+				ImGui::PushItemWidth(100);
 				ImGui::InputInt("Port", &gpsClient.m_port);
+				ImGui::PopItemWidth();
 
 				ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0.6f, 0.f, 1));
 				ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0, 0.8f, 0.f, 1));
@@ -131,13 +131,12 @@ void cNavigationView::OnRender(const float deltaSeconds)
 
 	auto &track = g_global->m_gpsClient.m_paths;
 	ImGui::Text("Path Count = %d", track.size());
-	ImGui::Text("GPS Count = %d", g_global->m_gpsClient.m_recvCount);
+	ImGui::Text("GPS Count = %d", g_global->m_gpsClient.m_recvCount);	
+	ImGui::Text("la d = %.3f", g_global->m_mapView->m_lookAtDistance);
+	ImGui::Text("la y = %.3f", g_global->m_mapView->m_lookAtYVector);
 	ImGui::Checkbox("Quadtree", &terrain.m_isShowQuadTree);
 	ImGui::SameLine();
-	ImGui::Checkbox("Facility", &terrain.m_isShowFacility);
-	ImGui::Checkbox("Level", &terrain.m_isShowLevel);
-	ImGui::SameLine();
-	ImGui::Checkbox("Locs", &terrain.m_isShowLoc);
+	ImGui::Checkbox("Lv", &terrain.m_isShowLevel);
 	ImGui::Checkbox("Poi1", &terrain.m_isShowPoi1);
 	ImGui::SameLine();
 	ImGui::Checkbox("Poi2", &terrain.m_isShowPoi2);

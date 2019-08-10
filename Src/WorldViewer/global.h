@@ -23,6 +23,7 @@ class cGlobal
 public:
 	cGlobal();
 	virtual ~cGlobal();
+	bool Init(HWND hwnd);
 
 
 public:
@@ -33,7 +34,8 @@ public:
 
 	cTouch m_touch;
 	cGpsClient m_gpsClient;
-
+	cConfig m_config;
+	
 	// GPS
 	bool m_isShowGPS;
 	bool m_isTraceGPSPos;

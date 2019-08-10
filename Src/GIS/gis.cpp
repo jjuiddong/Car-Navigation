@@ -293,6 +293,12 @@ bool gis::GetGPATTLonLat(const Str512 &gpatt, OUT sGPRMC &out)
 	out.available = true;
 	out.lonLat.y = atof(strs[1].c_str());
 	out.lonLat.x = atof(strs[2].c_str());
+	
+	// 가끔씩 데이타가 깨져서 들어오는 경우가 있음.
+	if (out.lonLat.x <= 30.f)
+		return false;
+	if (out.lonLat.y <= 10.f)
+		return false;
 
 	return true;
 }
