@@ -1,6 +1,7 @@
 
 #include "stdafx.h"
 #include "global.h"
+#include <limits>
 
 
 cGlobal::cGlobal()
@@ -177,6 +178,49 @@ bool cGlobal::ReadAndConvertPathFiles(graphic::cRenderer &renderer, cTerrainQuad
 		terrain.Clear();
 		m_pathRenderers.push_back(p);
 	}
+	return true;
+}
+
+
+// binary 포맷으로된 trackpos 파일을 path 포맷형태로 저장한다.
+bool cGlobal::ConvertTrackPos2Path()
+{
+	typedef std::numeric_limits< double > dbl;
+
+	list<string> files;
+	list<string> exts;
+	exts.push_back(".txt");
+	common::CollectFiles(exts, "./TrackPos_LittleEndian", files);
+
+	for (auto &file : files)
+	{
+		std::ifstream ifs(file, std::ios::binary);
+		if (!ifs.is_open())
+			continue;
+		
+		StrPath outFileName = "./path/";
+		outFileName += StrPath(file).GetFileName();
+
+		std::ofstream ofs(outFileName.c_str());
+		if (!ofs.is_open())
+			continue;
+		ofs.precision(dbl::max_digits10);
+
+		while (!ifs.eof())
+		{
+			Vector2d pos(0, 0);
+			ifs.read((char*)&pos.y, sizeof(pos.y));
+			ifs.read((char*)&pos.x, sizeof(pos.x));
+
+			if ((pos.x == 0.f) || (pos.y == 0))
+				continue;
+
+			//ex) 2019-06-30-14-47-23-301, 126.833816528320313, 37.617435455322266
+			ofs << "2018-06-30-14-47-23-301, ";
+			ofs << pos.x << ", " << pos.y << std::endl;
+		}
+	}
+
 	return true;
 }
 
