@@ -30,6 +30,7 @@ public:
 	bool Read3DPosFiles(graphic::cRenderer &renderer, const StrPath pathDirectoryName);
 	bool ReadAndConvertPathFiles(graphic::cRenderer &renderer, cTerrainQuadTree &terrain
 		, const StrPath pathDirectoryName);
+	bool ConvertTrackPos2Path();
 	void Clear();
 
 
