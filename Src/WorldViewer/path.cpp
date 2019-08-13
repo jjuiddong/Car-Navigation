@@ -40,6 +40,10 @@ bool cPath::Read(const StrPath &fileName)
 		// 전 좌표와 너무 큰차이가 나면 무시한다. (위경도로 계산)
 		if (!p0.IsEmpty() && (p0.Distance(info.lonLat) > 0.08f))
 			continue;
+		if (!gis::Check6Val(info.lonLat.x))
+			continue;
+		if (!gis::Check6Val(info.lonLat.y))
+			continue;
 
 		p0 = info.lonLat;
 		m_table.push_back(info);

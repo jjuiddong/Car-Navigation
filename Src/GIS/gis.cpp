@@ -273,6 +273,17 @@ bool gis::GetGPRMCLonLat(const Str512 &gprmc, OUT sGPRMC &out)
 }
 
 
+// 소수점 6자리까지 데이타가 없으면, 데이타는 무시한다.
+bool gis::Check6Val(const double val)
+{
+	uint64 c = (uint64)(val * 1000000.f);
+	uint64 d = c % 1000;
+	if (d == 0)
+		return false;
+	return true;
+}
+
+
 // GPATT 문자열로 위경도를 리턴한다.
 // $GPATT, 37.939707, 126.836799, 44.3, 143.2, 7.3, 6.6, *71
 bool gis::GetGPATTLonLat(const Str512 &gpatt, OUT sGPRMC &out)
@@ -293,11 +304,11 @@ bool gis::GetGPATTLonLat(const Str512 &gpatt, OUT sGPRMC &out)
 	out.available = true;
 	out.lonLat.y = atof(strs[1].c_str());
 	out.lonLat.x = atof(strs[2].c_str());
-	
-	// 가끔씩 데이타가 깨져서 들어오는 경우가 있음.
-	if (out.lonLat.x <= 30.f)
+
+	// 소수점 6자리까지 데이타가 없으면, 데이타는 무시한다.
+	if (!Check6Val(out.lonLat.x))
 		return false;
-	if (out.lonLat.y <= 10.f)
+	if (!Check6Val(out.lonLat.y))
 		return false;
 
 	return true;

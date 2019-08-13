@@ -108,6 +108,7 @@ namespace gis
 
 	bool GetGPRMCLonLat(const Str512 &gprmc, OUT sGPRMC &out);
 	bool GetGPATTLonLat(const Str512 &gpatt, OUT sGPRMC &out);
+	bool Check6Val(const double val);
 }
 
 
