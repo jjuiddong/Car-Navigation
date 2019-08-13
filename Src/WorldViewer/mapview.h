@@ -37,7 +37,6 @@ public:
 	graphic::cSkyBoxCube m_skybox;
 	graphic::cRenderTarget m_renderTarget;
 	cTerrainQuadTree m_quadTree;
-	StrPath m_pathFilename;
 
 	bool m_showWireframe;
 	float m_renderOverhead[5][500];

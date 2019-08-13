@@ -61,17 +61,6 @@ bool cMapView::Init(cRenderer &renderer)
 	m_landMarkObj2.Create(renderer, 1.f, 10, 10
 		, (eVertexType::POSITION), cColor(0.8f, 0.8f, 0.2f, 1.f));
 
-	// 날짜 단위로 path 경로 로그를 저장한다.
-	int fileId = 0;
-	do
-	{
-		m_pathFilename = "./path/path_";
-		m_pathFilename += common::GetCurrentDateTime4();
-		if (fileId > 0)
-			m_pathFilename += common::format("-%d", fileId);
-		m_pathFilename += ".txt";
-		++fileId;
-	} while (m_pathFilename.IsFileExist());
 
 	return true;
 }
@@ -141,7 +130,7 @@ void cMapView::UpdateGPS(const float deltaSeconds)
 		static Vector2d prevGpsPos;
 		if (prevGpsPos != m_curGpsPos)
 		{
-			dbg::Logp2(m_pathFilename.c_str(), "%s, %.15f, %.15f\n"
+			dbg::Logp2(g_global->m_pathFilename.c_str(), "%s, %.15f, %.15f\n"
 				, date.c_str(), m_curGpsPos.x, m_curGpsPos.y);
 			prevGpsPos = m_curGpsPos;
 		}

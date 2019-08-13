@@ -69,6 +69,7 @@ public:
 
 	// path
 	bool m_isShowPrevPath;
+	StrPath m_pathFilename;
 	vector<cPathRenderer*> m_pathRenderers;
 
 	// landmark

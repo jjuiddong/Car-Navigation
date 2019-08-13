@@ -45,6 +45,18 @@ bool cGlobal::Init(HWND hwnd)
 	m_gpsClient.Init();
 	m_landMark.Read("landmark.txt");
 
+	// 날짜 단위로 path 경로 로그를 저장한다.
+	int fileId = 0;
+	do
+	{
+		m_pathFilename = "./path/path_";
+		m_pathFilename += common::GetCurrentDateTime4();
+		if (fileId > 0)
+			m_pathFilename += common::format("-%d", fileId);
+		m_pathFilename += ".txt";
+		++fileId;
+	} while (m_pathFilename.IsFileExist());
+
 	return true;
 }
 
@@ -122,8 +134,14 @@ bool cGlobal::ReadAndConvertPathFiles(graphic::cRenderer &renderer, cTerrainQuad
 	exts.push_back(".txt");
 	common::CollectFiles(exts, pathDirectoryName.c_str(), files);
 
+	const string curPathFileName = m_pathFilename.GetFileName();
+
 	for (auto &file : files)
 	{
+		// 현재 실시간으로 업데이트 되고 있는 pathFile은 읽지 않는다.
+		if (curPathFileName == StrPath(file).GetFileName())
+			continue;
+
 		StrPath pos3DFileName = StrPath(file).GetFileNameExceptExt2();
 		pos3DFileName += ".3dpos";
 
