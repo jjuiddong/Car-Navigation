@@ -9,6 +9,7 @@ cGlobal::cGlobal()
 	, m_isSelectMapScanningCenter(false)
 	, m_isShowGPS(true)
 	, m_isTraceGPSPos(true)
+	, m_isRotateTrace(true)
 	, m_isShowTerrain(true)
 	, m_isShowRenderGraph(false)
 	, m_isCalcRenderGraph(false)
@@ -198,7 +199,7 @@ bool cGlobal::ConvertTrackPos2Path()
 		if (!ifs.is_open())
 			continue;
 		
-		StrPath outFileName = "./path/";
+		StrPath outFileName = "./path2/";
 		outFileName += StrPath(file).GetFileName();
 
 		std::ofstream ofs(outFileName.c_str());

@@ -57,7 +57,7 @@ bool cMapView::Init(cRenderer &renderer)
 	m_curPosObj.Create(renderer, 1.f, 10, 10
 		, (eVertexType::POSITION | eVertexType::NORMAL), cColor::RED);
 	m_landMarkObj.Create(renderer, 1.f, 10, 10
-		, (eVertexType::POSITION), cColor(0.2f, 0.8f, 0.2f, 1.f));
+		, (eVertexType::POSITION), cColor(0.8f, 0.8f, 0.2f, 1.f));
 	m_landMarkObj2.Create(renderer, 1.f, 10, 10
 		, (eVertexType::POSITION), cColor(0.8f, 0.8f, 0.2f, 1.f));
 
@@ -178,7 +178,7 @@ void cMapView::UpdateGPS(const float deltaSeconds)
 		m_avrDir = avrDir;
 	}
 
-	Vector3 dir = avrDir;
+	Vector3 dir = (g_global->m_isRotateTrace) ? avrDir : m_camera.GetDirection();
 	dir.y = m_lookAtYVector;
 	const float lookAtDis = pos.Distance(m_camera.GetEyePos());
 	const float offsetY = max(1.f, min(8.f, (lookAtDis - 25.f) * 0.2f));
@@ -341,45 +341,13 @@ void cMapView::OnPreRender(const float deltaSeconds)
 		if (g_global->m_isShowTerrain)
 			m_quadTree.Render(renderer, deltaSeconds, frustum, ray1, ray2);
 
+		if (g_global->m_isShowPrevPath)
+		{
+			for (auto &p : g_global->m_pathRenderers)
+				p->Render(renderer);
+		}
+
 		//t1 = g_global->m_timer.GetSeconds();
-
-		// latLong position
-		{
-			const Vector3 p0 = m_quadTree.Get3DPos({ (double)g_root.m_lonLat.x, (double)g_root.m_lonLat.y });
-			renderer.m_dbgLine.SetColor(cColor::WHITE);
-			renderer.m_dbgLine.SetLine(p0, p0 + Vector3(0, 1, 0), 0.01f);
-			renderer.m_dbgLine.Render(renderer);
-
-			renderer.m_dbgArrow.SetColor(cColor::WHITE);
-			renderer.m_dbgArrow.SetDirection(p0 + Vector3(0, 1, 0)
-				, p0 + Vector3(0, 1, 0) + m_avrDir * 2.f
-				, 0.02f);
-			renderer.m_dbgArrow.Render(renderer);
-
-
-			// 카메라와의 거리에 따라 크기를 변경한다. (항상 같은 크기로 보이기 위함)
-			m_curPosObj.m_transform.pos = p0 + Vector3(0, 1, 0);
-			const float dist = GetMainCamera().GetEyePos().Distance(p0);
-			const float scale = common::clamp(0.2f, 1000.f, (dist * 1.5f) / 140.f);
-			m_curPosObj.m_transform.scale = Vector3::Ones * scale;
-			m_curPosObj.Render(renderer);
-		}
-
-		// render autopilot route
-		if (!g_root.m_route.empty())
-		{
-			renderer.m_dbgLine.SetColor(cColor::WHITE);
-			for (int i=0; i < (int)g_root.m_route.size()-1; ++i)
-			{
-				auto &lonLat0 = g_root.m_route[i];
-				auto &lonLat1 = g_root.m_route[i+1];
-
-				const Vector3 p0 = gis::GetRelationPos(gis::WGS842Pos(lonLat0));
-				const Vector3 p1 = gis::GetRelationPos(gis::WGS842Pos(lonLat1));
-				renderer.m_dbgLine.SetLine(p0+ Vector3(0, 20, 0), p1 + Vector3(0, 20, 0), 0.03f);
-				renderer.m_dbgLine.Render(renderer);
-			}
-		}
 
 		// render track pos
 		auto &track = g_global->m_gpsClient.m_paths;
@@ -422,10 +390,42 @@ void cMapView::OnPreRender(const float deltaSeconds)
 
 		} // ~if trackpos
 
-		if (g_global->m_isShowPrevPath)
+		// latLong position
 		{
-			for (auto &p : g_global->m_pathRenderers)
-				p->Render(renderer);
+			const Vector3 p0 = m_quadTree.Get3DPos({ (double)g_root.m_lonLat.x, (double)g_root.m_lonLat.y });
+			renderer.m_dbgLine.SetColor(cColor::WHITE);
+			renderer.m_dbgLine.SetLine(p0, p0 + Vector3(0, 1, 0), 0.01f);
+			renderer.m_dbgLine.Render(renderer);
+
+			renderer.m_dbgArrow.SetColor(cColor::WHITE);
+			renderer.m_dbgArrow.SetDirection(p0 + Vector3(0, 1, 0)
+				, p0 + Vector3(0, 1, 0) + m_avrDir * 2.f
+				, 0.02f);
+			renderer.m_dbgArrow.Render(renderer);
+
+
+			// 카메라와의 거리에 따라 크기를 변경한다. (항상 같은 크기로 보이기 위함)
+			m_curPosObj.m_transform.pos = p0 + Vector3(0, 1, 0);
+			const float dist = GetMainCamera().GetEyePos().Distance(p0);
+			const float scale = common::clamp(0.2f, 1000.f, (dist * 1.5f) / 140.f);
+			m_curPosObj.m_transform.scale = Vector3::Ones * scale;
+			m_curPosObj.Render(renderer);
+		}
+
+		// render autopilot route
+		if (!g_root.m_route.empty())
+		{
+			renderer.m_dbgLine.SetColor(cColor::WHITE);
+			for (int i = 0; i < (int)g_root.m_route.size() - 1; ++i)
+			{
+				auto &lonLat0 = g_root.m_route[i];
+				auto &lonLat1 = g_root.m_route[i + 1];
+
+				const Vector3 p0 = gis::GetRelationPos(gis::WGS842Pos(lonLat0));
+				const Vector3 p1 = gis::GetRelationPos(gis::WGS842Pos(lonLat1));
+				renderer.m_dbgLine.SetLine(p0 + Vector3(0, 20, 0), p1 + Vector3(0, 20, 0), 0.03f);
+				renderer.m_dbgLine.Render(renderer);
+			}
 		}
 
 		if (g_global->m_isShowLandMark)
@@ -441,7 +441,7 @@ void cMapView::OnPreRender(const float deltaSeconds)
 
 				m_landMarkObj.m_transform.pos = p0 + Vector3(0, 1, 0);
 				const float dist = GetMainCamera().GetEyePos().Distance(p0);
-				const float scale = common::clamp(0.2f, 1000.f, (dist * 1.5f) / 140.f);
+				const float scale = common::clamp(0.5f, 30.f, (dist * 1.5f) / 250.f);
 				m_landMarkObj.m_transform.scale = Vector3::Ones * scale;
 				m_landMarkObj.Render(renderer);
 			}
@@ -460,7 +460,7 @@ void cMapView::OnPreRender(const float deltaSeconds)
 
 				m_landMarkObj2.m_transform.pos = p0 + Vector3(0, 1, 0);
 				const float dist = GetMainCamera().GetEyePos().Distance(p0);
-				const float scale = common::clamp(0.2f, 1000.f, (dist * 1.5f) / 140.f);
+				const float scale = common::clamp(0.5f, 30.f, (dist * 1.5f) / 250.f);
 				m_landMarkObj2.m_transform.scale = Vector3::Ones * scale;
 				m_landMarkObj2.Render(renderer);
 			}

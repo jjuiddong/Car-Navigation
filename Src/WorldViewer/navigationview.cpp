@@ -10,6 +10,7 @@ using namespace framework;
 
 cNavigationView::cNavigationView(const StrId &name)
 	: framework::cDockWindow(name)
+	, m_serialConnectTime(0)
 {
 
 	// 시리얼 포트 열거, 콤보 박스 문자열로 변환한다.
@@ -78,17 +79,29 @@ void cNavigationView::OnRender(const float deltaSeconds)
 
 			if (gpsClient.m_serial.IsOpen())
 			{
+				m_serialConnectTime = 0.f;
+
 				if (ImGui::Button("Close"))
+				{
 					gpsClient.m_serial.Close();
+				}
 			}
 			else
 			{
+				// 접속이 끊겼다면, 5초마다 한번씩 접속을 시도한다.
+				m_serialConnectTime += deltaSeconds;
+				if ((m_serialConnectTime > 5.f)
+					&& ((int)m_ports.size() > com))
+				{
+					gpsClient.ConnectGpsSerial(m_ports[com].first, 9600);
+					m_serialConnectTime = 0.f;
+				}
+
 				if (ImGui::Button("Open"))
 				{
-					if (((int)m_ports.size() > com)
-						&& gpsClient.ConnectGpsSerial(m_ports[com].first, 9600))
+					if ((int)m_ports.size() > com)
 					{
-						// nothing~
+						gpsClient.ConnectGpsSerial(m_ports[com].first, 9600);
 					}
 				}
 			}
@@ -154,6 +167,8 @@ void cNavigationView::OnRender(const float deltaSeconds)
 	if (ImGui::Checkbox("Optimize Render", &terrain.m_isRenderOptimize))
 		if (!terrain.m_isRenderOptimize)
 			terrain.m_optimizeLevel = cQuadTree<sQuadData>::MAX_LEVEL;
+
+	ImGui::Checkbox("Trace Rotate", &g_global->m_isRotateTrace);
 
 	if (ImGui::Checkbox("Show Prev Path", &g_global->m_isShowPrevPath))
 	{

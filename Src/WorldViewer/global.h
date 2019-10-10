@@ -47,6 +47,7 @@ public:
 	// GPS
 	bool m_isShowGPS;
 	bool m_isTraceGPSPos;
+	bool m_isRotateTrace;
 
 	// Render Overhead
 	bool m_isShowTerrain;

@@ -7,7 +7,7 @@ using namespace graphic;
 
 cPathRenderer::cPathRenderer()
 	: cNode(common::GenerateId(), "Path", eNodeType::MODEL)
-	, m_color(cColor::YELLOW)
+	, m_color(Vector4(1.f, 1.f, 1.f, 0.8f))
 {
 }
 

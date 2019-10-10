@@ -18,4 +18,5 @@ public:
 public:
 	vector<std::pair<UINT, string>> m_ports;
 	Str512 m_comboStr;
+	float m_serialConnectTime;
 };
