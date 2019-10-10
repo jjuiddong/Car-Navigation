@@ -134,13 +134,13 @@ namespace
 	//const static char *g_textureDir = "..\\media\\data";
 	//const static char *g_heightmapDir = "..\\media\\data";
 	//const static char *g_mediaDir = "..\\media\\data";
-	const static char *g_textureDir = "D:\\media\\data";
-	const static char *g_heightmapDir = "D:\\media\\data";
-	const static char *g_mediaDir = "D:\\media\\data";
+	const static char *g_textureDir = "H:\\media\\data";
+	const static char *g_heightmapDir = "H:\\media\\data";
+	const static char *g_mediaDir = "H:\\media\\data";
 
-	const static char *g_textureDir2 = "D:\\media\\data";
-	const static char *g_heightmapDir2 = "D:\\media\\data";
-	const static char *g_mediaDir2 = "D:\\media\\data";
+	const static char *g_textureDir2 = "H:\\media\\data";
+	const static char *g_heightmapDir2 = "H:\\media\\data";
+	const static char *g_mediaDir2 = "H:\\media\\data";
 
 	//const static char *g_textureDir = "G:\\media\\VWorld";
 	//const static char *g_heightmapDir = "G:\\media\\VWorld";

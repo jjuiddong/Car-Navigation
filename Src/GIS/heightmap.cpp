@@ -43,8 +43,8 @@ cHeightmap::cHeightmap(graphic::cRenderer &renderer, const char *fileName)
 		throw std::exception();
 }
 
-cHeightmap::cHeightmap(graphic::cRenderer &renderer, const cHeightmap *src, const char *fileName
-	, const sHeightmapArgs &args)
+cHeightmap::cHeightmap(graphic::cRenderer &renderer, const cHeightmap *src
+	, const char *fileName, const sHeightmapArgs &args)
 	: m_level(0)
 	, m_xLoc(0)
 	, m_yLoc(0)

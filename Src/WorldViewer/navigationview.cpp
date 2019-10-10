@@ -40,9 +40,23 @@ void cNavigationView::OnUpdate(const float deltaSeconds)
 {
 }
 
+class AutoFontPop
+{
+public:
+	AutoFontPop(ImFont *font) : m_font(font) { if (font) ImGui::PushFont(font); }
+	void PushFont(ImFont *font) { m_font = font;  if (font) ImGui::PushFont(font); }
+	virtual ~AutoFontPop() { if (m_font) ImGui::PopFont(); }
+	ImFont *m_font;
+};
+
 
 void cNavigationView::OnRender(const float deltaSeconds)
 {
+	AutoFontPop autoFont(m_owner->m_fontBig);
+
+	static bool isDetailOption = false;
+	ImGui::Checkbox("Detail Setting", &isDetailOption);
+
 	cTerrainQuadTree &terrain = g_global->m_mapView->m_quadTree;
 	cGpsClient &gpsClient = g_global->m_gpsClient;
 
@@ -52,13 +66,14 @@ void cNavigationView::OnRender(const float deltaSeconds)
 	ImGui::RadioButton("Network", (int*)&gpsClient.m_inputType
 		, (int)cGpsClient::eInputType::Network);
 
-	ImVec2 wndSize = ImVec2(0, 25);
+	const int width = 200;
+	ImVec2 wndSize = ImVec2(width, 35);
 	if (gpsClient.m_inputType == cGpsClient::eInputType::Network)
 	{
 		if (gpsClient.IsReadyConnect() || gpsClient.IsConnect())
-			wndSize = ImVec2(0, 25);
+			wndSize = ImVec2(width, 35);
 		else
-			wndSize = ImVec2(0, 95);
+			wndSize = ImVec2(width, 145);
 	}
 
 	const ImVec4 bgColor = gpsClient.IsConnect() ? ImVec4(0, 1, 0, 0.7f) : ImVec4(1, 0, 0, 0.7f);
@@ -145,30 +160,32 @@ void cNavigationView::OnRender(const float deltaSeconds)
 	ImGui::EndChild();
 	ImGui::PopStyleColor(1);
 
-	//ImGui::Spacing();
+	if (!isDetailOption)
+		return;
+
 	ImGui::Separator();
-	//ImGui::Spacing();
 
 	auto &track = g_global->m_gpsClient.m_paths;
-	ImGui::Text("Path Count = %d", track.size());
-	ImGui::Text("GPS Count = %d", g_global->m_gpsClient.m_recvCount);	
-	ImGui::Text("la d = %.3f", g_global->m_mapView->m_lookAtDistance);
-	ImGui::Text("la y = %.3f", g_global->m_mapView->m_lookAtYVector);
-	ImGui::Checkbox("Quadtree", &terrain.m_isShowQuadTree);
-	ImGui::SameLine();
-	ImGui::Checkbox("Lv", &terrain.m_isShowLevel);
-	//ImGui::Checkbox("Poi1", &terrain.m_isShowPoi1);
-	//ImGui::SameLine();
-	ImGui::Checkbox("Poi2", &terrain.m_isShowPoi2);
-	ImGui::SameLine();
-	ImGui::Checkbox("GPS", &g_global->m_isShowGPS);
-	//ImGui::SameLine();
-	ImGui::Checkbox("Trace GPS", &g_global->m_isTraceGPSPos);
-	if (ImGui::Checkbox("Optimize Render", &terrain.m_isRenderOptimize))
-		if (!terrain.m_isRenderOptimize)
-			terrain.m_optimizeLevel = cQuadTree<sQuadData>::MAX_LEVEL;
 
-	ImGui::Checkbox("Trace Rotate", &g_global->m_isRotateTrace);
+	if (isDetailOption)
+	{
+		ImGui::Text("Path Count = %d", track.size());
+		ImGui::Text("GPS Count = %d", g_global->m_gpsClient.m_recvCount);	
+		ImGui::Text("la d = %.3f", g_global->m_mapView->m_lookAtDistance);
+		ImGui::Text("la y = %.3f", g_global->m_mapView->m_lookAtYVector);
+		ImGui::Checkbox("Quadtree", &terrain.m_isShowQuadTree);
+		ImGui::SameLine();
+		ImGui::Checkbox("Lv", &terrain.m_isShowLevel);
+		//ImGui::Checkbox("Poi1", &terrain.m_isShowPoi1);
+		//ImGui::SameLine();
+		ImGui::Checkbox("Poi2", &terrain.m_isShowPoi2);
+		ImGui::SameLine();
+		ImGui::Checkbox("GPS", &g_global->m_isShowGPS);
+
+		if (ImGui::Checkbox("Optimize Render", &terrain.m_isRenderOptimize))
+			if (!terrain.m_isRenderOptimize)
+				terrain.m_optimizeLevel = cQuadTree<sQuadData>::MAX_LEVEL;
+	}
 
 	if (ImGui::Checkbox("Show Prev Path", &g_global->m_isShowPrevPath))
 	{
@@ -177,21 +194,23 @@ void cNavigationView::OnRender(const float deltaSeconds)
 				, g_global->m_mapView->m_quadTree, "./path/");
 	}
 
+	ImGui::Checkbox("Trace GPS", &g_global->m_isTraceGPSPos);
+	ImGui::Checkbox("Trace Rotate", &g_global->m_isRotateTrace);
 	ImGui::Checkbox("Show LandMark", &g_global->m_isShowLandMark);
 	ImGui::Checkbox("Show LandMark2", &g_global->m_isShowLandMark2);
 
-	//ImGui::Spacing();
-	ImGui::Separator();
-	//ImGui::Spacing();
+	//ImGui::Separator();
 
 	// Information
-	ImGui::Text("tile memory %d", terrain.m_tileMgr.m_tiles.size());
-	ImGui::Text("render quad lv %d", terrain.m_optimizeLevel);
-	ImGui::Text("download %d"
-		, terrain.m_tileMgr.m_vworldDownloader.m_requestIds.size());
-	ImGui::Text("    - total size %I64d (MB)"
-		, terrain.m_tileMgr.m_vworldDownloader.m_totalDownloadFileSize / (1048576)); // 1024*1024
-
+	if (isDetailOption)
+	{
+		ImGui::Text("tile memory %d", terrain.m_tileMgr.m_tiles.size());
+		ImGui::Text("render quad lv %d", terrain.m_optimizeLevel);
+		ImGui::Text("download %d"
+			, terrain.m_tileMgr.m_vworldDownloader.m_requestIds.size());
+		ImGui::Text("    - total size %I64d (MB)"
+			, terrain.m_tileMgr.m_vworldDownloader.m_totalDownloadFileSize / (1048576)); // 1024*1024
+	}
 
 	ImGui::Spacing();
 	ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.6f, 0.6f, 0, 1));
@@ -272,10 +291,13 @@ void cNavigationView::OnRender(const float deltaSeconds)
 
 	//ImGui::Spacing();
 	//ImGui::Spacing();
-	ImGui::Separator();
+	//ImGui::Separator();
 
 	static bool isAnalysis = false;
-	ImGui::Checkbox("Analysis Rendering", &isAnalysis);
+	if (isDetailOption)
+	{
+		ImGui::Checkbox("Analysis Rendering", &isAnalysis);
+	}
 
 	if (isAnalysis)
 	{

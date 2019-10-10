@@ -886,7 +886,7 @@ Vector3 cTerrainQuadTree::Get3DPosPrecise(graphic::cRenderer &renderer, const Ve
 {
 	const Vector3 globalPos = gis::WGS842Pos(lonLat);
 	Vector3 relPos = gis::GetRelationPos(globalPos);
-	const sRectf rect = sRectf::Rect(globalPos.x, globalPos.z, 0, 0);
+	sRectf rect = sRectf::Rect(globalPos.x, globalPos.z, 0, 0);
 	const auto result = m_qtree.GetNodeLevel(rect);
 	if (std::get<0>(result) < 0)
 		return relPos;
@@ -897,6 +897,7 @@ Vector3 cTerrainQuadTree::Get3DPosPrecise(graphic::cRenderer &renderer, const Ve
 
 	while (level >= 0)
 	{
+		rect = m_qtree.GetNodeRect(level, x, y);
 		cQuadTile *tile = m_tileMgr.GetTile(renderer, level, x, y, rect);
 		if (!tile)
 			break;

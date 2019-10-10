@@ -1,6 +1,7 @@
 
 #include "stdafx.h"
 #include "mapview.h"
+#include "navigationview.h"
 
 using namespace graphic;
 using namespace framework;
@@ -513,7 +514,7 @@ void cMapView::OnRender(const float deltaSeconds)
 	// Render Information
 	ImGui::SetNextWindowPos(ImVec2(pos.x, pos.y + dateH));
 	ImGui::SetNextWindowBgAlpha(0.f);
-	ImGui::SetNextWindowSize(ImVec2(min(m_viewRect.Width(), 400), 300));
+	ImGui::SetNextWindowSize(ImVec2(min(m_viewRect.Width(), 350), m_viewRect.Height()));
 	if (ImGui::Begin("Map Information", &isOpen, flags))
 	{
 		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
@@ -527,6 +528,9 @@ void cMapView::OnRender(const float deltaSeconds)
 
 		if (g_global->m_isShowGPS)
 			ImGui::Text(g_global->m_gpsClient.m_recvStr.c_str());
+
+		g_global->m_naviView->OnRender(deltaSeconds);
+
 		ImGui::End();
 	}
 
