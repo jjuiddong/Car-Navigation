@@ -73,6 +73,16 @@ bool cOBD2::Process(const float deltaSeconds)
 	if (!data)
 		return true;
 
+	// check query queue
+	if (!m_queryQ.empty())
+	{
+		const bool isErr = (m_queryQ.front() != (ePID)pid);
+		m_queryQ.pop();
+
+		if (!m_queryQ.empty())
+			Query(m_queryQ.front(), false); // send next query
+	}
+
 	int result = 0;
 	if (!NormalizeData((ePID)pid, data, result))
 		return false;
@@ -84,10 +94,23 @@ bool cOBD2::Process(const float deltaSeconds)
 }
 
 
-bool cOBD2::Query(const ePID pid)
+bool cOBD2::Query(const ePID pid
+	, const bool isQueuing //= true
+)
 {
 	if (!IsOpened())
 		return false;
+
+	if (isQueuing)
+	{
+		if (m_queryQ.size() > 20) // check max query size
+			return false; // full queue
+
+		m_queryQ.push(pid);
+
+		if (m_queryQ.size() >= 2) // serial busy? wait
+			return true;
+	}
 
 	char cmd[8];
 	sprintf_s(cmd, "%02X%02X\r", 1, (int)pid); //Service Mode 01
@@ -102,7 +125,7 @@ bool cOBD2::MemsInit()
 	char buffer[common::cBufferedSerial::MAX_BUFFERSIZE];
 	ZeroMemory(buffer, sizeof(buffer));
 	const uint readLen = SendCommand("ATTEMP\r", buffer, sizeof(buffer));
-	if ((readLen > 0) && !strchr(buffer, '?'))
+	if ((readLen > 0) && strchr(buffer, '?'))
 		return true;
 	return false;
 }
@@ -217,7 +240,7 @@ uint cOBD2::ReceiveData(char* buf, const uint bufsize, const uint timeout)
 	uint t = 0;
 	while (t < timeout)
 	{
-		const uint readLen = m_ser.RecvData((BYTE*)buf, bufsize);
+		readLen = m_ser.RecvData((BYTE*)buf, bufsize);
 		if (readLen > 0)
 			break;
 		Sleep(10);
@@ -230,6 +253,8 @@ uint cOBD2::ReceiveData(char* buf, const uint bufsize, const uint timeout)
 bool cOBD2::Close()
 {
 	m_ser.Close();
+	while (!m_queryQ.empty())
+		m_queryQ.pop();
 	m_state = eState::DISCONNECT;
 	return true;
 }
