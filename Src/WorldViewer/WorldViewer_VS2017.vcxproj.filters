@@ -12,8 +12,6 @@
       <Filter>view</Filter>
     </ClCompile>
     <ClCompile Include="global.cpp" />
-    <ClCompile Include="gpsclient.cpp" />
-    <ClCompile Include="touch.cpp" />
     <ClCompile Include="carnavi.cpp" />
     <ClCompile Include="path.cpp">
       <Filter>path</Filter>
@@ -23,6 +21,15 @@
     </ClCompile>
     <ClCompile Include="landmark.cpp">
       <Filter>path</Filter>
+    </ClCompile>
+    <ClCompile Include="gpsclient.cpp">
+      <Filter>lib</Filter>
+    </ClCompile>
+    <ClCompile Include="touch.cpp">
+      <Filter>lib</Filter>
+    </ClCompile>
+    <ClCompile Include="obd2.cpp">
+      <Filter>lib</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -37,8 +44,6 @@
       <Filter>view</Filter>
     </ClInclude>
     <ClInclude Include="global.h" />
-    <ClInclude Include="gpsclient.h" />
-    <ClInclude Include="touch.h" />
     <ClInclude Include="carnavi.h" />
     <ClInclude Include="path.h">
       <Filter>path</Filter>
@@ -49,6 +54,18 @@
     <ClInclude Include="landmark.h">
       <Filter>path</Filter>
     </ClInclude>
+    <ClInclude Include="gpsclient.h">
+      <Filter>lib</Filter>
+    </ClInclude>
+    <ClInclude Include="touch.h">
+      <Filter>lib</Filter>
+    </ClInclude>
+    <ClInclude Include="obd2.h">
+      <Filter>lib</Filter>
+    </ClInclude>
+    <ClInclude Include="utility.h">
+      <Filter>lib</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="view">
@@ -56,6 +73,9 @@
     </Filter>
     <Filter Include="path">
       <UniqueIdentifier>{bcc95158-be69-459f-8d97-ef0a27957664}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib">
+      <UniqueIdentifier>{2623b1e6-632f-4c3b-b298-4a573a1fc1c4}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

@@ -27,6 +27,8 @@ cGlobal::cGlobal()
 	, m_isShowLandMark2(true)
 	, m_landMarkSelectState(0)
 	, m_landMarkSelectState2(0)
+	, m_rpm(0)
+	, m_speed(0)
 {
 }
 
@@ -46,6 +48,7 @@ bool cGlobal::Init(HWND hwnd)
 	m_touch.Init(hwnd);
 	m_gpsClient.Init();
 	m_landMark.Read("landmark.txt");
+	m_obd.Open(4, 115200, this); // COM4
 
 	// 날짜 단위로 path 경로 로그를 저장한다.
 	int fileId = 0;
@@ -223,6 +226,16 @@ bool cGlobal::ConvertTrackPos2Path()
 	}
 
 	return true;
+}
+
+
+void cGlobal::Recv(const int pid, const int data)
+{
+	switch ((cOBD2::ePID)pid)
+	{
+	case cOBD2::PID_RPM: m_rpm = data; break;
+	case cOBD2::PID_SPEED: m_speed = data; break;
+	}
 }
 
 

@@ -69,6 +69,20 @@ bool cMapView::Init(cRenderer &renderer)
 
 void cMapView::OnUpdate(const float deltaSeconds)
 {
+	// update OBD2 
+	{
+		g_global->m_obd.Process(deltaSeconds);
+
+		static float incT = 0;
+		incT += deltaSeconds;
+		if (incT > 0.3f) // query rpm, speed data to OBD2
+		{
+			g_global->m_obd.Query(cOBD2::PID_RPM);
+			g_global->m_obd.Query(cOBD2::PID_SPEED);
+			incT = 0.f;
+		}
+	}
+
 	// 카메라가 가르키는 방향의 경위도를 구한다.
 	const Vector2d camLonLat = m_quadTree.GetLongLat(m_camera.GetRay());
 	cGpsClient &gpsClient = g_global->m_gpsClient;
@@ -497,7 +511,7 @@ void cMapView::OnRender(const float deltaSeconds)
 
 		ImGui::SetNextWindowPos(pos);
 		ImGui::SetNextWindowBgAlpha(0.4f);
-		ImGui::SetNextWindowSize(ImVec2(min(m_viewRect.Width(), 400), dateH));
+		ImGui::SetNextWindowSize(ImVec2(min(m_viewRect.Width(), 400.f), dateH));
 		if (ImGui::Begin("Date Information", &isOpen, flags))
 		{
 			// render datetime
@@ -514,7 +528,7 @@ void cMapView::OnRender(const float deltaSeconds)
 	// Render Information
 	ImGui::SetNextWindowPos(ImVec2(pos.x, pos.y + dateH));
 	ImGui::SetNextWindowBgAlpha(0.f);
-	ImGui::SetNextWindowSize(ImVec2(min(m_viewRect.Width(), 350), m_viewRect.Height()));
+	ImGui::SetNextWindowSize(ImVec2(min(m_viewRect.Width(), 350.f), m_viewRect.Height()));
 	if (ImGui::Begin("Map Information", &isOpen, flags))
 	{
 		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
@@ -525,6 +539,7 @@ void cMapView::OnRender(const float deltaSeconds)
 		ImGui::PopStyleColor();
 		ImGui::SameLine();
 		ImGui::Text("GPS = %.6f, %.6f", m_curGpsPos.y, m_curGpsPos.x);
+		ImGui::Text("OBD2 = %d, %d", g_global->m_rpm, g_global->m_speed);
 
 		if (g_global->m_isShowGPS)
 			ImGui::Text(g_global->m_gpsClient.m_recvStr.c_str());
@@ -558,10 +573,10 @@ void cMapView::OnRender(const float deltaSeconds)
 
 			case eAnalysisType::GMain:
 				m_renderOverhead[0][m_graphIdx] = (float)g_application->m_deltaSeconds;
-				m_renderOverhead[1][m_graphIdx] = (float)m_owner->m_t0;
-				m_renderOverhead[2][m_graphIdx] = (float)m_owner->m_t1;
-				m_renderOverhead[3][m_graphIdx] = (float)m_owner->m_t2;
-				m_renderOverhead[4][m_graphIdx] = (float)m_owner->m_t3;
+				//m_renderOverhead[1][m_graphIdx] = (float)m_owner->m_t0;
+				//m_renderOverhead[2][m_graphIdx] = (float)m_owner->m_t1;
+				//m_renderOverhead[3][m_graphIdx] = (float)m_owner->m_t2;
+				//m_renderOverhead[4][m_graphIdx] = (float)m_owner->m_t3;
 				break;
 
 			default: assert(0); break;
@@ -572,9 +587,9 @@ void cMapView::OnRender(const float deltaSeconds)
 		}
 
 		ImGui::SetNextWindowBgAlpha(0.f);
-		ImGui::SetNextWindowPos(ImVec2(pos.x, pos.y + 300));
-		ImGui::SetNextWindowSize(ImVec2(min(m_viewRect.Width(), 700)
-			, min(m_viewRect.Height() - 100, 550)));
+		ImGui::SetNextWindowPos(ImVec2(pos.x, pos.y + 300.f));
+		ImGui::SetNextWindowSize(ImVec2(min(m_viewRect.Width(), 700.f)
+			, min(m_viewRect.Height() - 100.f, 550.f)));
 		if (ImGui::Begin("Render Graph", &isOpen, flags))
 		{
 			const ImVec4 bgColor = ImGui::GetStyleColorVec4(ImGuiCol_FrameBg);
@@ -741,7 +756,7 @@ void cMapView::UpdateCameraTraceLookat(
 	{
 		const Vector3 p0 = m_quadTree.Get3DPos(track.back().lonLat);
 		if (isUpdateDistance)
-			m_lookAtDistance = min(200, m_camera.GetEyePos().Distance(p0));
+			m_lookAtDistance = min(200.f, m_camera.GetEyePos().Distance(p0));
 		m_lookAtYVector = m_camera.GetDirection().y;
 	}
 }
@@ -924,7 +939,7 @@ void cMapView::OnEventProc(const sf::Event &evt)
 	switch (evt.type)
 	{
 	case sf::Event::KeyPressed:
-		switch (evt.key.code)
+		switch (evt.key.cmd)
 		{
 		case sf::Keyboard::Return:
 			break;

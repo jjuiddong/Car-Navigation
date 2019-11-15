@@ -18,7 +18,7 @@ class cMapView;
 class cInformationView;
 class cNavigationView;
 
-class cGlobal
+class cGlobal : public iOBD2Receiver
 {
 public:
 	cGlobal();
@@ -34,6 +34,10 @@ public:
 	void Clear();
 
 
+protected:
+	virtual void Recv(const int pid, const int data) override;
+
+
 public:
 	// view
 	cMapView *m_mapView;
@@ -42,12 +46,17 @@ public:
 
 	cTouch m_touch;
 	cGpsClient m_gpsClient;
+	cOBD2 m_obd;
 	cConfig m_config;
 	
 	// GPS
 	bool m_isShowGPS;
 	bool m_isTraceGPSPos;
 	bool m_isRotateTrace;
+
+	// ODB2
+	int m_rpm;
+	int m_speed;
 
 	// Render Overhead
 	bool m_isShowTerrain;
