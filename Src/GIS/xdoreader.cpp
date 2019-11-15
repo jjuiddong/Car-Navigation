@@ -58,7 +58,7 @@ bool cXdoReader::ReadV2(std::ifstream &ifs)
 
 	BYTE keyLen = 0;
 	ifs.read((char*)&keyLen, sizeof(keyLen));
-	ifs.read(m_key, min(sizeof(m_key) - 1, keyLen));
+	ifs.read(m_key, min(sizeof(m_key) - 1, (uint)keyLen));
 
 	ifs.read((char*)&m_objBox, sizeof(m_objBox));
 	ifs.read((char*)&m_altitude, sizeof(m_altitude));
@@ -99,7 +99,7 @@ bool cXdoReader::Read3DMeshDataBlock(std::ifstream &ifs, OUT sXdo &out)
 
 	BYTE imageNameLen = 0;
 	ifs.read((char*)&imageNameLen, sizeof(imageNameLen));
-	ifs.read(out.imageName, min(sizeof(out.imageName) - 1, imageNameLen));
+	ifs.read(out.imageName, min(sizeof(out.imageName) - 1, (uint)imageNameLen));
 
 	return true;
 }

@@ -54,7 +54,7 @@ bool cGpsClient::ConnectGpsServer(const Str16 &ip, const int port)
 
 bool cGpsClient::ConnectGpsSerial(const int portNum, const int baudRate)
 {
-	const bool result = m_serial.Open(portNum, baudRate);
+	const bool result = m_serial.Open(portNum, baudRate, '\n');
 	g_global->m_config.SetValue("gps_input_type", (int)m_inputType);
 	return result;
 }
@@ -121,13 +121,17 @@ bool cGpsClient::GetGpsInfo(OUT gis::sGPRMC &out)
 	{
 		while (1)
 		{
-			int len = 0;
-			const bool result = m_serial.m_serial.ReadStringUntil('\n'
-				, m_recvStr.m_str, len, m_recvStr.SIZE);
-			if (!result || (len <= 0))
+			//int len = 0;
+			//const bool result = m_serial.m_serial.ReadStringUntil('\n'
+			//	, m_recvStr.m_str, len, m_recvStr.SIZE);
+			//if (!result || (len <= 0))
+			//	break;
+			const uint len = m_serial.RecvData((BYTE*)m_recvStr.m_str
+				, m_recvStr.SIZE);
+			if (len == 0)
 				break;
 
-			if (m_recvStr.SIZE > (unsigned int)len)
+			if (m_recvStr.SIZE > len)
 				m_recvStr.m_str[len] = NULL;
 
 			m_recvTime = curT;

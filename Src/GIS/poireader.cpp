@@ -74,17 +74,17 @@ bool cPoiReader::ReadPoi(std::ifstream &ifs, OUT sPoi &out)
 
 	u_short keyLen = 0;
 	ifs.read((char*)&keyLen, sizeof(keyLen));
-	ifs.read(out.key, min(sizeof(out.key) - 1, keyLen));
+	ifs.read(out.key, min(sizeof(out.key) - 1, (uint)keyLen));
 
 	u_short textLen = 0;
 	ifs.read((char*)&textLen, sizeof(textLen));
 	Str64 text;
-	ifs.read(text.m_str, min(text.SIZE - 1, textLen));
+	ifs.read(text.m_str, min(text.SIZE - 1, (uint)textLen));
 	out.text = text.wstr();
 
 	u_short fontLen = 0;
 	ifs.read((char*)&fontLen, sizeof(fontLen));
-	ifs.read(out.fontName, min(sizeof(out.fontName) - 1, fontLen));
+	ifs.read(out.fontName, min(sizeof(out.fontName) - 1, (uint)fontLen));
 
 	ifs.read((char*)&out.fontSize, sizeof(out.fontSize));
 	ifs.read((char*)&out.fontWeight, sizeof(out.fontWeight));

@@ -76,7 +76,9 @@ bool cTerrainQuadTree::Create(graphic::cRenderer &renderer
 	vtx.v = 0;
 	m_vtxBuff.Create(renderer, 1, sizeof(sVertexNormTex), &vtx);
 
-	if (!m_shader.Create(renderer, "../media/shader11/tess-pos-norm-tex.fxo", "Unlit"
+	const StrPath fileName = cResourceManager::Get()->GetResourceFilePath(
+		"shader11/tess-pos-norm-tex.fxo");
+	if (!m_shader.Create(renderer, fileName, "Unlit"
 		, eVertexType::POSITION | eVertexType::NORMAL | eVertexType::TEXTURE0))
 	{
 		return false;
@@ -130,7 +132,7 @@ void cTerrainQuadTree::Render(graphic::cRenderer &renderer
 			if (renderer.m_fps < 20)
 				m_optimizeLevel = max(1, m_optimizeLevel - 1);
 			else if (renderer.m_fps > 30)
-				m_optimizeLevel = min(cQuadTree<sQuadData>::MAX_LEVEL, m_optimizeLevel + 1);
+				m_optimizeLevel = min((int)cQuadTree<sQuadData>::MAX_LEVEL, m_optimizeLevel + 1);
 		}
 	}
 

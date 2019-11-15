@@ -59,7 +59,7 @@ bool cReal3DModelIndexReader::ReadModelObject(std::ifstream &ifs, OUT sObject &o
 
 	BYTE keyLen = 0;
 	ifs.read((char*)&keyLen, sizeof(keyLen));
-	ifs.read(out.key, min(sizeof(out.key) - 1, keyLen));
+	ifs.read(out.key, min(sizeof(out.key) - 1, (uint)keyLen));
 
 	ifs.read((char*)&out.centerPos, sizeof(out.centerPos));
 	ifs.read((char*)&out.altitude, sizeof(out.altitude));
@@ -68,11 +68,11 @@ bool cReal3DModelIndexReader::ReadModelObject(std::ifstream &ifs, OUT sObject &o
 
 	BYTE dataFileLen = 0;
 	ifs.read((char*)&dataFileLen, sizeof(dataFileLen));
-	ifs.read(out.dataFile, min(sizeof(out.dataFile) - 1, dataFileLen));
+	ifs.read(out.dataFile, min(sizeof(out.dataFile) - 1, (uint)dataFileLen));
 
 	BYTE imgFileNameLen = 0;
 	ifs.read((char*)&imgFileNameLen, sizeof(imgFileNameLen));
-	ifs.read(out.imgFileName, min(sizeof(out.imgFileName) - 1, imgFileNameLen));
+	ifs.read(out.imgFileName, min(sizeof(out.imgFileName) - 1, (uint)imgFileNameLen));
 
 	return true;
 }

@@ -315,10 +315,10 @@ case 1: expr; \
 
 	if (eDirection::WEST == direction)
 	{
-		const float dstV1 = max(0, clt.y - lt.y) / m_rect.Height();
-		const float dstV2 = 1.f - (max(0, rb.y - crb.y) / m_rect.Height());
-		const float srcV1 = max(0, lt.y - clt.y) / tile.m_rect.Height();
-		const float srcV2 = 1.f - (max(0, crb.y - rb.y) / tile.m_rect.Height());
+		const float dstV1 = max(0.f, clt.y - lt.y) / m_rect.Height();
+		const float dstV2 = 1.f - (max(0.f, rb.y - crb.y) / m_rect.Height());
+		const float srcV1 = max(0.f, lt.y - clt.y) / tile.m_rect.Height();
+		const float srcV2 = 1.f - (max(0.f, crb.y - rb.y) / tile.m_rect.Height());
 
 		int dstY = (int)(dstV1 * (dstMap->m_height));
 		int dstEndY = (int)(dstV2 * (dstMap->m_height));
@@ -342,10 +342,10 @@ case 1: expr; \
 	}
 	else if (eDirection::SOUTH == direction)
 	{
-		const float dstU1 = max(0, lt.x - clt.x) / m_rect.Width();
-		const float dstU2 = 1.f - (max(0, crb.x - rb.x) / m_rect.Width());
-		const float srcU1 = max(0, clt.x - lt.x) / tile.m_rect.Width();
-		const float srcU2 = 1.f - (max(0, rb.x - crb.x) / tile.m_rect.Width());
+		const float dstU1 = max(0.f, lt.x - clt.x) / m_rect.Width();
+		const float dstU2 = 1.f - (max(0.f, crb.x - rb.x) / m_rect.Width());
+		const float srcU1 = max(0.f, clt.x - lt.x) / tile.m_rect.Width();
+		const float srcU2 = 1.f - (max(0.f, rb.x - crb.x) / tile.m_rect.Width());
 
 		int dstX = (int)(dstU1 * (dstMap->m_width));
 		int dstEndX = (int)(dstU2 * (dstMap->m_width));

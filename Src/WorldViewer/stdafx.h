@@ -8,6 +8,8 @@ using namespace common;
 #include "../../../Common/Network2/network2.h"
 #include "../gis/gis.h"
 
+#include "utility.h"
+#include "obd2.h"
 #include "gpsclient.h"
 #include "path.h"
 #include "pathrenderer.h"

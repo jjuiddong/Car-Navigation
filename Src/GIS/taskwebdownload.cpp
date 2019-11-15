@@ -113,6 +113,13 @@ common::cTask::eRunResult::Enum cTaskWebDownload::Run(const double deltaSeconds)
 	default: assert(0); break;
 	}
 
+	if (!cmd)
+	{
+		// 더이상 쓸수 없는 API일 경우 종료
+		m_webDownloader->Remove(m_dnData);
+		return eRunResult::END;
+	}
+
 	Str256 url;
 	url.Format("%s%s?APIKey=%s&Layer=%s&Level=%d&IDX=%d&IDY=%d", site, cmd, apiKey, layerName
 		, m_dnData.level, m_dnData.xLoc, m_dnData.yLoc);

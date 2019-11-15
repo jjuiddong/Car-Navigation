@@ -737,7 +737,7 @@ float cHeightmap::GetHeight(const Vector2 &uv)
 {
 	RETV(!m_data, 0);
 
-	const Vector2 pos(max(0, min(1, uv.x)), max(0, min(1, uv.y)));
+	const Vector2 pos(max(0.f, min(1.f, uv.x)), max(0.f, min(1.f, uv.y)));
 	const int x = (int)((m_width - 3) * pos.x);
 	const int y = (int)((m_height - 3) * pos.y);
 	const float val = m_data[ (m_width * (y + 1)) + x + 1];
