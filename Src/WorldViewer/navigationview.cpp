@@ -165,9 +165,12 @@ void cNavigationView::OnRender(const float deltaSeconds)
 
 	ImGui::Separator();
 
+	static bool isShowOption = false;
+	ImGui::Checkbox("Option", &isShowOption);
+
 	auto &track = g_global->m_gpsClient.m_paths;
 
-	if (isDetailOption)
+	if (isShowOption)
 	{
 		ImGui::Text("Path Count = %d", track.size());
 		ImGui::Text("GPS Count = %d", g_global->m_gpsClient.m_recvCount);	
@@ -202,7 +205,7 @@ void cNavigationView::OnRender(const float deltaSeconds)
 	//ImGui::Separator();
 
 	// Information
-	if (isDetailOption)
+	if (isShowOption)
 	{
 		ImGui::Text("tile memory %d", terrain.m_tileMgr.m_tiles.size());
 		ImGui::Text("render quad lv %d", terrain.m_optimizeLevel);
@@ -294,12 +297,12 @@ void cNavigationView::OnRender(const float deltaSeconds)
 	//ImGui::Separator();
 
 	static bool isAnalysis = false;
-	if (isDetailOption)
+	if (isShowOption)
 	{
 		ImGui::Checkbox("Analysis Rendering", &isAnalysis);
 	}
 
-	if (isAnalysis)
+	if (isShowOption && isAnalysis)
 	{
 		ImGui::RadioButton("MapView", (int*)&g_global->m_analysisType, 0);
 		ImGui::SameLine();
