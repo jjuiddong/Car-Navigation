@@ -6,6 +6,7 @@
 cOBD2::cOBD2()
 	: m_receiver(nullptr)
 	, m_state(eState::DISCONNECT)
+	, m_waitingTime(0)
 {
 }
 
@@ -45,6 +46,18 @@ bool cOBD2::Process(const float deltaSeconds)
 	if (!IsOpened())
 		return false;
 
+	m_waitingTime += deltaSeconds;
+	if (!m_queryQ.empty() && (m_waitingTime > 1.f))
+	{
+		m_waitingTime = 0.f;
+		Query(m_queryQ.front(), false); // send next query
+		m_queryQ.pop();
+
+		dbg::Logc(1, "rcv queue size = %d\n", m_ser.m_rcvQ.size());
+		dbg::Logc(1, "snd queue size = %d\n", m_ser.m_sndQ.size());
+		//::MessageBoxA(NULL, "Err", "Err", MB_OK);
+	}
+
 	char buffer[common::cBufferedSerial::MAX_BUFFERSIZE];
 	const uint readLen = m_ser.RecvData((BYTE*)buffer, sizeof(buffer));
 	if (readLen <= 0)
@@ -53,6 +66,8 @@ bool cOBD2::Process(const float deltaSeconds)
 	buffer[readLen] = NULL;
 	if (m_isLog)
 		common::dbg::Log(buffer);
+
+	m_waitingTime = 0.f;
 
 	// parse pid data
 	int pid = 0;
@@ -80,7 +95,10 @@ bool cOBD2::Process(const float deltaSeconds)
 		m_queryQ.pop();
 
 		if (!m_queryQ.empty())
+		{
 			Query(m_queryQ.front(), false); // send next query
+			m_queryQ.pop();
+		}
 	}
 
 	int result = 0;

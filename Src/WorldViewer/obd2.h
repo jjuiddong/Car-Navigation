@@ -108,6 +108,7 @@ public:
 	queue<ePID> m_queryQ;
 	iOBD2Receiver *m_receiver;
 	bool m_isLog;
+	float m_waitingTime;
 };
 
 
