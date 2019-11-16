@@ -243,10 +243,10 @@ void cXdoReader::Clear()
 }
 
 
-StrPath cXdoReader::GetFileName(const char *directoryName, const int level, const int xLoc, const int yLoc
+StrPath cXdoReader::GetFileName(const StrPath &directoryName, const int level, const int xLoc, const int yLoc
 	, const char *dataFileName)
 {
 	StrPath path;
-	path.Format("%s\\%d\\%04d\\%s", directoryName, level, yLoc, dataFileName);
+	path.Format("%s\\%d\\%04d\\%s", directoryName.c_str(), level, yLoc, dataFileName);
 	return path;
 }

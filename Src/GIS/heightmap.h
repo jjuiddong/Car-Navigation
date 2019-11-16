@@ -77,7 +77,7 @@ public:
 	bool IsLoaded() const;
 	float GetHeight(const Vector2 &uv);
 	StrPath GetFileName(const char *directoryName);
-	static StrPath GetFileName(const char *directoryName, const int level, const int xLoc, const int yLoc);
+	static StrPath GetFileName(const StrPath &directoryName, const int level, const int xLoc, const int yLoc);
 	void Clear();
 
 	float GetLeftTop();

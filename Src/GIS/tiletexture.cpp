@@ -26,20 +26,22 @@ bool cTileTexture::Create(graphic::cRenderer &renderer, const char *fileName)
 }
 
 
-StrPath cTileTexture::GetFileName(const char *directoryName
+StrPath cTileTexture::GetFileName(const StrPath &directoryName
 	, const int level, const int xLoc, const int yLoc)
 {
 	StrPath path;
-	path.Format("%s\\%d\\%04d\\%04d_%04d.dds", directoryName, level, yLoc, yLoc, xLoc);
+	path.Format("%s\\%d\\%04d\\%04d_%04d.dds", directoryName.c_str()
+		, level, yLoc, yLoc, xLoc);
 	return path;
 }
 
 
-StrPath cTileTexture::GetFileName(const char *directoryName, const int level, const int xLoc, const int yLoc
+StrPath cTileTexture::GetFileName(const StrPath &directoryName
+	, const int level, const int xLoc, const int yLoc
 	, const char *fileName)
 {
 	StrPath path;
-	path.Format("%s\\%d\\%04d\\%s", directoryName, level, yLoc, fileName);
+	path.Format("%s\\%d\\%04d\\%s", directoryName.c_str(), level, yLoc, fileName);
 	return path;
 }
 

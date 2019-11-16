@@ -718,11 +718,11 @@ void cHeightmap::GaussianSmoothing()
 }
 
 
-StrPath cHeightmap::GetFileName(const char *directoryName
+StrPath cHeightmap::GetFileName(const StrPath &directoryName
 	, const int level, const int xLoc, const int yLoc)
 {
 	StrPath path;
-	path.Format("%s\\%d\\%04d\\%04d_%04d.bil", directoryName, level, yLoc, yLoc, xLoc);
+	path.Format("%s\\%d\\%04d\\%04d_%04d.bil", directoryName.c_str(), level, yLoc, yLoc, xLoc);
 	return path;
 }
 

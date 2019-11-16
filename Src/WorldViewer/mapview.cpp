@@ -16,6 +16,10 @@ cMapView::cMapView(const string &name)
 	, m_lookAtYVector(0)
 	, m_graphIdx(0)
 	, m_gpsUpdateDelta(0)
+	, m_obd2ConnectTime(0)
+	, m_ledBlinkTime(0.f)
+	, m_ledSize(30.f)
+	, m_maxRPM(2200)
 {
 	ZeroMemory(m_renderOverhead, sizeof(m_renderOverhead));
 }
@@ -62,7 +66,13 @@ bool cMapView::Init(cRenderer &renderer)
 	m_landMarkObj2.Create(renderer, 1.f, 10, 10
 		, (eVertexType::POSITION), cColor(0.8f, 0.8f, 0.2f, 1.f));
 
+	m_ledTexture[0] = cResourceManager::Get()->LoadTexture(renderer, "./media/led/blue.png");
+	m_ledTexture[1] = cResourceManager::Get()->LoadTexture(renderer, "./media/led/green.png");
+	m_ledTexture[2] = cResourceManager::Get()->LoadTexture(renderer, "./media/led/yellow.png");
+	m_ledTexture[3] = cResourceManager::Get()->LoadTexture(renderer, "./media/led/red.png");
 
+	m_ledSize = g_global->m_config.GetFloat("guage_led_size", 30.f);
+	m_maxRPM = g_global->m_config.GetInt("max_rpm", 2200);
 	return true;
 }
 
@@ -70,6 +80,7 @@ bool cMapView::Init(cRenderer &renderer)
 void cMapView::OnUpdate(const float deltaSeconds)
 {
 	// update OBD2 
+	if (g_global->m_obd.IsOpened())
 	{
 		g_global->m_obd.Process(deltaSeconds);
 
@@ -80,6 +91,17 @@ void cMapView::OnUpdate(const float deltaSeconds)
 			g_global->m_obd.Query(cOBD2::PID_RPM);
 			g_global->m_obd.Query(cOBD2::PID_SPEED);
 			incT = 0.f;
+		}
+		m_obd2ConnectTime = 0.f;
+	}
+	else
+	{
+		// OBD2접속이 끊겼다면, 5초마다 한번씩 접속을 시도한다.
+		m_obd2ConnectTime += deltaSeconds;
+		if (m_obd2ConnectTime > 5.f)
+		{
+			m_obd2ConnectTime = 0.f;
+			g_global->m_obd.Open(4, 115200, g_global); //COM4
 		}
 	}
 
@@ -499,18 +521,87 @@ void cMapView::OnRender(const float deltaSeconds)
 
 	// HUD
 	bool isOpen = true;
-	ImGuiWindowFlags flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse;
+	ImGuiWindowFlags flags = ImGuiWindowFlags_NoDecoration
+		| ImGuiWindowFlags_NoBackground
+		;
 
 	// Render Date Information
-	const int dateH = 43;
+	const float guageH = m_ledSize + 2.f;
+	const float dateH = 43.f;
 	ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 0));
-
 	if (g_global->m_isShowMapView)
 	{
 		ImGui::Image(m_renderTarget.m_resolvedSRV, ImVec2(m_rect.Width() - 15, m_rect.Height() - 42));
 
+		// Render RPM GuageBar
 		ImGui::SetNextWindowPos(pos);
-		ImGui::SetNextWindowBgAlpha(0.4f);
+		ImGui::SetNextWindowSize(ImVec2(m_viewRect.Width(), guageH));
+		if (ImGui::Begin("RPM GuageBar", &isOpen, flags))
+		{
+			// 화면에 출력할 수 있는 최대 LED 개수를 계산한다.
+			// blue, green, yellow, red 각각의 led 출력 개수를 계산한다.
+			const int maxRPM = m_maxRPM;
+			const Vector2 ledSize(m_ledSize, m_ledSize);
+			const Vector2 offset(5.f, 1.f); // left offset
+			const Vector2 roffset(m_viewRect.Width()- ledSize.x - 5.f, 1.f); // right offset
+			const float w = m_viewRect.Width() / 2.f;
+			const int maxShowLedCount = (int)(w / ledSize.x);
+			int maxLed[4];
+			maxLed[0] = maxShowLedCount / 4; // blue
+			maxLed[1] = maxShowLedCount / 4; // green
+			maxLed[2] = maxShowLedCount / 4; // yellow
+			maxLed[3] = maxShowLedCount / 4; // red
+			int remainCnt = maxShowLedCount % 4;
+			maxLed[3] += (remainCnt-- > 0) ? 1 : 0;
+			maxLed[2] += (remainCnt-- > 0) ? 1 : 0;
+			maxLed[1] += (remainCnt-- > 0) ? 1 : 0;
+			const int step = maxRPM / maxShowLedCount;
+			maxLed[1] += maxLed[0];
+			maxLed[2] += maxLed[1];
+			maxLed[3] += maxLed[2];
+
+			// RPM이 maxRPM 보다 크다면 led를 점멸시킨다.
+			const float timeLEDBlink = 0.1f;
+			if (g_global->m_rpm > maxRPM)
+			{
+				m_ledBlinkTime += deltaSeconds;
+				if (m_ledBlinkTime > timeLEDBlink * 2.f)
+					m_ledBlinkTime = 0.f;
+			}
+			else
+			{
+				m_ledBlinkTime = 0.f;
+			}
+
+			if (m_ledBlinkTime < timeLEDBlink)
+			{
+				int lv = g_global->m_rpm / step;
+				for (int i = 0; i < lv; ++i)
+				{
+					for (int k = 0; k < 4; ++k)
+					{
+						if (maxLed[k] > i)
+						{
+							// render left
+							const Vector2 lp = offset + Vector2(ledSize.x * i, 0);
+							ImGui::SetCursorPos(*(ImVec2*)&lp);
+							ImGui::Image(m_ledTexture[k]->m_texSRV, *(ImVec2*)&ledSize);
+
+							// render right
+							const Vector2 rp = roffset - Vector2(ledSize.x * i, 0);
+							ImGui::SetCursorPos(*(ImVec2*)&rp);
+							ImGui::Image(m_ledTexture[k]->m_texSRV, *(ImVec2*)&ledSize);
+							break;
+						}
+					}
+				}
+			}
+
+			ImGui::End();
+		}
+
+
+		ImGui::SetNextWindowPos(ImVec2(pos.x, pos.y + guageH));
 		ImGui::SetNextWindowSize(ImVec2(min(m_viewRect.Width(), 400.f), dateH));
 		if (ImGui::Begin("Date Information", &isOpen, flags))
 		{
@@ -518,7 +609,7 @@ void cMapView::OnRender(const float deltaSeconds)
 			ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1, 1, 1, 1));
 			ImGui::PushFont(m_owner->m_fontBig);
 			const string dateTime = common::GetCurrentDateTime5();
-			ImGui::Text("%s, Speed: %.1f", dateTime.c_str(), m_gpsInfo.speed);
+			ImGui::Text("%s, Speed: %.1f", dateTime.c_str(), (float)g_global->m_speed);// m_gpsInfo.speed);
 			ImGui::PopStyleColor();
 			ImGui::PopFont();
 			ImGui::End();
@@ -526,7 +617,7 @@ void cMapView::OnRender(const float deltaSeconds)
 	}
 
 	// Render Information
-	ImGui::SetNextWindowPos(ImVec2(pos.x, pos.y + dateH));
+	ImGui::SetNextWindowPos(ImVec2(pos.x, pos.y + guageH + dateH));
 	ImGui::SetNextWindowBgAlpha(0.f);
 	ImGui::SetNextWindowSize(ImVec2(min(m_viewRect.Width(), 350.f), m_viewRect.Height()));
 	if (ImGui::Begin("Map Information", &isOpen, flags))
@@ -539,7 +630,8 @@ void cMapView::OnRender(const float deltaSeconds)
 		ImGui::PopStyleColor();
 		ImGui::SameLine();
 		ImGui::Text("GPS = %.6f, %.6f", m_curGpsPos.y, m_curGpsPos.x);
-		ImGui::Text("OBD2 = %d, %d", g_global->m_rpm, g_global->m_speed);
+		//ImGui::DragInt("rpm", &g_global->m_rpm);
+		//ImGui::Text("OBD2 = %d, %d", g_global->m_rpm, g_global->m_speed);
 
 		if (g_global->m_isShowGPS)
 			ImGui::Text(g_global->m_gpsClient.m_recvStr.c_str());

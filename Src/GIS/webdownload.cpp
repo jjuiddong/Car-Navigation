@@ -6,11 +6,11 @@ using namespace gis;
 
 
 // 다운로드 파일이름을 생성해 리턴한다.
-StrPath gis::GetDownloadFileName(const char *mediaDir, const sDownloadData &dnData)
+StrPath gis::GetDownloadFileName(const StrPath &mediaDir, const sDownloadData &dnData)
 {
 	StrPath dstFileName;
 	dstFileName.Format("%s\\%d\\%04d\\%04d_%04d"
-		, mediaDir
+		, mediaDir.c_str()
 		, dnData.level
 		, dnData.yLoc
 		, dnData.yLoc
@@ -25,14 +25,14 @@ StrPath gis::GetDownloadFileName(const char *mediaDir, const sDownloadData &dnDa
 	case eLayerName::FACILITY_BUILD: dstFileName += ".facility_build"; break;
 	case eLayerName::FACILITY_BUILD_GET: 
 		dstFileName.Format("%s\\%d\\%04d\\%s"
-			, mediaDir
+			, mediaDir.c_str()
 			, dnData.level
 			, dnData.yLoc
 			, dnData.dataFile.c_str());
 		break;
 	case eLayerName::FACILITY_BUILD_GET_JPG:
 		dstFileName.Format("%s\\%d\\%04d\\%s"
-			, mediaDir
+			, mediaDir.c_str()
 			, dnData.level
 			, dnData.yLoc
 			, dnData.dataFile.c_str());

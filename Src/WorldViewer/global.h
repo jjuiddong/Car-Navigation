@@ -56,7 +56,7 @@ public:
 
 	// ODB2
 	int m_rpm;
-	int m_speed;
+	int m_speed; // km/s
 
 	// Render Overhead
 	bool m_isShowTerrain;

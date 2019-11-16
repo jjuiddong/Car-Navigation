@@ -46,16 +46,15 @@ bool cOBD2::Process(const float deltaSeconds)
 	if (!IsOpened())
 		return false;
 
+	// no response, send another query
 	m_waitingTime += deltaSeconds;
 	if (!m_queryQ.empty() && (m_waitingTime > 1.f))
 	{
 		m_waitingTime = 0.f;
 		Query(m_queryQ.front(), false); // send next query
 		m_queryQ.pop();
-
-		dbg::Logc(1, "rcv queue size = %d\n", m_ser.m_rcvQ.size());
-		dbg::Logc(1, "snd queue size = %d\n", m_ser.m_sndQ.size());
-		//::MessageBoxA(NULL, "Err", "Err", MB_OK);
+		//dbg::Logc(1, "rcv queue size = %d\n", m_ser.m_rcvQ.size());
+		//dbg::Logc(1, "snd queue size = %d\n", m_ser.m_sndQ.size());
 	}
 
 	char buffer[common::cBufferedSerial::MAX_BUFFERSIZE];
@@ -122,7 +121,7 @@ bool cOBD2::Query(const ePID pid
 	if (isQueuing)
 	{
 		if (m_queryQ.size() > 20) // check max query size
-			return false; // full queue
+			return false; // full queue, exit
 
 		m_queryQ.push(pid);
 

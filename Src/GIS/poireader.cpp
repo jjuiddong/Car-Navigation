@@ -104,11 +104,12 @@ void cPoiReader::Clear()
 }
 
 
-StrPath cPoiReader::GetFileName(const char *directoryName, const int level, const int xLoc, const int yLoc
+StrPath cPoiReader::GetFileName(const StrPath &directoryName, const int level, const int xLoc, const int yLoc
 	, gis::eLayerName::Enum layerName)
 {
 	StrPath path;
-	path.Format("%s\\%d\\%04d\\%04d_%04d", directoryName, level, yLoc, yLoc, xLoc);
+	path.Format("%s\\%d\\%04d\\%04d_%04d", directoryName.c_str()
+		, level, yLoc, yLoc, xLoc);
 
 	switch (layerName)
 	{

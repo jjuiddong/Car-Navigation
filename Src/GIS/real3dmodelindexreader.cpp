@@ -84,9 +84,10 @@ void cReal3DModelIndexReader::Clear()
 }
 
 
-StrPath cReal3DModelIndexReader::GetFileName(const char *directoryName, const int level, const int xLoc, const int yLoc)
+StrPath cReal3DModelIndexReader::GetFileName(const StrPath &directoryName, const int level, const int xLoc, const int yLoc)
 {
 	StrPath path;
-	path.Format("%s\\%d\\%04d\\%04d_%04d.facility_build", directoryName, level, yLoc, yLoc, xLoc);
+	path.Format("%s\\%d\\%04d\\%04d_%04d.facility_build", directoryName.c_str()
+		, level, yLoc, yLoc, xLoc);
 	return path;
 }

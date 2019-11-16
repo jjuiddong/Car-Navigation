@@ -38,6 +38,13 @@ public:
 	graphic::cRenderTarget m_renderTarget;
 	cTerrainQuadTree m_quadTree;
 
+	// GuageBar LED
+	graphic::cTexture *m_ledTexture[4]; // blue-green-yellow-red
+	float m_ledBlinkTime;
+	float m_ledSize;
+	int m_maxRPM;
+	//
+
 	bool m_showWireframe;
 	float m_renderOverhead[5][500];
 	int m_graphIdx;
@@ -52,6 +59,9 @@ public:
 	Vector3 m_avrDir;
 	bool m_isGestureInput;
 	float m_gpsUpdateDelta;
+
+	// OBD2 connection
+	float m_obd2ConnectTime;
 
 	// MouseMove Variable
 	POINT m_viewPos;

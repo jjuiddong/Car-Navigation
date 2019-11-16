@@ -43,12 +43,14 @@ cGlobal::~cGlobal()
 bool cGlobal::Init(HWND hwnd)
 {
 	m_config.Read("carnavi_config.txt");
+	g_mediaDir = m_config.GetString("media_path", "D:\\media\\data");
+	g_mediaDir2 = m_config.GetString("media_path", "D:\\media\\data");
 
 	m_timer.Create();
 	m_touch.Init(hwnd);
 	m_gpsClient.Init();
 	m_landMark.Read("landmark.txt");
-	m_obd.Open(4, 115200, this); // COM4
+	//m_obd.Open(4, 115200, this); // COM4
 
 	// 날짜 단위로 path 경로 로그를 저장한다.
 	int fileId = 0;
