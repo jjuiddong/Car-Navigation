@@ -575,22 +575,43 @@ void cMapView::OnRender(const float deltaSeconds)
 
 			if (m_ledBlinkTime < timeLEDBlink)
 			{
-				int lv = g_global->m_rpm / step;
+				const int lv = g_global->m_rpm / step;
+				const int tailLv = g_global->m_rpm % step;
+				const float tailR = (float)tailLv / (float)step;
+				int ledColor = 4;
+				for (int i = 0; i < 4; ++i)
+				{
+					if (maxLed[i] > lv)
+					{
+						ledColor = i;
+						break;						
+					}
+				}
+
 				for (int i = 0; i < lv; ++i)
 				{
 					for (int k = 0; k < 4; ++k)
 					{
 						if (maxLed[k] > i)
 						{
+							// last guagebar step
+							Vector2 center(0, 0); // center offset
+							Vector2 size = ledSize;
+							if (i + 1 == lv)
+							{
+								size = ledSize * tailR;
+								center = ledSize * (1 - tailR) * 0.5f;
+							}
+
 							// render left
-							const Vector2 lp = offset + Vector2(ledSize.x * i, 0);
+							const Vector2 lp = offset + center + Vector2(ledSize.x * i, 0);
 							ImGui::SetCursorPos(*(ImVec2*)&lp);
-							ImGui::Image(m_ledTexture[k]->m_texSRV, *(ImVec2*)&ledSize);
+							ImGui::Image(m_ledTexture[k]->m_texSRV, *(ImVec2*)&size);
 
 							// render right
-							const Vector2 rp = roffset - Vector2(ledSize.x * i, 0);
+							const Vector2 rp = roffset + center - Vector2(ledSize.x * i, 0);
 							ImGui::SetCursorPos(*(ImVec2*)&rp);
-							ImGui::Image(m_ledTexture[k]->m_texSRV, *(ImVec2*)&ledSize);
+							ImGui::Image(m_ledTexture[k]->m_texSRV, *(ImVec2*)&size);
 							break;
 						}
 					}
