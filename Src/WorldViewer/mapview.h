@@ -42,7 +42,11 @@ public:
 	graphic::cTexture *m_ledTexture[4]; // blue-green-yellow-red
 	float m_ledBlinkTime;
 	float m_ledSize;
+	float m_ledAniTailR;
+	float m_ledAniR;
 	int m_maxRPM;
+	int m_blinkRPM;
+	int m_updateOBD2Period; // hz unit
 	//
 
 	bool m_showWireframe;

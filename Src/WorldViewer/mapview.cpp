@@ -20,6 +20,10 @@ cMapView::cMapView(const string &name)
 	, m_ledBlinkTime(0.f)
 	, m_ledSize(30.f)
 	, m_maxRPM(2200)
+	, m_blinkRPM(2200)
+	, m_updateOBD2Period(10)
+	, m_ledAniTailR(0.7f)
+	, m_ledAniR(0.1f)
 {
 	ZeroMemory(m_renderOverhead, sizeof(m_renderOverhead));
 }
@@ -73,6 +77,10 @@ bool cMapView::Init(cRenderer &renderer)
 
 	m_ledSize = g_global->m_config.GetFloat("guage_led_size", 30.f);
 	m_maxRPM = g_global->m_config.GetInt("max_rpm", 2200);
+	m_blinkRPM = g_global->m_config.GetInt("blink_rpm", m_maxRPM);
+	m_updateOBD2Period = g_global->m_config.GetInt("update_obd_period", 10);
+	m_ledAniTailR = g_global->m_config.GetFloat("led_ani_tail", 0.7f);
+	m_ledAniR = g_global->m_config.GetFloat("led_ani", 0.1f);
 	return true;
 }
 
@@ -86,10 +94,12 @@ void cMapView::OnUpdate(const float deltaSeconds)
 
 		static float incT = 0;
 		incT += deltaSeconds;
-		if (incT > 0.3f) // query rpm, speed data to OBD2
+		const float t = 1.f / (float)m_updateOBD2Period;
+		if (incT > t) // query rpm, speed data to OBD2
 		{
 			g_global->m_obd.Query(cOBD2::PID_RPM);
 			g_global->m_obd.Query(cOBD2::PID_SPEED);
+			g_global->m_obd.Query(cOBD2::PID_TRANSMISSION_GEAR);
 			incT = 0.f;
 		}
 		m_obd2ConnectTime = 0.f;
@@ -541,6 +551,7 @@ void cMapView::OnRender(const float deltaSeconds)
 			// 화면에 출력할 수 있는 최대 LED 개수를 계산한다.
 			// blue, green, yellow, red 각각의 led 출력 개수를 계산한다.
 			const int maxRPM = m_maxRPM;
+			const int blinkRPM = m_blinkRPM;
 			const Vector2 ledSize(m_ledSize, m_ledSize);
 			const Vector2 offset(5.f, 1.f); // left offset
 			const Vector2 roffset(m_viewRect.Width()- ledSize.x - 5.f, 1.f); // right offset
@@ -560,9 +571,9 @@ void cMapView::OnRender(const float deltaSeconds)
 			maxLed[2] += maxLed[1];
 			maxLed[3] += maxLed[2];
 
-			// RPM이 maxRPM 보다 크다면 led를 점멸시킨다.
+			// RPM이 blinkRPM 보다 크다면 led를 점멸시킨다.
 			const float timeLEDBlink = 0.1f;
-			if (g_global->m_rpm > maxRPM)
+			if (g_global->m_rpm > blinkRPM)
 			{
 				m_ledBlinkTime += deltaSeconds;
 				if (m_ledBlinkTime > timeLEDBlink * 2.f)
@@ -594,13 +605,22 @@ void cMapView::OnRender(const float deltaSeconds)
 					{
 						if (maxLed[k] > i)
 						{
-							// last guagebar step
+							// last guagebar step, size scaling
 							Vector2 center(0, 0); // center offset
 							Vector2 size = ledSize;
 							if (i + 1 == lv)
 							{
-								size = ledSize * tailR;
-								center = ledSize * (1 - tailR) * 0.5f;
+								const float a = m_ledAniTailR;
+								const float r = min(1.f, tailR * a + (1.f - a));
+								size = ledSize * r;
+								center = ledSize * (1 - r) * 0.5f;
+							}
+							else
+							{
+								const float a = m_ledAniR;
+								const float r = min(1.f, tailR * 0.1f + (1.f - a));
+								size = ledSize * r;
+								center = ledSize * (1 - r) * 0.5f;
 							}
 
 							// render left
@@ -622,15 +642,24 @@ void cMapView::OnRender(const float deltaSeconds)
 		}
 
 
-		ImGui::SetNextWindowPos(ImVec2(pos.x, pos.y + guageH));
-		ImGui::SetNextWindowSize(ImVec2(min(m_viewRect.Width(), 400.f), dateH));
-		if (ImGui::Begin("Date Information", &isOpen, flags))
+		//ImGui::SetNextWindowPos(ImVec2(pos.x, pos.y + guageH));
+		ImGui::SetNextWindowPos(ImVec2(pos.x, pos.y));
+		ImGui::SetNextWindowSize(ImVec2(m_viewRect.Width(), dateH + guageH));
+		if (ImGui::Begin("Car Information", &isOpen, flags))
 		{
 			// render datetime
 			ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1, 1, 1, 1));
 			ImGui::PushFont(m_owner->m_fontBig);
 			const string dateTime = common::GetCurrentDateTime5();
-			ImGui::Text("%s, Speed: %.1f", dateTime.c_str(), (float)g_global->m_speed);// m_gpsInfo.speed);
+			ImGui::SetCursorPos(ImVec2(pos.x, 10 + guageH));
+			ImGui::Text("%s", dateTime.c_str());
+
+			ImGui::SetCursorPos(ImVec2(m_viewRect.Width() * 0.5f - 8, 0));
+			ImGui::Text("%d", g_global->m_gear);
+
+			ImGui::SetCursorPos(ImVec2(m_viewRect.Width() * 0.5f - 15, guageH));
+			ImGui::Text("%d km/h", g_global->m_speed);
+
 			ImGui::PopStyleColor();
 			ImGui::PopFont();
 			ImGui::End();
@@ -651,7 +680,7 @@ void cMapView::OnRender(const float deltaSeconds)
 		ImGui::PopStyleColor();
 		ImGui::SameLine();
 		ImGui::Text("GPS = %.6f, %.6f", m_curGpsPos.y, m_curGpsPos.x);
-		//ImGui::DragInt("rpm", &g_global->m_rpm);
+		ImGui::DragInt("rpm", &g_global->m_rpm);
 		//ImGui::Text("OBD2 = %d, %d", g_global->m_rpm, g_global->m_speed);
 
 		if (g_global->m_isShowGPS)
