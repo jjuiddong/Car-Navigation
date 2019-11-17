@@ -58,6 +58,7 @@ public:
 	int m_rpm;
 	int m_speed; // km/s
 	int m_gear; // transimission gear
+	int m_obdRcvCnt;
 
 	// Render Overhead
 	bool m_isShowTerrain;

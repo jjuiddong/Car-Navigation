@@ -66,6 +66,10 @@ public:
 
 	// OBD2 connection
 	float m_obd2ConnectTime;
+	int m_obd2RcvFps;
+	int m_obd2RcvCnt;
+	float m_obd2RcvT;
+	int m_obd2Port;
 
 	// MouseMove Variable
 	POINT m_viewPos;

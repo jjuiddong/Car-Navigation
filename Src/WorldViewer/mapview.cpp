@@ -24,6 +24,9 @@ cMapView::cMapView(const string &name)
 	, m_updateOBD2Period(10)
 	, m_ledAniTailR(0.7f)
 	, m_ledAniR(0.1f)
+	, m_obd2RcvT(0.f)
+	, m_obd2RcvFps(0)
+	, m_obd2Port(4)
 {
 	ZeroMemory(m_renderOverhead, sizeof(m_renderOverhead));
 }
@@ -78,9 +81,10 @@ bool cMapView::Init(cRenderer &renderer)
 	m_ledSize = g_global->m_config.GetFloat("guage_led_size", 30.f);
 	m_maxRPM = g_global->m_config.GetInt("max_rpm", 2200);
 	m_blinkRPM = g_global->m_config.GetInt("blink_rpm", m_maxRPM);
-	m_updateOBD2Period = g_global->m_config.GetInt("update_obd_period", 10);
+	m_updateOBD2Period = g_global->m_config.GetInt("update_obd_period", 6);
 	m_ledAniTailR = g_global->m_config.GetFloat("led_ani_tail", 0.7f);
 	m_ledAniR = g_global->m_config.GetFloat("led_ani", 0.1f);
+	m_obd2Port = g_global->m_config.GetInt("obd2_port", 4);
 	return true;
 }
 
@@ -92,6 +96,16 @@ void cMapView::OnUpdate(const float deltaSeconds)
 	{
 		g_global->m_obd.Process(deltaSeconds);
 
+		// calc fps
+		m_obd2RcvT += deltaSeconds;
+		if (m_obd2RcvT > 1.f)
+		{
+			const int c = g_global->m_obdRcvCnt - m_obd2RcvCnt;
+			m_obd2RcvFps = c;
+			m_obd2RcvCnt = g_global->m_obdRcvCnt;
+			m_obd2RcvT = 0.f;
+		}
+
 		static float incT = 0;
 		incT += deltaSeconds;
 		const float t = 1.f / (float)m_updateOBD2Period;
@@ -99,7 +113,7 @@ void cMapView::OnUpdate(const float deltaSeconds)
 		{
 			g_global->m_obd.Query(cOBD2::PID_RPM);
 			g_global->m_obd.Query(cOBD2::PID_SPEED);
-			g_global->m_obd.Query(cOBD2::PID_TRANSMISSION_GEAR);
+			//g_global->m_obd.Query(cOBD2::PID_TRANSMISSION_GEAR);
 			incT = 0.f;
 		}
 		m_obd2ConnectTime = 0.f;
@@ -111,7 +125,7 @@ void cMapView::OnUpdate(const float deltaSeconds)
 		if (m_obd2ConnectTime > 5.f)
 		{
 			m_obd2ConnectTime = 0.f;
-			g_global->m_obd.Open(4, 115200, g_global); //COM4
+			g_global->m_obd.Open(m_obd2Port, 115200, g_global); //COM4
 		}
 	}
 
@@ -681,10 +695,13 @@ void cMapView::OnRender(const float deltaSeconds)
 		ImGui::SameLine();
 		ImGui::Text("GPS = %.6f, %.6f", m_curGpsPos.y, m_curGpsPos.x);
 		//ImGui::DragInt("rpm", &g_global->m_rpm);
-		//ImGui::Text("OBD2 = %d, %d", g_global->m_rpm, g_global->m_speed);
 
 		if (g_global->m_isShowGPS)
 			ImGui::Text(g_global->m_gpsClient.m_recvStr.c_str());
+
+		ImGui::Text("OBD2 = fps:%d, tot:%d, query:%d, %s"
+			, m_obd2RcvFps, m_obd2RcvCnt, g_global->m_obd.m_queryCnt
+			, g_global->m_obd.m_rcvStr.c_str());
 
 		g_global->m_naviView->OnRender(deltaSeconds);
 

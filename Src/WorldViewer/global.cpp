@@ -29,6 +29,8 @@ cGlobal::cGlobal()
 	, m_landMarkSelectState2(0)
 	, m_rpm(0)
 	, m_speed(0)
+	, m_gear(0)
+	, m_obdRcvCnt(0)
 {
 }
 
@@ -233,10 +235,12 @@ bool cGlobal::ConvertTrackPos2Path()
 
 void cGlobal::Recv(const int pid, const int data)
 {
+	++m_obdRcvCnt;
 	switch ((cOBD2::ePID)pid)
 	{
 	case cOBD2::PID_RPM: m_rpm = data; break;
 	case cOBD2::PID_SPEED: m_speed = data; break;
+	case cOBD2::PID_TRANSMISSION_GEAR: m_gear = data; break;
 	}
 }
 

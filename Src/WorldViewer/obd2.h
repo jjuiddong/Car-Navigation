@@ -97,18 +97,26 @@ public:
 
 protected:
 	bool MemsInit();
-	uint SendCommand(const char* cmd, char* buf, const uint bufsize, const uint timeout = OBD_TIMEOUT_LONG);
+	uint SendCommand(const char* cmd, char* buf, const uint bufsize
+		, const string &untilStr = ""
+		, const uint timeout = OBD_TIMEOUT_LONG);
 	bool NormalizeData(const ePID pid, char *data, OUT int &result);
-	uint ReceiveData(char* buf, const uint bufsize, const uint timeout );
+	uint ReceiveData(char* buf, const uint bufsize
+		, const string &untilStr
+		, const uint timeout );
 
 
 public:
+	enum {MAX_QUEUE = 200};
 	enum class eState {DISCONNECT, CONNECTING, CONNECT};
 
 	eState m_state;
 	common::cSerialAsync m_ser;
 	queue<ePID> m_queryQ;
+	set<int> m_ignorePIDs;
 	iOBD2Receiver *m_receiver;
+	common::Str128 m_rcvStr;
+	int m_queryCnt;
 	bool m_isLog;
 	float m_waitingTime;
 };
