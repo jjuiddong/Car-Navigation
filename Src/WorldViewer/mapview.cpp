@@ -680,7 +680,7 @@ void cMapView::OnRender(const float deltaSeconds)
 		ImGui::PopStyleColor();
 		ImGui::SameLine();
 		ImGui::Text("GPS = %.6f, %.6f", m_curGpsPos.y, m_curGpsPos.x);
-		ImGui::DragInt("rpm", &g_global->m_rpm);
+		//ImGui::DragInt("rpm", &g_global->m_rpm);
 		//ImGui::Text("OBD2 = %d, %d", g_global->m_rpm, g_global->m_speed);
 
 		if (g_global->m_isShowGPS)
