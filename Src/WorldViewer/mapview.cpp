@@ -94,8 +94,6 @@ void cMapView::OnUpdate(const float deltaSeconds)
 	// update OBD2 
 	if (g_global->m_obd.IsOpened())
 	{
-		g_global->m_obd.Process(deltaSeconds);
-
 		// calc fps
 		m_obd2RcvT += deltaSeconds;
 		if (m_obd2RcvT > 1.f)
