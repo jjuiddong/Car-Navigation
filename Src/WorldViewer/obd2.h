@@ -97,11 +97,12 @@ public:
 
 protected:
 	bool MemsInit();
-	uint SendCommand(const char* cmd, char* buf, const uint bufsize
+	bool SendCommand(const char* cmd, char* buf, const uint bufsize
 		, const string &untilStr = ""
 		, const uint timeout = OBD_TIMEOUT_LONG);
 	bool NormalizeData(const ePID pid, char *data, OUT int &result);
-	uint ReceiveData(char* buf, const uint bufsize
+	bool ReceiveData(char* buf, const uint bufsize
+		, OUT uint &readLen
 		, const string &untilStr
 		, const uint timeout );
 
