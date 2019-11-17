@@ -72,17 +72,11 @@ bool cOBD2::Process(const float deltaSeconds)
 	int pid = 0;
 	char *p = buffer;
 	char *data = nullptr;
-	while (p = strstr(p, ">41"))
+	if (p = strstr(p, ">41"))
 	{
 		p += 3;
 		BYTE curpid = hex2uint8(p); // 2 byte
-		if (pid == 0) 
-			pid = curpid;
-		if (curpid == pid) 
-		{
-			data = p + 2;
-			break;
-		}
+		data = p + 2;
 	}
 	if (!data)
 		return true;
