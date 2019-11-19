@@ -11,16 +11,22 @@ using namespace framework;
 cNavigationView::cNavigationView(const StrId &name)
 	: framework::cDockWindow(name)
 	, m_serialConnectTime(0)
+	, m_comboIdx(0)
 {
 
 	// 시리얼 포트 열거, 콤보 박스 문자열로 변환한다.
 	common::EnumCOMPort(m_ports);
 	string str;
-	for (auto &port : m_ports)
+	for (uint i=0; i < m_ports.size(); ++i)
 	{
+		const auto &port = m_ports[i];
 		StrId id = port.second;
 		str += id.utf8().c_str();
 		str += "^";
+
+		// find GPS USB Serial Port
+		if (!id.find("Serial"))
+			m_comboIdx = i;
 	}
 	if (str.length() < m_comboStr.SIZE)
 	{
@@ -86,9 +92,8 @@ void cNavigationView::OnRender(const float deltaSeconds)
 
 		if (cGpsClient::eInputType::Serial == gpsClient.m_inputType)
 		{
-			static int com = 2;
 			ImGui::PushItemWidth(70);
-			ImGui::Combo("Port", &com, m_comboStr.c_str());
+			ImGui::Combo("Port", &m_comboIdx, m_comboStr.c_str());
 			ImGui::SameLine();
 			ImGui::PopItemWidth();
 
@@ -106,17 +111,17 @@ void cNavigationView::OnRender(const float deltaSeconds)
 				// 접속이 끊겼다면, 5초마다 한번씩 접속을 시도한다.
 				m_serialConnectTime += deltaSeconds;
 				if ((m_serialConnectTime > 5.f)
-					&& ((int)m_ports.size() > com))
+					&& ((int)m_ports.size() > m_comboIdx))
 				{
-					gpsClient.ConnectGpsSerial(m_ports[com].first, 9600);
+					gpsClient.ConnectGpsSerial(m_ports[m_comboIdx].first, 9600);
 					m_serialConnectTime = 0.f;
 				}
 
 				if (ImGui::Button("Open"))
 				{
-					if ((int)m_ports.size() > com)
+					if ((int)m_ports.size() > m_comboIdx)
 					{
-						gpsClient.ConnectGpsSerial(m_ports[com].first, 9600);
+						gpsClient.ConnectGpsSerial(m_ports[m_comboIdx].first, 9600);
 					}
 				}
 			}

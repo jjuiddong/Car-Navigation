@@ -90,7 +90,6 @@ bool cOBD2::Process(const float deltaSeconds)
 		m_ser.SendData(cmd, strlen(cmd));
 		++m_queryCnt;
 
-
 		m_commState = eCommState::Recv;
 		m_waitingTime = 0.f;
 	}
@@ -102,7 +101,6 @@ bool cOBD2::Process(const float deltaSeconds)
 		if (m_waitingTime > recvTimeOut)
 		{
 			m_commState = eCommState::Send;
-			std::this_thread::sleep_for(1ms);
 			if (!m_queryQ.empty())
 			{
 				m_cs.Lock();
@@ -151,7 +149,6 @@ bool cOBD2::Process(const float deltaSeconds)
 				break;
 		}
 
-
 		if (data)
 		{
 			// check query queue
@@ -172,7 +169,6 @@ bool cOBD2::Process(const float deltaSeconds)
 
 			m_commState = eCommState::Send;
 			m_sndDelayTime = sendDelayTime;
-			std::this_thread::sleep_for(1ms);
 		}
 		else
 		{

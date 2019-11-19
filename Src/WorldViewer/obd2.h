@@ -131,6 +131,6 @@ public:
 
 	std::thread m_thread;
 	common::CriticalSection m_cs;
-	int m_sleepMillis; // default: 10ms
+	int m_sleepMillis; // default: 1ms
 };
 
