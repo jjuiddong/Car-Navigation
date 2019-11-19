@@ -9,7 +9,9 @@ cOBD2::cOBD2()
 	, m_commState(eCommState::Send)
 	, m_waitingTime(0)
 	, m_queryCnt(0)
-	, m_sleepMillis(10)
+	, m_sleepMillis(1)
+	, m_sndDelayTime(0.f)
+	, m_stoppedCnt(0)
 {
 }
 
@@ -35,6 +37,7 @@ bool cOBD2::Open(const int comPort //= 2
 
 	m_state = eState::Connecting;
 	m_commState = eCommState::Send;
+	m_sndDelayTime = 0.f;
 	m_thread = std::thread(ThreadFunction, this);
 
 	return true;
@@ -60,7 +63,10 @@ bool cOBD2::Query(const ePID pid)
 // process odb2 communication
 bool cOBD2::Process(const float deltaSeconds)
 {
+	using namespace std::chrono_literals;
+
 	const float recvTimeOut = 1.f; 
+	const float sendDelayTime = 0.05f;
 
 	if (!IsOpened())
 		return false;
@@ -71,6 +77,10 @@ bool cOBD2::Process(const float deltaSeconds)
 	{
 	case eCommState::Send:
 	{
+		m_sndDelayTime -= deltaSeconds;
+		if (m_sndDelayTime > 0)
+			break;
+
 		m_cs.Lock();
 		const ePID pid = (ePID)m_queryQ.front();
 		m_cs.Unlock();
@@ -79,6 +89,7 @@ bool cOBD2::Process(const float deltaSeconds)
 		sprintf_s(cmd, "%02X%02X\r", 1, (int)pid); //Service Mode 01
 		m_ser.SendData(cmd, strlen(cmd));
 		++m_queryCnt;
+
 
 		m_commState = eCommState::Recv;
 		m_waitingTime = 0.f;
@@ -91,6 +102,7 @@ bool cOBD2::Process(const float deltaSeconds)
 		if (m_waitingTime > recvTimeOut)
 		{
 			m_commState = eCommState::Send;
+			std::this_thread::sleep_for(1ms);
 			if (!m_queryQ.empty())
 			{
 				m_cs.Lock();
@@ -101,54 +113,72 @@ bool cOBD2::Process(const float deltaSeconds)
 		}
 
 		char buffer[common::cBufferedSerial::MAX_BUFFERSIZE];
-		int readLen = 0;
-		m_ser.ReadStringUntil('\r', buffer, readLen, sizeof(buffer));
-		if (readLen <= 0)
-			break;
-		if ((readLen == 1) && (buffer[0] == '\r'))
-			return true;
-
-		buffer[readLen] = NULL;
-		if (readLen > 3)
-		{
-			m_rcvStr = buffer;
-			if (m_isLog)
-				common::dbg::Logp(buffer);
-		}
-
-		m_waitingTime = 0.f;
-
-		// parse pid data
 		int pid = 0;
 		char *data = nullptr;
-		char *p = buffer;
-		if (p = strstr(p, "41 "))
+
+		int readLen = 0;
+		int procCnt = 0;
+		while (procCnt++ < 10)
 		{
-			p += 3;
-			pid = hex2uint8(p); // 2 byte
-			data = p + 3;
+			m_ser.ReadStringUntil('\r', buffer, readLen, sizeof(buffer));
+			if (readLen <= 0)
+				continue;
+			if ((readLen == 1) && (buffer[0] == '\r'))
+				continue;
+
+			buffer[readLen] = NULL;
+			if (readLen > 3)
+			{
+				m_rcvStr = buffer;
+				if (m_isLog)
+					common::dbg::Logp(buffer);
+			}
+
+			m_waitingTime = 0.f;
+
+			// parse pid data
+			pid = 0;
+			data = nullptr;
+			char *p = buffer;
+			if (p = strstr(p, "41 "))
+			{
+				p += 3;
+				pid = hex2uint8(p); // 2 byte
+				data = p + 3;
+			}
+
+			if (data)
+				break;
 		}
 
-		// check query queue
-		if (!m_queryQ.empty())
-		{
-			m_cs.Lock();
-			const bool isErr = (m_queryQ.front() != (ePID)pid);
-			m_queryQ.pop();
-			m_cs.Unlock();
-		}
 
 		if (data)
 		{
+			// check query queue
+			if (!m_queryQ.empty())
+			{
+				m_cs.Lock();
+				const bool isErr = (m_queryQ.front() != (ePID)pid);
+				m_queryQ.pop();
+				m_cs.Unlock();
+			}
+
 			int result = 0;
 			if (NormalizeData((ePID)pid, data, result))
 			{
 				if (m_receiver) // call callback function
 					m_receiver->Recv(pid, result);
 			}
-		}
 
-		m_commState = eCommState::Send;
+			m_commState = eCommState::Send;
+			m_sndDelayTime = sendDelayTime;
+			std::this_thread::sleep_for(1ms);
+		}
+		else
+		{
+			if (string::npos != m_rcvStr.find("STOPPED"))
+				++m_stoppedCnt;
+		}
 	}
 	break;
 

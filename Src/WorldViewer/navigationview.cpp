@@ -86,7 +86,7 @@ void cNavigationView::OnRender(const float deltaSeconds)
 
 		if (cGpsClient::eInputType::Serial == gpsClient.m_inputType)
 		{
-			static int com = 0;
+			static int com = 2;
 			ImGui::PushItemWidth(70);
 			ImGui::Combo("Port", &com, m_comboStr.c_str());
 			ImGui::SameLine();

@@ -124,6 +124,7 @@ void cMapView::OnUpdate(const float deltaSeconds)
 		{
 			m_obd2ConnectTime = 0.f;
 			g_global->m_obd.Open(m_obd2Port, 115200, g_global); //COM4
+			common::dbg::Logp("ODB2 Connect COM%d\n", m_obd2Port);
 		}
 	}
 
