@@ -78,6 +78,7 @@ public:
 	gps::c2s_Protocol m_gpsProtocol;
 	string m_naviServerIp;
 	int m_naviServerPort;
+	int m_sendGpsInfo;
 
 	// MouseMove Variable
 	POINT m_viewPos;

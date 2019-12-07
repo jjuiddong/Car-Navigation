@@ -25,7 +25,7 @@ cNavigationView::cNavigationView(const StrId &name)
 		str += "^";
 
 		// find GPS USB Serial Port
-		if (!id.find("Serial"))
+		if (id.find("Serial"))
 			m_comboIdx = i;
 	}
 	if (str.length() < m_comboStr.SIZE)

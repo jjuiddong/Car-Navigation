@@ -24,7 +24,7 @@ cGlobal *g_global = NULL;
 cViewer::cViewer()
 {
 	m_windowName = L"Navigation";
-	//m_isLazyMode = true;
+	m_isLazyMode = true;
 	const RECT r = { 0, 0, 1024, 768 };
 	//const RECT r = { 0, 0, 1280, 960 };
 	m_windowRect = r;
@@ -94,7 +94,7 @@ bool cViewer::OnInit()
 	m_gui.SetContext();
 	m_gui.SetStyleColorsDark();
 
-	//ShowWindow(getSystemHandle(), SW_MAXIMIZE);
+	ShowWindow(getSystemHandle(), SW_MAXIMIZE);
 	//g_global->ConvertTrackPos2Path();
 
 	return true;

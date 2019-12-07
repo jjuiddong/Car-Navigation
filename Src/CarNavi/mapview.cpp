@@ -29,6 +29,7 @@ cMapView::cMapView(const string &name)
 	, m_obd2Port(4)
 	, m_naviServerIp("220.77.25.119")
 	, m_naviServerPort(10001)
+	, m_sendGpsInfo(0)
 {
 	ZeroMemory(m_renderOverhead, sizeof(m_renderOverhead));
 }
@@ -183,6 +184,7 @@ void cMapView::UpdateGPS(const float deltaSeconds)
 			}
 			else
 			{
+				++m_sendGpsInfo;
 				m_gpsProtocol.GPSInfo(network2::SERVER_NETID, date
 					, m_curGpsPos.x, m_curGpsPos.y);
 			}
@@ -726,7 +728,7 @@ void cMapView::OnRender(const float deltaSeconds)
 		ImGui::Text("%s", touchStr[(int)g_global->m_touch.m_type]);
 		ImGui::PopStyleColor();
 		ImGui::SameLine();
-		ImGui::Text("GPS = %.6f, %.6f", m_curGpsPos.y, m_curGpsPos.x);
+		ImGui::Text("GPS = %.6f, %.6f, (%d)", m_curGpsPos.y, m_curGpsPos.x, m_sendGpsInfo);
 		//ImGui::DragInt("rpm", &g_global->m_rpm);
 
 		if (g_global->m_isShowGPS)

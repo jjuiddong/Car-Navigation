@@ -41,17 +41,19 @@ bool cNaviServer::Update(const float deltaSeconds)
 // gps protocol handler
 bool cNaviServer::GPSInfo(gps::GPSInfo_Packet &packet)
 {
-	if (m_dateStr != packet.date)
+	const string dateStr = common::GetCurrentDateTime4();
+
+	if (m_dateStr != dateStr)
 	{
 		// check path folder
 		if (!StrPath("./path").IsFileExist())
 			::CreateDirectoryA("./path", nullptr);
 
 		m_pathFilename = "./path/path_";
-		m_pathFilename += packet.date;
+		m_pathFilename += dateStr;
 		m_pathFilename += ".txt";
 
-		m_dateStr = packet.date;
+		m_dateStr = dateStr;
 	}
 
 	const Vector2d pos(packet.lon, packet.lat);
@@ -61,8 +63,6 @@ bool cNaviServer::GPSInfo(gps::GPSInfo_Packet &packet)
 			, packet.date.c_str(), packet.lon, packet.lat);
 		m_prevGpsPos = pos;
 	}
-
-	std::cout << "recv GPSInfo" << std::endl;
 
 	return true;
 }
