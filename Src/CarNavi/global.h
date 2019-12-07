@@ -11,8 +11,6 @@ enum class eAnalysisType : int
 	, GMain
 };
 
-#include "touch.h"
-
 
 class cMapView;
 class cInformationView;

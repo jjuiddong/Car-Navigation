@@ -20,8 +20,9 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
-    <ProjectGuid>{2180D30D-9981-4CB7-B9D0-1C71D97A5F25}</ProjectGuid>
-    <RootNamespace>CarNavi</RootNamespace>
+    <ProjectGuid>{D1251831-86C8-4DF7-8F49-6825EC53C4F4}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>NaviServer</RootNamespace>
     <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -42,14 +43,14 @@
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v141</PlatformToolset>
-    <CharacterSet>MultiByte</CharacterSet>
+    <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v141</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
-    <CharacterSet>MultiByte</CharacterSet>
+    <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -70,13 +71,20 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LinkIncremental>true</LinkIncremental>
     <OutDir>$(SolutionDir)../Package/</OutDir>
     <IntDir>$(SolutionDir)../Obj/$(ProjectName)/$(Configuration)/</IntDir>
     <TargetName>$(ProjectName)d</TargetName>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LinkIncremental>false</LinkIncremental>
     <OutDir>$(SolutionDir)../Package/</OutDir>
     <IntDir>$(SolutionDir)../Obj/$(ProjectName)/$(Configuration)/</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -84,15 +92,13 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <ConformanceMode>false</ConformanceMode>
-      <AdditionalIncludeDirectories>../../../Common/Framework11/external/sfml/include;../../../Common/Framework11/external/sfml/src/;../../../Common/Framework11/external/imgui/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;_HAS_ITERATOR_DEBUGGING=0;_ITERATOR_DEBUG_LEVEL=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>Use</PrecompiledHeader>
-      <PreprocessorDefinitions>WIN32;USE_D3D11_MATH;_DEBUG;_WINDOWS;_HAS_ITERATOR_DEBUGGING=0;_ITERATOR_DEBUG_LEVEL=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
-      <AdditionalLibraryDirectories>../../../Common/external;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Console</SubSystem>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -100,8 +106,13 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
     </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Console</SubSystem>
+    </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -110,17 +121,15 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>../../../Common/Framework11/external/sfml/include;../../../Common/Framework11/external/sfml/src/;../../../Common/Framework11/external/imgui/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PrecompiledHeader>Use</PrecompiledHeader>
-      <PreprocessorDefinitions>WIN32;USE_D3D11_MATH;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalLibraryDirectories>../../../Common/external;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Console</SubSystem>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -130,68 +139,50 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Console</SubSystem>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\Protocol\Src\gps_Protocol.cpp" />
     <ClCompile Include="..\Protocol\Src\gps_ProtocolHandler.cpp" />
-    <ClCompile Include="carnavi.cpp" />
-    <ClCompile Include="global.cpp" />
-    <ClCompile Include="gpsclient.cpp" />
-    <ClCompile Include="informationview.cpp" />
-    <ClCompile Include="landmark.cpp" />
-    <ClCompile Include="mapview.cpp" />
-    <ClCompile Include="navigationview.cpp" />
-    <ClCompile Include="obd2.cpp" />
-    <ClCompile Include="path.cpp" />
-    <ClCompile Include="pathrenderer.cpp" />
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="naviserver.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="touch.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Protocol\Src\gps_Protocol.h" />
     <ClInclude Include="..\Protocol\Src\gps_ProtocolData.h" />
     <ClInclude Include="..\Protocol\Src\gps_ProtocolHandler.h" />
-    <ClInclude Include="carnavi.h" />
-    <ClInclude Include="global.h" />
-    <ClInclude Include="gpsclient.h" />
-    <ClInclude Include="informationview.h" />
-    <ClInclude Include="landmark.h" />
-    <ClInclude Include="mapview.h" />
-    <ClInclude Include="navigationview.h" />
-    <ClInclude Include="obd2.h" />
-    <ClInclude Include="path.h" />
-    <ClInclude Include="pathrenderer.h" />
+    <ClInclude Include="naviserver.h" />
     <ClInclude Include="stdafx.h" />
-    <ClInclude Include="touch.h" />
-    <ClInclude Include="utility.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="..\Protocol\gps.prt">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)\ProtocolGenerator.exe -s %(FullPath) -p stdafx.h -m marshalling</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)\ProtocolGenerator.exe -s %(FullPath) -p stdafx.h -m marshalling</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(Filename) protocol Generation...</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(Filename) protocol Generation...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(RelativeDir)\Src\%(Filename)_Protocol.h;%(RelativeDir)\Src\%(Filename)_Protocol.cpp;%(RelativeDir)\Src\%(Filename)_ProtocolData.h;%(RelativeDir)\Src\%(Filename)_ProtocolHandler.h;%(RelativeDir)\Src\%(Filename)_ProtocolHandler.cpp</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(RelativeDir)\Src\%(Filename)_Protocol.h;%(RelativeDir)\Src\%(Filename)_Protocol.cpp;%(RelativeDir)\Src\%(Filename)_ProtocolData.h;%(RelativeDir)\Src\%(Filename)_ProtocolHandler.h;%(RelativeDir)\Src\%(Filename)_ProtocolHandler.cpp</Outputs>
+    </CustomBuild>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\Common\Common\Common.vcxproj">
       <Project>{ef9ca22d-0c8f-42e9-ab66-98bc1a640f10}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\Common\Framework11\Framework11.vcxproj">
-      <Project>{89878d3e-85ac-4e0b-87eb-2de34a18eadf}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\Common\Graphic11\Graphic11.vcxproj">
-      <Project>{6e994653-a69c-4be2-b830-97676e805f29}</Project>
-    </ProjectReference>
     <ProjectReference Include="..\..\..\Common\Network2\Network2-VS2017.vcxproj">
       <Project>{b98e9721-f7a3-4e2d-a7a1-7708cb2d0d6e}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\DirectXTK\DirectXTK_Desktop_2017.vcxproj">
-      <Project>{e0b52ae7-e160-4d32-bf3f-910b785e5a8e}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\GIS\GIS.vcxproj">
-      <Project>{a72ebac6-bc32-4d0d-b2a1-e5009fb04f6b}</Project>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

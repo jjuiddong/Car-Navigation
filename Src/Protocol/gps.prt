@@ -1,0 +1,10 @@
+//
+// GPS Protocol 
+//
+
+protocol c2s 1000
+{
+	
+	GPSInfo( string date, double lon, double lat );
+
+}

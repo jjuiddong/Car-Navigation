@@ -10,6 +10,9 @@
     <Filter Include="view">
       <UniqueIdentifier>{8573f3ee-b8a3-4a21-aec5-5411926e28c6}</UniqueIdentifier>
     </Filter>
+    <Filter Include="protocol_src">
+      <UniqueIdentifier>{65549a51-80e2-4d95-a748-04103de5ead6}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="carnavi.cpp" />
@@ -41,6 +44,12 @@
     </ClCompile>
     <ClCompile Include="touch.cpp">
       <Filter>lib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Protocol\Src\gps_Protocol.cpp">
+      <Filter>protocol_src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Protocol\Src\gps_ProtocolHandler.cpp">
+      <Filter>protocol_src</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -76,6 +85,15 @@
     </ClInclude>
     <ClInclude Include="utility.h">
       <Filter>lib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Protocol\Src\gps_Protocol.h">
+      <Filter>protocol_src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Protocol\Src\gps_ProtocolData.h">
+      <Filter>protocol_src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Protocol\Src\gps_ProtocolHandler.h">
+      <Filter>protocol_src</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

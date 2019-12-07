@@ -72,6 +72,13 @@ public:
 	float m_obd2RcvT;
 	int m_obd2Port;
 
+	// Navigation Client
+	network2::cNetController m_netController;
+	network2::cTcpClient m_naviClient;
+	gps::c2s_Protocol m_gpsProtocol;
+	string m_naviServerIp;
+	int m_naviServerPort;
+
 	// MouseMove Variable
 	POINT m_viewPos;
 	sRectf m_viewRect; // detect mouse event area

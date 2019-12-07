@@ -14,7 +14,13 @@ using namespace common;
 #include "path.h"
 #include "pathrenderer.h"
 #include "landmark.h"
+#include "touch.h"
 #include "global.h"
+
+#include "../Protocol/Src/gps_Protocol.h"
+#include "../Protocol/Src/gps_ProtocolData.h"
+#include "../Protocol/Src/gps_ProtocolHandler.h"
+
 
 extern cGlobal *g_global;
 extern framework::cGameMain2 * g_application;

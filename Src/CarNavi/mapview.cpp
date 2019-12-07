@@ -27,6 +27,8 @@ cMapView::cMapView(const string &name)
 	, m_obd2RcvT(0.f)
 	, m_obd2RcvFps(0)
 	, m_obd2Port(4)
+	, m_naviServerIp("220.77.25.119")
+	, m_naviServerPort(10001)
 {
 	ZeroMemory(m_renderOverhead, sizeof(m_renderOverhead));
 }
@@ -34,6 +36,8 @@ cMapView::cMapView(const string &name)
 cMapView::~cMapView() 
 {
 	m_quadTree.Clear();
+	m_netController.Clear();
+	m_naviClient.Close();
 }
 
 
@@ -85,6 +89,12 @@ bool cMapView::Init(cRenderer &renderer)
 	m_ledAniTailR = g_global->m_config.GetFloat("led_ani_tail", 0.7f);
 	m_ledAniR = g_global->m_config.GetFloat("led_ani", 0.1f);
 	m_obd2Port = g_global->m_config.GetInt("obd2_port", 4);
+	m_naviServerIp = g_global->m_config.GetString("naviserver_ip", "220.77.251.119");
+	m_naviServerPort = g_global->m_config.GetInt("naviserver_port", 10001);
+
+	m_naviClient.RegisterProtocol(&m_gpsProtocol);
+	m_netController.StartTcpClient(&m_naviClient, m_naviServerIp, m_naviServerPort);
+
 	return true;
 }
 
@@ -108,6 +118,7 @@ void cMapView::OnUpdate(const float deltaSeconds)
 		dt = 0.f;
 	}
 	m_camera.Update(dt);
+	m_netController.Process(dt);
 
 	g_global->m_touch.CheckTouchType(m_owner->getSystemHandle());
 
@@ -157,6 +168,24 @@ void cMapView::UpdateGPS(const float deltaSeconds)
 			dbg::Logp2(g_global->m_pathFilename.c_str(), "%s, %.15f, %.15f\n"
 				, date.c_str(), m_curGpsPos.x, m_curGpsPos.y);
 			prevGpsPos = m_curGpsPos;
+
+			// send to Navigation Server with GPS Information
+			if (m_naviClient.IsFailConnection())
+			{
+				// 네비게이션 서버와 접속이 끊겼다면, 5초간격마다 재접속을 시도한다.
+				static float checkSvrConTime = 0.f;
+				checkSvrConTime += deltaSeconds;
+				if (checkSvrConTime > 5.f)
+				{
+					checkSvrConTime = 0.f;
+					m_naviClient.ReConnect();
+				}
+			}
+			else
+			{
+				m_gpsProtocol.GPSInfo(network2::SERVER_NETID, date
+					, m_curGpsPos.x, m_curGpsPos.y);
+			}
 		}
 	}
 
