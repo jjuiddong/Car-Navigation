@@ -22,6 +22,7 @@ public:
 
 protected:
 	void UpdateGPS(const float deltaSeconds);
+	void UpdateOBD2(const float deltaSeconds);
 	void UpdateMapScanning(const float deltaSeconds);
 	void UpdateMapTrace(const float deltaSeconds);
 	void UpdateCameraTraceLookat(const bool isUpdateDistance = true);

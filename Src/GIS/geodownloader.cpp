@@ -1,25 +1,25 @@
 
 #include "stdafx.h"
-#include "vworldwebdownloader.h"
+#include "geodownloader.h"
 #include "quadtilemanager.h"
 
 using namespace gis;
 
 
-cVWorldWebDownloader::cVWorldWebDownloader()
+cGeoDownloader::cGeoDownloader()
 	: m_isOfflineMode(false)
 	, m_totalDownloadFileSize(0)
 {
 	m_tpDownloader.Init(5); // 5 thread
 }
 
-cVWorldWebDownloader::~cVWorldWebDownloader()
+cGeoDownloader::~cGeoDownloader()
 {
 	Clear();
 }
 
 
-bool cVWorldWebDownloader::DownloadFile(const int level, const int xLoc, const int yLoc
+bool cGeoDownloader::DownloadFile(const int level, const int xLoc, const int yLoc
 	, const int idx
 	, const eLayerName::Enum type
 	, cQuadTileManager &tileMgr
@@ -61,7 +61,7 @@ bool cVWorldWebDownloader::DownloadFile(const int level, const int xLoc, const i
 
 
 // 다운로드 받은 파일을, 리스너에게 알린다.
-void cVWorldWebDownloader::UpdateDownload()
+void cGeoDownloader::UpdateDownload()
 {
 	AutoCSLock cs(m_cs);
 
@@ -83,7 +83,7 @@ void cVWorldWebDownloader::UpdateDownload()
 }
 
 
-bool cVWorldWebDownloader::Insert(const sDownloadData &dnData)
+bool cGeoDownloader::Insert(const sDownloadData &dnData)
 {
 	AutoCSLock cs(m_cs);
 	m_complete.push_back(dnData);
@@ -91,7 +91,7 @@ bool cVWorldWebDownloader::Insert(const sDownloadData &dnData)
 }
 
 
-bool cVWorldWebDownloader::Remove(const sDownloadData &dnData)
+bool cGeoDownloader::Remove(const sDownloadData &dnData)
 {
 	AutoCSLock cs(m_cs);
 	const auto key = GetKey(dnData);
@@ -100,7 +100,7 @@ bool cVWorldWebDownloader::Remove(const sDownloadData &dnData)
 }
 
 
-std::tuple<int, int, __int64> cVWorldWebDownloader::GetKey(const sDownloadData &dnData)
+std::tuple<int, int, __int64> cGeoDownloader::GetKey(const sDownloadData &dnData)
 {
 	const int key1 = (dnData.dataFile.empty()) ? 0 : dnData.dataFile.GetHashCode();
 	const int key2 = ((int)dnData.layer * 100 + dnData.idx);
@@ -110,7 +110,7 @@ std::tuple<int, int, __int64> cVWorldWebDownloader::GetKey(const sDownloadData &
 }
 
 
-void cVWorldWebDownloader::Clear()
+void cGeoDownloader::Clear()
 {
 	{
 		AutoCSLock cs(m_cs);

@@ -2,7 +2,7 @@
 // 2018-04-26, jjuiddong
 // GIS 관련된 정의 모음
 //
-// vworld 3D coordinate system
+// world 3D coordinate system
 //
 //  /\ Z 
 //  |
@@ -63,7 +63,7 @@ namespace gis
 	};
 
 
-	// vworld tile
+	// world tile
 	//
 	//  /\ tileLoc Y (row)
 	//  |
@@ -113,7 +113,9 @@ namespace gis
 
 
 #include "UTM.h"
-#include "vworldwebdownloader.h"
+#include "webdownload.h"
+#include "taskwebdownload.h"
+#include "geodownloader.h"
 #include "quadtree.h"
 #include "heightmap.h"
 #include "tiletexture.h"

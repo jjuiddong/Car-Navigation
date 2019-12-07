@@ -52,7 +52,6 @@ bool cGlobal::Init(HWND hwnd)
 	m_touch.Init(hwnd);
 	m_gpsClient.Init();
 	m_landMark.Read("landmark.txt");
-	//m_obd.Open(4, 115200, this); // COM4
 
 	// 날짜 단위로 path 경로 로그를 저장한다.
 	int fileId = 0;

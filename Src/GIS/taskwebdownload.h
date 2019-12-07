@@ -4,10 +4,8 @@
 // 
 #pragma once
 
-#include "webdownload.h"
-
 class cQuadTileManager;
-namespace gis { class cVWorldWebDownloader; }
+namespace gis { class cGeoDownloader; }
 
 
 class cTaskWebDownload : public common::cTask
@@ -15,12 +13,12 @@ class cTaskWebDownload : public common::cTask
 {
 public:
 	cTaskWebDownload();
-	cTaskWebDownload(gis::cVWorldWebDownloader *webDownloader
+	cTaskWebDownload(gis::cGeoDownloader *webDownloader
 		, cQuadTileManager *tileMgr
 		, const gis::sDownloadData &dnData);
 	virtual ~cTaskWebDownload();
 
-	void SetParameter(gis::cVWorldWebDownloader *webDownloader
+	void SetParameter(gis::cGeoDownloader *webDownloader
 		, cQuadTileManager *tileMgr
 		, const gis::sDownloadData &dnData);
 
@@ -30,7 +28,7 @@ public:
 
 
 public:
-	gis::cVWorldWebDownloader *m_webDownloader;
+	gis::cGeoDownloader *m_webDownloader;
 	cQuadTileManager *m_tileMgr;
 	gis::sDownloadData m_dnData;
 };

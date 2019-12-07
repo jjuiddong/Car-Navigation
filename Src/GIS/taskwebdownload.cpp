@@ -14,7 +14,7 @@ cTaskWebDownload::cTaskWebDownload()
 {
 }
 
-cTaskWebDownload::cTaskWebDownload(cVWorldWebDownloader *webDownloader
+cTaskWebDownload::cTaskWebDownload(cGeoDownloader *webDownloader
 	, cQuadTileManager *tileMgr
 	, const sDownloadData &dnData)
 	: cTask(common::GenerateId(), "cTaskWebDownload", true)
@@ -34,7 +34,7 @@ void cTaskWebDownload::Clear()
 }
 
 
-void cTaskWebDownload::SetParameter(cVWorldWebDownloader *webDownloader
+void cTaskWebDownload::SetParameter(cGeoDownloader *webDownloader
 		, cQuadTileManager *tileMgr
 		, const sDownloadData &dnData) 
 {

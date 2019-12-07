@@ -85,9 +85,9 @@ void cInformationView::OnRender(const float deltaSeconds)
 		ImGui::Separator();
 
 		ImGui::Text("download %d"
-			, terrain.m_tileMgr.m_vworldDownloader.m_requestIds.size());
+			, terrain.m_tileMgr.m_geoDownloader.m_requestIds.size());
 		ImGui::Text("    - total size %I64d (MB)"
-			, terrain.m_tileMgr.m_vworldDownloader.m_totalDownloadFileSize / (1048576)); // 1024*1024
+			, terrain.m_tileMgr.m_geoDownloader.m_totalDownloadFileSize / (1048576)); // 1024*1024
 		ImGui::Text("load texture %d"
 			, terrain.m_tileMgr.m_tmaps.m_tpLoader.m_tasks.size());
 

@@ -1,13 +1,11 @@
 //
 // 2018-05-01, jjuiddong
-// vworld web download *.bil, *.dds, *.dat, .. etc
+// geometry data download from geo server *.bil, *.dds, *.dat, .. etc
 //
 // 2019-05-18
 //	- download using thread pool
 //
 #pragma once
-
-#include "taskwebdownload.h"
 
 
 class cQuadTileManager;
@@ -15,11 +13,11 @@ class cQuadTileManager;
 namespace gis
 {
 
-	class cVWorldWebDownloader
+	class cGeoDownloader
 	{
 	public:
-		cVWorldWebDownloader();
-		virtual ~cVWorldWebDownloader();
+		cGeoDownloader();
+		virtual ~cGeoDownloader();
 
 		bool DownloadFile(const int level, const int xLoc, const int yLoc
 			, const int idx

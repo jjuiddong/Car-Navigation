@@ -215,9 +215,9 @@ void cNavigationView::OnRender(const float deltaSeconds)
 		ImGui::Text("tile memory %d", terrain.m_tileMgr.m_tiles.size());
 		ImGui::Text("render quad lv %d", terrain.m_optimizeLevel);
 		ImGui::Text("download %d"
-			, terrain.m_tileMgr.m_vworldDownloader.m_requestIds.size());
+			, terrain.m_tileMgr.m_geoDownloader.m_requestIds.size());
 		ImGui::Text("    - total size %I64d (MB)"
-			, terrain.m_tileMgr.m_vworldDownloader.m_totalDownloadFileSize / (1048576)); // 1024*1024
+			, terrain.m_tileMgr.m_geoDownloader.m_totalDownloadFileSize / (1048576)); // 1024*1024
 	}
 
 	ImGui::Spacing();

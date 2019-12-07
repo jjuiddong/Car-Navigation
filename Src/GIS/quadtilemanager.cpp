@@ -11,7 +11,6 @@ cQuadTileManager::cQuadTileManager()
 	, m_cntRemoveTile(0)
 {
 	m_timer.Create();
-	//m_vworldDownloader.m_isOfflineMode = true;
 }
 
 cQuadTileManager::~cQuadTileManager()
@@ -200,7 +199,7 @@ void cQuadTileManager::SortingDownloadFile(const Vector2d &camLonLat, cTerrainQu
 // 매 프레임마다, 다운로드완료된 파일을 검사해서, 업데이트 한다.
 void cQuadTileManager::UpdateDownloadFile(graphic::cRenderer &renderer)
 {
-	m_vworldDownloader.UpdateDownload();
+	m_geoDownloader.UpdateDownload();
 
 	for (auto &file : m_downloadFiles)
 	{
@@ -639,7 +638,7 @@ bool cQuadTileManager::LoadResource(graphic::cRenderer &renderer
 					}
 					else
 					{
-						m_vworldDownloader.DownloadFile(level, xLoc, yLoc, i
+						m_geoDownloader.DownloadFile(level, xLoc, yLoc, i
 							, gis::eLayerName::FACILITY_BUILD_GET_JPG, *this, this
 							, xdo->m_xdos[0].imageName);
 					}
@@ -757,7 +756,7 @@ bool cQuadTileManager::LoadFacilities(graphic::cRenderer &renderer
 			}
 			else
 			{
-				m_vworldDownloader.DownloadFile(level, xLoc, yLoc, i
+				m_geoDownloader.DownloadFile(level, xLoc, yLoc, i
 					, gis::eLayerName::FACILITY_BUILD_GET, *this, this
 					, obj.dataFile);
 			}
@@ -866,7 +865,7 @@ void cQuadTileManager::LoadTexture(graphic::cRenderer &renderer
 	}
 	else
 	{
-		m_vworldDownloader.DownloadFile(level, xLoc, yLoc, 0, gis::eLayerName::TILE, *this, this);
+		m_geoDownloader.DownloadFile(level, xLoc, yLoc, 0, gis::eLayerName::TILE, *this, this);
 	}
 
 	// 텍스쳐 파일이 없다면, 더 높은 레벨의 텍스쳐를 이용하고, uv를 재조정한다.
@@ -917,7 +916,7 @@ bool cQuadTileManager::LoadHeightMap(graphic::cRenderer &renderer
 	{
 		//if (level < 14)
 			//DownloadResourceFile(tile, terrain, level, xLoc, yLoc, gis::eLayerName::DEM);
-			m_vworldDownloader.DownloadFile(level, xLoc, yLoc, 0, gis::eLayerName::DEM, *this, this);
+			m_geoDownloader.DownloadFile(level, xLoc, yLoc, 0, gis::eLayerName::DEM, *this, this);
 	}
 
 	// 텍스쳐 파일이 없다면, 더 높은 레벨의 텍스쳐를 이용하고, uv를 재조정한다.
@@ -976,7 +975,7 @@ bool cQuadTileManager::LoadPoiFile(graphic::cRenderer &renderer
 		}
 		else
 		{
-			m_vworldDownloader.DownloadFile(level, xLoc, yLoc, 0, gis::eLayerName::POI_BASE, *this, this);
+			m_geoDownloader.DownloadFile(level, xLoc, yLoc, 0, gis::eLayerName::POI_BASE, *this, this);
 		}
 	}
 
@@ -996,7 +995,7 @@ bool cQuadTileManager::LoadPoiFile(graphic::cRenderer &renderer
 		}
 		else
 		{
-			m_vworldDownloader.DownloadFile(level, xLoc, yLoc, 0, gis::eLayerName::POI_BOUND, *this, this);
+			m_geoDownloader.DownloadFile(level, xLoc, yLoc, 0, gis::eLayerName::POI_BOUND, *this, this);
 		}
 	}
 
@@ -1039,7 +1038,7 @@ bool cQuadTileManager::LoadFacilityIndex(graphic::cRenderer &renderer
 		if (level == 15)
 		{
 			tile.m_modelLoadState = 1;
-			m_vworldDownloader.DownloadFile(level, xLoc, yLoc, 0, gis::eLayerName::FACILITY_BUILD, *this, this);
+			m_geoDownloader.DownloadFile(level, xLoc, yLoc, 0, gis::eLayerName::FACILITY_BUILD, *this, this);
 		}
 	}
 
@@ -1218,7 +1217,7 @@ cQuadTile* cQuadTileManager::GetReplaceNode(
 void cQuadTileManager::Clear()
 {
 	m_readyLoadModel.clear();
-	m_vworldDownloader.Clear();
+	m_geoDownloader.Clear();
 
 	m_tmaps.Clear();
 	m_hmaps.Clear();
@@ -1227,7 +1226,7 @@ void cQuadTileManager::Clear()
 	m_modelIndices.Clear();
 	m_facilities.Clear();
 	m_facilitiesTex.Clear();
-	m_vworldDownloader.Clear();
+	m_geoDownloader.Clear();
 	m_heights.clear();
 
 	for (auto &kv : m_tiles)
@@ -1236,7 +1235,7 @@ void cQuadTileManager::Clear()
 }
 
 
-// 다운로드가 끝난 파일은 cVWorldWebDownloader::UpdateDownload() 로부터 함수가 호출된다.
+// 다운로드가 끝난 파일은 cGeoDownloader::UpdateDownload() 로부터 함수가 호출된다.
 void cQuadTileManager::OnDownloadComplete(const gis::sDownloadData &data)
 {
 	m_downloadFiles.push_back(data);

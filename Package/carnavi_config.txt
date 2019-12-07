@@ -1,0 +1,3 @@
+media_path = F:\media\data
+
+gps_input_type = 1

@@ -91,43 +91,6 @@ bool cMapView::Init(cRenderer &renderer)
 
 void cMapView::OnUpdate(const float deltaSeconds)
 {
-	// update OBD2 
-	if (g_global->m_obd.IsOpened())
-	{
-		// calc fps
-		m_obd2RcvT += deltaSeconds;
-		if (m_obd2RcvT > 1.f)
-		{
-			const int c = g_global->m_obdRcvCnt - m_obd2RcvCnt;
-			m_obd2RcvFps = c;
-			m_obd2RcvCnt = g_global->m_obdRcvCnt;
-			m_obd2RcvT = 0.f;
-		}
-
-		static float incT = 0;
-		incT += deltaSeconds;
-		const float t = 1.f / (float)m_updateOBD2Period;
-		if (incT > t) // query rpm, speed data to OBD2
-		{
-			g_global->m_obd.Query(cOBD2::PID_RPM);
-			g_global->m_obd.Query(cOBD2::PID_SPEED);
-			//g_global->m_obd.Query(cOBD2::PID_TRANSMISSION_GEAR);
-			incT = 0.f;
-		}
-		m_obd2ConnectTime = 0.f;
-	}
-	else
-	{
-		// OBD2접속이 끊겼다면, 5초마다 한번씩 접속을 시도한다.
-		m_obd2ConnectTime += deltaSeconds;
-		if (m_obd2ConnectTime > 5.f)
-		{
-			m_obd2ConnectTime = 0.f;
-			g_global->m_obd.Open(m_obd2Port, 115200, g_global); //COM4
-			common::dbg::Logp("ODB2 Connect COM%d\n", m_obd2Port);
-		}
-	}
-
 	// 카메라가 가르키는 방향의 경위도를 구한다.
 	const Vector2d camLonLat = m_quadTree.GetLongLat(m_camera.GetRay());
 	cGpsClient &gpsClient = g_global->m_gpsClient;
@@ -140,7 +103,7 @@ void cMapView::OnUpdate(const float deltaSeconds)
 	// FileReplay 중일 때, 파일을 다운로드 중이라면 대기한다.
 	// 카메라를 이동하지 않는다.
 	if (gpsClient.IsFileReplay()
-		&& (m_quadTree.m_tileMgr.m_vworldDownloader.m_requestIds.size() > 1))
+		&& (m_quadTree.m_tileMgr.m_geoDownloader.m_requestIds.size() > 1))
 	{
 		dt = 0.f;
 	}
@@ -148,6 +111,7 @@ void cMapView::OnUpdate(const float deltaSeconds)
 
 	g_global->m_touch.CheckTouchType(m_owner->getSystemHandle());
 
+	UpdateOBD2(deltaSeconds);
 	UpdateGPS(deltaSeconds);
 	UpdateMapScanning(deltaSeconds);
 	UpdateMapTrace(deltaSeconds);
@@ -286,6 +250,47 @@ void cMapView::UpdateGPS(const float deltaSeconds)
 }
 
 
+// OBD2 serial communication
+void cMapView::UpdateOBD2(const float deltaSeconds)
+{
+	if (g_global->m_obd.IsOpened())
+	{
+		// calc fps
+		m_obd2RcvT += deltaSeconds;
+		if (m_obd2RcvT > 1.f)
+		{
+			const int c = g_global->m_obdRcvCnt - m_obd2RcvCnt;
+			m_obd2RcvFps = c;
+			m_obd2RcvCnt = g_global->m_obdRcvCnt;
+			m_obd2RcvT = 0.f;
+		}
+
+		static float incT = 0;
+		incT += deltaSeconds;
+		const float t = 1.f / (float)m_updateOBD2Period;
+		if (incT > t) // query rpm, speed data to OBD2
+		{
+			g_global->m_obd.Query(cOBD2::PID_RPM);
+			g_global->m_obd.Query(cOBD2::PID_SPEED);
+			//g_global->m_obd.Query(cOBD2::PID_TRANSMISSION_GEAR);
+			incT = 0.f;
+		}
+		m_obd2ConnectTime = 0.f;
+	}
+	else
+	{
+		// OBD2접속이 끊겼다면, 5초마다 한번씩 접속을 시도한다.
+		m_obd2ConnectTime += deltaSeconds;
+		if (m_obd2ConnectTime > 5.f)
+		{
+			m_obd2ConnectTime = 0.f;
+			g_global->m_obd.Open(m_obd2Port, 115200, g_global); //COM4
+			common::dbg::Logp("ODB2 Connect COM%d\n", m_obd2Port);
+		}
+	}
+}
+
+
 // 카메라를 이동하면서 파일을 다운로드 받는다.
 // 카메라 위치로 위경도를 파악하고, 특정 범위안에서 움직이도록 한다.
 void cMapView::UpdateMapScanning(const float deltaSeconds)
@@ -294,7 +299,7 @@ void cMapView::UpdateMapScanning(const float deltaSeconds)
 		return;
 
 	// 파일을 다운로드 중이라면 대기한다.
-	if (m_quadTree.m_tileMgr.m_vworldDownloader.m_requestIds.size() > 1)
+	if (m_quadTree.m_tileMgr.m_geoDownloader.m_requestIds.size() > 1)
 		return;
 
 	Vector3 curPos = g_global->m_scanPos;
@@ -325,7 +330,7 @@ void cMapView::UpdateMapTrace(const float deltaSeconds)
 		return;
 
 	// 파일을 다운로드 중이라면, 목표점을 이동하지 않는다.
-	if (m_quadTree.m_tileMgr.m_vworldDownloader.m_requestIds.size() > 1)
+	if (m_quadTree.m_tileMgr.m_geoDownloader.m_requestIds.size() > 1)
 		return;
 
 	// 카메라가 목표 위치에 이동 중이라면, 목표점을 바꾸지 않는다.

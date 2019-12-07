@@ -5,8 +5,6 @@
 //
 #pragma once
 
-#include "../../../Common/Graphic11/importer/fileloader.h"
-#include "vworldwebdownloader.h"
 
 class cTerrainQuadTree;
 struct sQuadData;
@@ -149,7 +147,7 @@ public:
 	graphic::cFileLoader<cTileTexture, 5000, graphic::sFileLoaderArg, sDistanceCompare> m_facilitiesTex;
 	map<int64, float> m_heights; // key = cQuadTree<sQuadData>::MakeKey(level, xLoc, yLoc)
 
-	gis::cVWorldWebDownloader m_vworldDownloader;
+	gis::cGeoDownloader m_geoDownloader;
 	vector<gis::sDownloadData> m_downloadFiles;
 
 	// delay loading

@@ -79,7 +79,7 @@ sTileLoc gis::WGS842TileLoc(const Vector2d &lonLat)
 //   *--------+ 
 //	(Left Bottom Longitude Latitude)
 //
-// rect: VWorld 3D Coordinate system
+// rect: Geometry World 3D Coordinate system
 //       Ground X-Z Plane Rect
 //
 //  /\ Z 
