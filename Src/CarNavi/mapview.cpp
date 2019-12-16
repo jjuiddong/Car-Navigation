@@ -138,6 +138,19 @@ void cMapView::UpdateGPS(const float deltaSeconds)
 	const float MAX_LENGTH = 1.0f; // 짧은 시간에 차이가 큰 값이 들어오면 무시한다.
 	m_gpsUpdateDelta += deltaSeconds;
 
+	// 네비게이션 서버와 접속이 끊겼다면, 5초간격마다 재접속을 시도한다.
+	static float checkSvrConTime = 0.f;
+	if (m_naviClient.IsFailConnection())
+	{
+		checkSvrConTime += deltaSeconds;
+		if (checkSvrConTime > 5.f)
+		{
+			checkSvrConTime = 0.f;
+			m_naviClient.ReConnect();
+		}
+	}
+
+	// GPS 정보를 가져온다.
 	gis::sGPRMC gpsInfo;
 	if (!g_global->m_gpsClient.GetGpsInfo(gpsInfo))
 		return;
@@ -171,21 +184,10 @@ void cMapView::UpdateGPS(const float deltaSeconds)
 			prevGpsPos = m_curGpsPos;
 
 			// send to Navigation Server with GPS Information
-			if (m_naviClient.IsFailConnection())
-			{
-				// 네비게이션 서버와 접속이 끊겼다면, 5초간격마다 재접속을 시도한다.
-				static float checkSvrConTime = 0.f;
-				checkSvrConTime += deltaSeconds;
-				if (checkSvrConTime > 5.f)
-				{
-					checkSvrConTime = 0.f;
-					m_naviClient.ReConnect();
-				}
-			}
-			else
+			if (m_naviClient.IsConnect())
 			{
 				++m_sendGpsInfo;
-				m_gpsProtocol.GPSInfo(network2::SERVER_NETID, date
+				m_gpsProtocol.GPSInfo(network2::SERVER_NETID
 					, m_curGpsPos.x, m_curGpsPos.y);
 			}
 		}

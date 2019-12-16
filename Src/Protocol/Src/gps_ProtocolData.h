@@ -14,7 +14,6 @@ using namespace marshalling;
 	struct GPSInfo_Packet {
 		cProtocolDispatcher *pdispatcher;
 		netid senderId;
-		string date;
 		double lon;
 		double lat;
 	};

@@ -15,6 +15,6 @@ class c2s_Protocol : public network2::iProtocol
 {
 public:
 	c2s_Protocol() : iProtocol(c2s_Protocol_ID) {}
-	void GPSInfo(netid targetId, const string &date, const double &lon, const double &lat);
+	void GPSInfo(netid targetId, const double &lon, const double &lat);
 };
 }

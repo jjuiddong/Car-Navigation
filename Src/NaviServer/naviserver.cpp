@@ -59,8 +59,9 @@ bool cNaviServer::GPSInfo(gps::GPSInfo_Packet &packet)
 	const Vector2d pos(packet.lon, packet.lat);
 	if (m_prevGpsPos != pos)
 	{
+		const string ctime = common::GetCurrentDateTime();
 		dbg::Logp2(m_pathFilename.c_str(), "%s, %.15f, %.15f\n"
-			, packet.date.c_str(), packet.lon, packet.lat);
+			, ctime.c_str(), packet.lon, packet.lat);
 		m_prevGpsPos = pos;
 	}
 

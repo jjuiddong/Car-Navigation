@@ -30,7 +30,6 @@ bool gps::c2s_Dispatcher::Dispatch(cPacket &packet, const ProtocolHandlers &hand
 			GPSInfo_Packet data;
 			data.pdispatcher = this;
 			data.senderId = packet.GetSenderId();
-			packet >> data.date;
 			packet >> data.lon;
 			packet >> data.lat;
 			SEND_HANDLER(c2s_ProtocolHandler, prtHandler, GPSInfo(data));

@@ -5,6 +5,6 @@
 protocol c2s 1000
 {
 	
-	GPSInfo( string date, double lon, double lat );
+	GPSInfo( double lon, double lat );
 
 }
