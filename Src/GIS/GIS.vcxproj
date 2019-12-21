@@ -153,6 +153,7 @@
     <ClInclude Include="CFW1StateSaver.h" />
     <ClInclude Include="gis.h" />
     <ClInclude Include="heightmap.h" />
+    <ClInclude Include="heightmap2.h" />
     <ClInclude Include="poireader.h" />
     <ClInclude Include="quadtile.h" />
     <ClInclude Include="quadtilemanager.h" />
@@ -174,6 +175,7 @@
     <ClCompile Include="CFW1StateSaver.cpp" />
     <ClCompile Include="gis.cpp" />
     <ClCompile Include="heightmap.cpp" />
+    <ClCompile Include="heightmap2.cpp" />
     <ClCompile Include="poireader.cpp" />
     <ClCompile Include="quadtile.cpp" />
     <ClCompile Include="quadtilemanager.cpp" />

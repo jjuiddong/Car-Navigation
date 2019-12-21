@@ -140,7 +140,8 @@ public:
 	graphic::cVertexBuffer m_tileVtxBuff;
 	graphic::cVertexBuffer m_tileLineVtxBuff;
 	graphic::cFileLoader<cTileTexture, 1000> m_tmaps;
-	graphic::cFileLoader<cHeightmap, 1000, sHeightmapArgs> m_hmaps;
+	//graphic::cFileLoader<cHeightmap, 1000, sHeightmapArgs> m_hmaps;
+	graphic::cFileLoader<cHeightmap2, 1000> m_hmaps;
 	graphic::cFileLoader<cPoiReader, 1000> m_pmaps[2]; // 0:poi_base, 1:poi_bound
 	graphic::cFileLoader<cReal3DModelIndexReader, 3000, graphic::sFileLoaderArg, sDistanceCompare> m_modelIndices;
 	graphic::cFileLoader<cXdoReader, 5000, graphic::sFileLoaderArg, sDistanceCompare> m_facilities;

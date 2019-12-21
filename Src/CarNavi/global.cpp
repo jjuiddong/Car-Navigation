@@ -46,7 +46,6 @@ bool cGlobal::Init(HWND hwnd)
 {
 	m_config.Read("carnavi_config.txt");
 	g_mediaDir = m_config.GetString("media_path", "D:\\media\\data");
-	g_mediaDir2 = m_config.GetString("media_path", "D:\\media\\data");
 
 	m_timer.Create();
 	m_touch.Init(hwnd);

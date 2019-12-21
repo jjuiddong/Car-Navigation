@@ -14,6 +14,7 @@ INIT_FRAMEWORK3(cViewer);
 
 common::cMemoryPool2<65 * 65 * sizeof(float)> g_memPool65;
 common::cMemoryPool2<67 * 67 * sizeof(float)> g_memPool67;
+common::cMemoryPool2<256 * 256 * sizeof(float)> g_memPool256;
 common::cMemoryPool2<258 * 258 * sizeof(float)> g_memPool258;
 common::cMemoryPool3<graphic::cTexture, 512> g_memPoolTex;
 
@@ -72,8 +73,6 @@ bool cViewer::OnInit()
 
 	m_naviView = new cNavigationView("Navigation View");
 	m_naviView->m_owner = this;
-	//m_naviView->Create(eDockState::DOCKWINDOW, eDockSlot::LEFT, this
-	//	, m_mapView, 0.15f, framework::eDockSizingOption::PIXEL);
 
 	//m_infoView = new cInformationView("Information View");
 	//m_infoView->Create(eDockState::DOCKWINDOW, eDockSlot::TAB, this, m_naviView);

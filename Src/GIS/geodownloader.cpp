@@ -68,7 +68,7 @@ void cGeoDownloader::UpdateDownload()
 	for (auto &file : m_complete)
 	{
 		// 전체 다운로드 파일크기를 저장한다.
-		const StrPath dstFileName = gis::GetDownloadFileName(g_mediaDir2, file);
+		const StrPath dstFileName = gis::GetDownloadFileName(g_mediaDir, file);
 		m_totalDownloadFileSize += dstFileName.FileSize();
 
 		// 모든 리스너에게 알린다.

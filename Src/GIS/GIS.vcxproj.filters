@@ -68,6 +68,9 @@
     <ClInclude Include="geodownloader.h">
       <Filter>download</Filter>
     </ClInclude>
+    <ClInclude Include="heightmap2.h">
+      <Filter>tile</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="xdoreader.cpp">
@@ -116,6 +119,9 @@
     </ClCompile>
     <ClCompile Include="geodownloader.cpp">
       <Filter>download</Filter>
+    </ClCompile>
+    <ClCompile Include="heightmap2.cpp">
+      <Filter>tile</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

@@ -60,8 +60,8 @@ common::cTask::eRunResult::Enum cTaskWebDownload::Run(const double deltaSeconds)
 	const char *site = "http://xdworld.vworld.kr:8080/XDServer/";
 	const char *cmd = NULL;
 	const char *layerName = NULL;
-	const char *dir = g_mediaDir2.c_str();
-	const StrPath dstFileName = gis::GetDownloadFileName(g_mediaDir2, m_dnData);
+	const char *dir = g_mediaDir.c_str();
+	const StrPath dstFileName = gis::GetDownloadFileName(g_mediaDir, m_dnData);
 
 	switch (m_dnData.layer)
 	{

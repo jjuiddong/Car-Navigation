@@ -65,9 +65,9 @@ public:
 	float m_huvs[4]; // heightmap left-top uv, right-bottom uv coordinate
 	cTileTexture *m_texture; // reference
 	cTileTexture *m_replaceTex; // reference
-	cHeightmap *m_hmap; // reference
-	cHeightmap *m_replaceParentHmap;
-	cHeightmap *m_replaceHmap; // reference
+	cHeightmap2 *m_hmap; // reference
+	cHeightmap2 *m_replaceParentHmap;
+	cHeightmap2 *m_replaceHmap; // reference
 	cPoiReader *m_poi[2]; // reference, 0: poi_base, 1: poi_bound
 	vector<cXdoReader*> m_facilities;
 	vector<cTileTexture*> m_facilitiesTex;

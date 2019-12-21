@@ -118,6 +118,7 @@ namespace gis
 #include "geodownloader.h"
 #include "quadtree.h"
 #include "heightmap.h"
+#include "heightmap2.h"
 #include "tiletexture.h"
 #include "poireader.h"
 #include "real3dmodelindexreader.h"
@@ -132,5 +133,4 @@ namespace gis
 
 
 extern StrPath g_mediaDir;
-extern StrPath g_mediaDir2;
 

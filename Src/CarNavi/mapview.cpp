@@ -114,7 +114,7 @@ void cMapView::OnUpdate(const float deltaSeconds)
 	// FileReplay 중일 때, 파일을 다운로드 중이라면 대기한다.
 	// 카메라를 이동하지 않는다.
 	if (gpsClient.IsFileReplay()
-		&& (m_quadTree.m_tileMgr.m_geoDownloader.m_requestIds.size() > 1))
+		&& (m_quadTree.m_tileMgr->m_geoDownloader.m_requestIds.size() > 1))
 	{
 		dt = 0.f;
 	}
@@ -332,7 +332,7 @@ void cMapView::UpdateMapScanning(const float deltaSeconds)
 		return;
 
 	// 파일을 다운로드 중이라면 대기한다.
-	if (m_quadTree.m_tileMgr.m_geoDownloader.m_requestIds.size() > 1)
+	if (m_quadTree.m_tileMgr->m_geoDownloader.m_requestIds.size() > 1)
 		return;
 
 	Vector3 curPos = g_global->m_scanPos;
@@ -363,7 +363,7 @@ void cMapView::UpdateMapTrace(const float deltaSeconds)
 		return;
 
 	// 파일을 다운로드 중이라면, 목표점을 이동하지 않는다.
-	if (m_quadTree.m_tileMgr.m_geoDownloader.m_requestIds.size() > 1)
+	if (m_quadTree.m_tileMgr->m_geoDownloader.m_requestIds.size() > 1)
 		return;
 
 	// 카메라가 목표 위치에 이동 중이라면, 목표점을 바꾸지 않는다.
@@ -757,14 +757,14 @@ void cMapView::OnRender(const float deltaSeconds)
 				m_renderOverhead[1][m_graphIdx] = (float)g_global->m_renderT0;
 				m_renderOverhead[2][m_graphIdx] = (float)g_global->m_renderT1;
 				m_renderOverhead[3][m_graphIdx] = (float)m_quadTree.m_t2;
-				m_renderOverhead[4][m_graphIdx] = (float)m_quadTree.m_tileMgr.m_cntRemoveTile;
+				m_renderOverhead[4][m_graphIdx] = (float)m_quadTree.m_tileMgr->m_cntRemoveTile;
 				break;
 
 			case eAnalysisType::Terrain:
 				m_renderOverhead[0][m_graphIdx] = (float)m_quadTree.m_t0;
 				m_renderOverhead[1][m_graphIdx] = (float)m_quadTree.m_t1;
 				m_renderOverhead[2][m_graphIdx] = (float)m_quadTree.m_t2;
-				m_renderOverhead[3][m_graphIdx] = (float)m_quadTree.m_tileMgr.m_cntRemoveTile;
+				m_renderOverhead[3][m_graphIdx] = (float)m_quadTree.m_tileMgr->m_cntRemoveTile;
 				break;
 
 			case eAnalysisType::GMain:

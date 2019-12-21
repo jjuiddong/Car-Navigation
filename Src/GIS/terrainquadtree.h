@@ -62,7 +62,7 @@ protected:
 
 public:
 	cQuadTree<sQuadData> m_qtree;
-	static cQuadTileManager m_tileMgr;
+	static cQuadTileManager *m_tileMgr;
 	graphic::cMaterial m_mtrl;
 	graphic::cVertexBuffer m_vtxBuff;
 	graphic::cShader11 m_shader;

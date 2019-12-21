@@ -27,7 +27,6 @@ static const double deg[16] = {
 };
 
 StrPath g_mediaDir = "D:\\media\\data";
-StrPath g_mediaDir2 = "D:\\media\\data";
 
 static const int g_offsetLv = 7;
 static const int g_offsetXLoc = 1088;
