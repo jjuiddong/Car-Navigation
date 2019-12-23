@@ -337,3 +337,12 @@ Package/path/
 Package/path2/
 Package/path3/
 Package/gps.txt
+Package/naviserver_config.txt
+Package/naviserver_errlog.txt
+Package/naviserver_log.txt
+Package/CarNavi.exe
+Package/CarNavid.exe
+Package/Merge.exe
+Package/Merged.exe
+Package/NaviServer.exe
+Package/NaviServerd.exe
