@@ -200,6 +200,9 @@ void cNavigationView::OnRender(const float deltaSeconds)
 		if (g_global->m_isShowPrevPath)
 			g_global->ReadAndConvertPathFiles(g_global->m_mapView->GetRenderer()
 				, g_global->m_mapView->m_quadTree, "./path/");
+
+		cPathCompare comp;
+		comp.Compare("./path/");
 	}
 
 	ImGui::Checkbox("Trace GPS", &g_global->m_isTraceGPSPos);

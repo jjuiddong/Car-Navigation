@@ -13,6 +13,7 @@ using namespace common;
 #include "gpsclient.h"
 #include "path.h"
 #include "pathrenderer.h"
+#include "pathcompare.h"
 #include "landmark.h"
 #include "touch.h"
 #include "global.h"

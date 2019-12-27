@@ -160,6 +160,7 @@ bool cGlobal::ReadAndConvertPathFiles(graphic::cRenderer &renderer, cTerrainQuad
 		cPathRenderer *p = NULL;
 		if (pos3DFileName.IsFileExist())
 		{
+			// read *.3dpos file
 			p = new cPathRenderer();
 			if (!p->Create(renderer, pos3DFileName))
 			{
@@ -173,6 +174,7 @@ bool cGlobal::ReadAndConvertPathFiles(graphic::cRenderer &renderer, cTerrainQuad
 			if (!path.IsLoad())
 				continue;
 
+			// read *.txt file
 			p = new cPathRenderer();
 			if (!p->Create(renderer, terrain, path, pos3DFileName))
 			{

@@ -51,6 +51,9 @@
     <ClCompile Include="..\Protocol\Src\gps_ProtocolHandler.cpp">
       <Filter>protocol_src</Filter>
     </ClCompile>
+    <ClCompile Include="pathcompare.cpp">
+      <Filter>path</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="carnavi.h" />
@@ -94,6 +97,9 @@
     </ClInclude>
     <ClInclude Include="..\Protocol\Src\gps_ProtocolHandler.h">
       <Filter>protocol_src</Filter>
+    </ClInclude>
+    <ClInclude Include="pathcompare.h">
+      <Filter>path</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
