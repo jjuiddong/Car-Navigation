@@ -346,4 +346,6 @@ Package/Merge.exe
 Package/Merged.exe
 Package/NaviServer.exe
 Package/NaviServerd.exe
-*.3dpos
+Package/path/*.*
+Package/path_new/*.*
+Package/path-backup/*.*
