@@ -31,6 +31,7 @@ cGlobal::cGlobal()
 	, m_speed(0)
 	, m_gear(0)
 	, m_obdRcvCnt(0)
+	, m_isDebugMode(false)
 {
 }
 

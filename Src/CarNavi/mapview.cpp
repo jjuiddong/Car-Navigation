@@ -92,6 +92,7 @@ bool cMapView::Init(cRenderer &renderer)
 	m_obd2Port = g_global->m_config.GetInt("obd2_port", 4);
 	m_naviServerIp = g_global->m_config.GetString("naviserver_ip", "220.77.251.119");
 	m_naviServerPort = g_global->m_config.GetInt("naviserver_port", 10001);
+	g_global->m_isDebugMode = g_global->m_config.GetBool("debug_mode", false);
 
 	m_naviClient.RegisterProtocol(&m_gpsProtocol);
 	m_netController.StartTcpClient(&m_naviClient, m_naviServerIp, m_naviServerPort);
@@ -582,118 +583,20 @@ void cMapView::OnRender(const float deltaSeconds)
 
 	// HUD
 	bool isOpen = true;
-	ImGuiWindowFlags flags = ImGuiWindowFlags_NoDecoration
+	const ImGuiWindowFlags flags = ImGuiWindowFlags_NoDecoration
 		| ImGuiWindowFlags_NoBackground
 		;
 
 	// Render Date Information
 	const float guageH = m_ledSize + 2.f;
-	const float dateH = 43.f;
+	const float dateH = 43.f - 10.f;
 	ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 0));
 	if (g_global->m_isShowMapView)
 	{
 		ImGui::Image(m_renderTarget.m_resolvedSRV, ImVec2(m_rect.Width() - 15, m_rect.Height() - 42));
 
-		// Render RPM GuageBar
-		ImGui::SetNextWindowPos(pos);
-		ImGui::SetNextWindowSize(ImVec2(m_viewRect.Width(), guageH));
-		if (ImGui::Begin("RPM GuageBar", &isOpen, flags))
-		{
-			// 화면에 출력할 수 있는 최대 LED 개수를 계산한다.
-			// blue, green, yellow, red 각각의 led 출력 개수를 계산한다.
-			const int maxRPM = m_maxRPM;
-			const int blinkRPM = m_blinkRPM;
-			const Vector2 ledSize(m_ledSize, m_ledSize);
-			const Vector2 offset(5.f, 1.f); // left offset
-			const Vector2 roffset(m_viewRect.Width()- ledSize.x - 5.f, 1.f); // right offset
-			const float w = m_viewRect.Width() / 2.f;
-			const int maxShowLedCount = (int)(w / ledSize.x);
-			int maxLed[4];
-			maxLed[0] = maxShowLedCount / 4; // blue
-			maxLed[1] = maxShowLedCount / 4; // green
-			maxLed[2] = maxShowLedCount / 4; // yellow
-			maxLed[3] = maxShowLedCount / 4; // red
-			int remainCnt = maxShowLedCount % 4;
-			maxLed[3] += (remainCnt-- > 0) ? 1 : 0;
-			maxLed[2] += (remainCnt-- > 0) ? 1 : 0;
-			maxLed[1] += (remainCnt-- > 0) ? 1 : 0;
-			const int step = maxRPM / maxShowLedCount;
-			maxLed[1] += maxLed[0];
-			maxLed[2] += maxLed[1];
-			maxLed[3] += maxLed[2];
+		RenderRPMGuage(pos, guageH, deltaSeconds);
 
-			// RPM이 blinkRPM 보다 크다면 led를 점멸시킨다.
-			const float timeLEDBlink = 0.1f;
-			if (g_global->m_rpm > blinkRPM)
-			{
-				m_ledBlinkTime += deltaSeconds;
-				if (m_ledBlinkTime > timeLEDBlink * 2.f)
-					m_ledBlinkTime = 0.f;
-			}
-			else
-			{
-				m_ledBlinkTime = 0.f;
-			}
-
-			if (m_ledBlinkTime < timeLEDBlink)
-			{
-				const int lv = g_global->m_rpm / step;
-				const int tailLv = g_global->m_rpm % step;
-				const float tailR = (float)tailLv / (float)step;
-				int ledColor = 4;
-				for (int i = 0; i < 4; ++i)
-				{
-					if (maxLed[i] > lv)
-					{
-						ledColor = i;
-						break;						
-					}
-				}
-
-				for (int i = 0; i < lv; ++i)
-				{
-					for (int k = 0; k < 4; ++k)
-					{
-						if (maxLed[k] > i)
-						{
-							// last guagebar step, size scaling
-							Vector2 center(0, 0); // center offset
-							Vector2 size = ledSize;
-							if (i + 1 == lv)
-							{
-								const float a = m_ledAniTailR;
-								const float r = min(1.f, tailR * a + (1.f - a));
-								size = ledSize * r;
-								center = ledSize * (1 - r) * 0.5f;
-							}
-							else
-							{
-								const float a = m_ledAniR;
-								const float r = min(1.f, tailR * 0.1f + (1.f - a));
-								size = ledSize * r;
-								center = ledSize * (1 - r) * 0.5f;
-							}
-
-							// render left
-							const Vector2 lp = offset + center + Vector2(ledSize.x * i, 0);
-							ImGui::SetCursorPos(*(ImVec2*)&lp);
-							ImGui::Image(m_ledTexture[k]->m_texSRV, *(ImVec2*)&size);
-
-							// render right
-							const Vector2 rp = roffset + center - Vector2(ledSize.x * i, 0);
-							ImGui::SetCursorPos(*(ImVec2*)&rp);
-							ImGui::Image(m_ledTexture[k]->m_texSRV, *(ImVec2*)&size);
-							break;
-						}
-					}
-				}
-			}
-
-			ImGui::End();
-		}
-
-
-		//ImGui::SetNextWindowPos(ImVec2(pos.x, pos.y + guageH));
 		ImGui::SetNextWindowPos(ImVec2(pos.x, pos.y));
 		ImGui::SetNextWindowSize(ImVec2(m_viewRect.Width(), dateH + guageH));
 		if (ImGui::Begin("Car Information", &isOpen, flags))
@@ -747,132 +650,249 @@ void cMapView::OnRender(const float deltaSeconds)
 
 	// Render Terrain Calculation Time
 	if (g_global->m_isShowRenderGraph)
-	{
-		if (g_global->m_isCalcRenderGraph)
-		{
-			switch (g_global->m_analysisType)
-			{
-			case eAnalysisType::MapView:
-				m_renderOverhead[0][m_graphIdx] = (float)(g_global->m_renderT0 + g_global->m_renderT1);
-				m_renderOverhead[1][m_graphIdx] = (float)g_global->m_renderT0;
-				m_renderOverhead[2][m_graphIdx] = (float)g_global->m_renderT1;
-				m_renderOverhead[3][m_graphIdx] = (float)m_quadTree.m_t2;
-				m_renderOverhead[4][m_graphIdx] = (float)m_quadTree.m_tileMgr->m_cntRemoveTile;
-				break;
+		RenderGraph(pos);
 
-			case eAnalysisType::Terrain:
-				m_renderOverhead[0][m_graphIdx] = (float)m_quadTree.m_t0;
-				m_renderOverhead[1][m_graphIdx] = (float)m_quadTree.m_t1;
-				m_renderOverhead[2][m_graphIdx] = (float)m_quadTree.m_t2;
-				m_renderOverhead[3][m_graphIdx] = (float)m_quadTree.m_tileMgr->m_cntRemoveTile;
-				break;
-
-			case eAnalysisType::GMain:
-				m_renderOverhead[0][m_graphIdx] = (float)g_application->m_deltaSeconds;
-				//m_renderOverhead[1][m_graphIdx] = (float)m_owner->m_t0;
-				//m_renderOverhead[2][m_graphIdx] = (float)m_owner->m_t1;
-				//m_renderOverhead[3][m_graphIdx] = (float)m_owner->m_t2;
-				//m_renderOverhead[4][m_graphIdx] = (float)m_owner->m_t3;
-				break;
-
-			default: assert(0); break;
-			}
-
-			m_graphIdx++;
-			m_graphIdx %= 500;
-		}
-
-		ImGui::SetNextWindowBgAlpha(0.f);
-		ImGui::SetNextWindowPos(ImVec2(pos.x, pos.y + 300.f));
-		ImGui::SetNextWindowSize(ImVec2(min(m_viewRect.Width(), 700.f)
-			, min(m_viewRect.Height() - 100.f, 550.f)));
-		if (ImGui::Begin("Render Graph", &isOpen, flags))
-		{
-			const ImVec4 bgColor = ImGui::GetStyleColorVec4(ImGuiCol_FrameBg);
-			ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(bgColor.x, bgColor.y, bgColor.z, 0.5f));
-
-			switch (g_global->m_analysisType)
-			{
-			case eAnalysisType::MapView:
-			{
-				ImGui::PlotLines("graph0", m_renderOverhead[0]
-					, IM_ARRAYSIZE(m_renderOverhead[0])
-					, m_graphIdx, "pre + onrender", 0, 0.05f, ImVec2(700, 100));
-
-				ImGui::PlotLines("graph1", m_renderOverhead[1]
-					, IM_ARRAYSIZE(m_renderOverhead[1])
-					, m_graphIdx, "pre render ", 0, 0.05f, ImVec2(700, 100));
-
-				ImGui::PlotLines("graph2", m_renderOverhead[2]
-					, IM_ARRAYSIZE(m_renderOverhead[2])
-					, m_graphIdx, "on render ", 0, 0.05f, ImVec2(700, 100));
-
-				ImGui::PlotLines("graph3", m_renderOverhead[3]
-					, IM_ARRAYSIZE(m_renderOverhead[3])
-					, m_graphIdx, "update", 0, 0.05f, ImVec2(700, 100));
-
-				ImGui::PlotLines("graph4", m_renderOverhead[4]
-					, IM_ARRAYSIZE(m_renderOverhead[4])
-					, m_graphIdx, "remove", 0, 10.f, ImVec2(700, 100));
-			}
-			break;
-
-			case eAnalysisType::Terrain:
-			{
-				ImGui::PlotLines("graph0", m_renderOverhead[0]
-					, IM_ARRAYSIZE(m_renderOverhead[0])
-					, m_graphIdx, "build", 0, 0.05f, ImVec2(700, 100));
-
-				ImGui::PlotLines("graph1", m_renderOverhead[1]
-					, IM_ARRAYSIZE(m_renderOverhead[1])
-					, m_graphIdx, "render", 0, 0.05f, ImVec2(700, 100));
-
-				ImGui::PlotLines("graph3", m_renderOverhead[2]
-					, IM_ARRAYSIZE(m_renderOverhead[2])
-					, m_graphIdx, "update", 0, 0.05f, ImVec2(700, 100));
-
-				ImGui::PlotLines("graph4", m_renderOverhead[3]
-					, IM_ARRAYSIZE(m_renderOverhead[3])
-					, m_graphIdx, "remove", 0, 10.f, ImVec2(700, 100));
-			}
-			break;
-
-			case eAnalysisType::GMain:
-			{
-				ImGui::PlotLines("graph0", m_renderOverhead[0]
-					, IM_ARRAYSIZE(m_renderOverhead[0])
-					, m_graphIdx, "dt", 0, 0.05f, ImVec2(700, 100));
-
-				ImGui::PlotLines("graph1", m_renderOverhead[1]
-					, IM_ARRAYSIZE(m_renderOverhead[1])
-					, m_graphIdx, "render window event", 0, 0.05f, ImVec2(700, 100));
-
-				ImGui::PlotLines("graph2", m_renderOverhead[2]
-					, IM_ARRAYSIZE(m_renderOverhead[2])
-					, m_graphIdx, "render window update", 0, 0.05f, ImVec2(700, 100));
-
-				ImGui::PlotLines("graph3", m_renderOverhead[3]
-					, IM_ARRAYSIZE(m_renderOverhead[3])
-					, m_graphIdx, "render window pre render", 0, 0.05f, ImVec2(700, 100));
-
-				ImGui::PlotLines("graph4", m_renderOverhead[4]
-					, IM_ARRAYSIZE(m_renderOverhead[4])
-					, m_graphIdx, "render window on render", 0, 0.05f, ImVec2(700, 100));
-			}
-			break;
-
-			default: assert(0); break;
-			}
-
-
-			ImGui::PopStyleColor();
-		}
-		ImGui::End();
-	}
-	ImGui::PopStyleColor();
+	ImGui::PopStyleColor(); // pop border color
 
 	const double t1 = g_global->m_timer.GetSeconds();
 	g_global->m_renderT1 = t1 - t0;
+}
+
+
+// Render RPM GuageBar
+void cMapView::RenderRPMGuage(const ImVec2 &pos, const float guageH, const float deltaSeconds)
+{
+	bool isOpen = true;
+	ImGuiWindowFlags flags = ImGuiWindowFlags_NoDecoration
+		| ImGuiWindowFlags_NoBackground
+		;
+
+	ImGui::SetNextWindowPos(pos);
+	ImGui::SetNextWindowSize(ImVec2(m_viewRect.Width(), guageH));
+	if (ImGui::Begin("RPM GuageBar", &isOpen, flags))
+	{
+		// 화면에 출력할 수 있는 최대 LED 개수를 계산한다.
+		// blue, green, yellow, red 각각의 led 출력 개수를 계산한다.
+		const int maxRPM = m_maxRPM;
+		const int blinkRPM = m_blinkRPM;
+		const Vector2 ledSize(m_ledSize, m_ledSize);
+		const Vector2 offset(5.f, 1.f); // left offset
+		const Vector2 roffset(m_viewRect.Width() - ledSize.x - 5.f, 1.f); // right offset
+		const float w = m_viewRect.Width() / 2.f;
+		const int maxShowLedCount = (int)(w / ledSize.x);
+		int maxLed[4];
+		maxLed[0] = maxShowLedCount / 4; // blue
+		maxLed[1] = maxShowLedCount / 4; // green
+		maxLed[2] = maxShowLedCount / 4; // yellow
+		maxLed[3] = maxShowLedCount / 4; // red
+		int remainCnt = maxShowLedCount % 4;
+		maxLed[3] += (remainCnt-- > 0) ? 1 : 0;
+		maxLed[2] += (remainCnt-- > 0) ? 1 : 0;
+		maxLed[1] += (remainCnt-- > 0) ? 1 : 0;
+		const int step = maxRPM / maxShowLedCount;
+		maxLed[1] += maxLed[0];
+		maxLed[2] += maxLed[1];
+		maxLed[3] += maxLed[2];
+
+		// RPM이 blinkRPM 보다 크다면 led를 점멸시킨다.
+		const float timeLEDBlink = 0.1f;
+		if (g_global->m_rpm > blinkRPM)
+		{
+			m_ledBlinkTime += deltaSeconds;
+			if (m_ledBlinkTime > timeLEDBlink * 2.f)
+				m_ledBlinkTime = 0.f;
+		}
+		else
+		{
+			m_ledBlinkTime = 0.f;
+		}
+
+		if (m_ledBlinkTime < timeLEDBlink)
+		{
+			const int lv = g_global->m_rpm / step;
+			const int tailLv = g_global->m_rpm % step;
+			const float tailR = (float)tailLv / (float)step;
+			int ledColor = 4;
+			for (int i = 0; i < 4; ++i)
+			{
+				if (maxLed[i] > lv)
+				{
+					ledColor = i;
+					break;
+				}
+			}
+
+			for (int i = 0; i < lv; ++i)
+			{
+				for (int k = 0; k < 4; ++k)
+				{
+					if (maxLed[k] > i)
+					{
+						// last guagebar step, size scaling
+						Vector2 center(0, 0); // center offset
+						Vector2 size = ledSize;
+						if (i + 1 == lv)
+						{
+							const float a = m_ledAniTailR;
+							const float r = min(1.f, tailR * a + (1.f - a));
+							size = ledSize * r;
+							center = ledSize * (1 - r) * 0.5f;
+						}
+						else
+						{
+							const float a = m_ledAniR;
+							const float r = min(1.f, tailR * 0.1f + (1.f - a));
+							size = ledSize * r;
+							center = ledSize * (1 - r) * 0.5f;
+						}
+
+						// render left
+						const Vector2 lp = offset + center + Vector2(ledSize.x * i, 0);
+						ImGui::SetCursorPos(*(ImVec2*)&lp);
+						ImGui::Image(m_ledTexture[k]->m_texSRV, *(ImVec2*)&size);
+
+						// render right
+						const Vector2 rp = roffset + center - Vector2(ledSize.x * i, 0);
+						ImGui::SetCursorPos(*(ImVec2*)&rp);
+						ImGui::Image(m_ledTexture[k]->m_texSRV, *(ImVec2*)&size);
+						break;
+					}
+				}
+			}
+		}
+
+		ImGui::End();
+	}
+}
+
+
+void cMapView::RenderGraph(const ImVec2 &pos)
+{
+	bool isOpen = true;
+	ImGuiWindowFlags flags = ImGuiWindowFlags_NoDecoration
+		| ImGuiWindowFlags_NoBackground
+		;
+
+	if (g_global->m_isCalcRenderGraph)
+	{
+		switch (g_global->m_analysisType)
+		{
+		case eAnalysisType::MapView:
+			m_renderOverhead[0][m_graphIdx] = (float)(g_global->m_renderT0 + g_global->m_renderT1);
+			m_renderOverhead[1][m_graphIdx] = (float)g_global->m_renderT0;
+			m_renderOverhead[2][m_graphIdx] = (float)g_global->m_renderT1;
+			m_renderOverhead[3][m_graphIdx] = (float)m_quadTree.m_t2;
+			m_renderOverhead[4][m_graphIdx] = (float)m_quadTree.m_tileMgr->m_cntRemoveTile;
+			break;
+
+		case eAnalysisType::Terrain:
+			m_renderOverhead[0][m_graphIdx] = (float)m_quadTree.m_t0;
+			m_renderOverhead[1][m_graphIdx] = (float)m_quadTree.m_t1;
+			m_renderOverhead[2][m_graphIdx] = (float)m_quadTree.m_t2;
+			m_renderOverhead[3][m_graphIdx] = (float)m_quadTree.m_tileMgr->m_cntRemoveTile;
+			break;
+
+		case eAnalysisType::GMain:
+			m_renderOverhead[0][m_graphIdx] = (float)g_application->m_deltaSeconds;
+			//m_renderOverhead[1][m_graphIdx] = (float)m_owner->m_t0;
+			//m_renderOverhead[2][m_graphIdx] = (float)m_owner->m_t1;
+			//m_renderOverhead[3][m_graphIdx] = (float)m_owner->m_t2;
+			//m_renderOverhead[4][m_graphIdx] = (float)m_owner->m_t3;
+			break;
+
+		default: assert(0); break;
+		}
+
+		m_graphIdx++;
+		m_graphIdx %= 500;
+	}
+
+	ImGui::SetNextWindowBgAlpha(0.f);
+	ImGui::SetNextWindowPos(ImVec2(pos.x, pos.y + 300.f));
+	ImGui::SetNextWindowSize(ImVec2(min(m_viewRect.Width(), 700.f)
+		, min(m_viewRect.Height() - 100.f, 550.f)));
+	if (ImGui::Begin("Render Graph", &isOpen, flags))
+	{
+		const ImVec4 bgColor = ImGui::GetStyleColorVec4(ImGuiCol_FrameBg);
+		ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(bgColor.x, bgColor.y, bgColor.z, 0.5f));
+
+		switch (g_global->m_analysisType)
+		{
+		case eAnalysisType::MapView:
+		{
+			ImGui::PlotLines("graph0", m_renderOverhead[0]
+				, IM_ARRAYSIZE(m_renderOverhead[0])
+				, m_graphIdx, "pre + onrender", 0, 0.05f, ImVec2(700, 100));
+
+			ImGui::PlotLines("graph1", m_renderOverhead[1]
+				, IM_ARRAYSIZE(m_renderOverhead[1])
+				, m_graphIdx, "pre render ", 0, 0.05f, ImVec2(700, 100));
+
+			ImGui::PlotLines("graph2", m_renderOverhead[2]
+				, IM_ARRAYSIZE(m_renderOverhead[2])
+				, m_graphIdx, "on render ", 0, 0.05f, ImVec2(700, 100));
+
+			ImGui::PlotLines("graph3", m_renderOverhead[3]
+				, IM_ARRAYSIZE(m_renderOverhead[3])
+				, m_graphIdx, "update", 0, 0.05f, ImVec2(700, 100));
+
+			ImGui::PlotLines("graph4", m_renderOverhead[4]
+				, IM_ARRAYSIZE(m_renderOverhead[4])
+				, m_graphIdx, "remove", 0, 10.f, ImVec2(700, 100));
+		}
+		break;
+
+		case eAnalysisType::Terrain:
+		{
+			ImGui::PlotLines("graph0", m_renderOverhead[0]
+				, IM_ARRAYSIZE(m_renderOverhead[0])
+				, m_graphIdx, "build", 0, 0.05f, ImVec2(700, 100));
+
+			ImGui::PlotLines("graph1", m_renderOverhead[1]
+				, IM_ARRAYSIZE(m_renderOverhead[1])
+				, m_graphIdx, "render", 0, 0.05f, ImVec2(700, 100));
+
+			ImGui::PlotLines("graph3", m_renderOverhead[2]
+				, IM_ARRAYSIZE(m_renderOverhead[2])
+				, m_graphIdx, "update", 0, 0.05f, ImVec2(700, 100));
+
+			ImGui::PlotLines("graph4", m_renderOverhead[3]
+				, IM_ARRAYSIZE(m_renderOverhead[3])
+				, m_graphIdx, "remove", 0, 10.f, ImVec2(700, 100));
+		}
+		break;
+
+		case eAnalysisType::GMain:
+		{
+			ImGui::PlotLines("graph0", m_renderOverhead[0]
+				, IM_ARRAYSIZE(m_renderOverhead[0])
+				, m_graphIdx, "dt", 0, 0.05f, ImVec2(700, 100));
+
+			ImGui::PlotLines("graph1", m_renderOverhead[1]
+				, IM_ARRAYSIZE(m_renderOverhead[1])
+				, m_graphIdx, "render window event", 0, 0.05f, ImVec2(700, 100));
+
+			ImGui::PlotLines("graph2", m_renderOverhead[2]
+				, IM_ARRAYSIZE(m_renderOverhead[2])
+				, m_graphIdx, "render window update", 0, 0.05f, ImVec2(700, 100));
+
+			ImGui::PlotLines("graph3", m_renderOverhead[3]
+				, IM_ARRAYSIZE(m_renderOverhead[3])
+				, m_graphIdx, "render window pre render", 0, 0.05f, ImVec2(700, 100));
+
+			ImGui::PlotLines("graph4", m_renderOverhead[4]
+				, IM_ARRAYSIZE(m_renderOverhead[4])
+				, m_graphIdx, "render window on render", 0, 0.05f, ImVec2(700, 100));
+		}
+		break;
+
+		default: assert(0); break;
+		}
+
+
+		ImGui::PopStyleColor();
+	}
+	ImGui::End();
 }
 
 

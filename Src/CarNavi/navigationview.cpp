@@ -25,7 +25,7 @@ cNavigationView::cNavigationView(const StrId &name)
 		str += "^";
 
 		// find GPS USB Serial Port
-		if (id.find("Serial"))
+		if (id.find("Serial") || id.find("SERIAL"))
 			m_comboIdx = i;
 	}
 	if (str.length() < m_comboStr.SIZE)
@@ -35,6 +35,7 @@ cNavigationView::cNavigationView(const StrId &name)
 			if (c == '^')
 				c = '\0';
 	}
+
 }
 
 cNavigationView::~cNavigationView()
@@ -58,7 +59,9 @@ public:
 
 void cNavigationView::OnRender(const float deltaSeconds)
 {
-	AutoFontPop autoFont(m_owner->m_fontBig);
+	AutoFontPop autoFont(nullptr);
+	if (!g_global->m_isDebugMode)
+		autoFont.PushFont(m_owner->m_fontBig);
 
 	static bool isDetailOption = false;
 	ImGui::Checkbox("Detail Setting", &isDetailOption);

@@ -16,73 +16,146 @@ cPathCompare::~cPathCompare()
 // compare each path, intergrate same path
 bool cPathCompare::Compare(const StrPath &pathDirectory)
 {
-	struct sChunk {
-		vector<Vector3> path;
-		vector<vector<Vector3>> chunks;
-	};
-	
+	return true;
+
 	list<string> files;
 	list<string> exts;
 	exts.push_back(".3dpos");
 	common::CollectFiles(exts, pathDirectory.c_str(), files);
 
-	// 100 point chunk
-	vector<sChunk*> spath; // same path
-
-	// compare same path
+	vector<sPath*> paths;
 	for (auto &fileName : files)
 	{
-		std::ifstream ifs(fileName.c_str());
+		std::ifstream ifs(fileName.c_str(), std::ios::binary);
 		if (!ifs.is_open())
 			continue;
 
 		uint size = 0;
 		ifs.read((char*)&size, sizeof(size));
-		if (size <= 0)
-			continue;
+		if (size <= 100)
+			continue; // ignore small path
 
-		vector<Vector3> points;
-		points.resize(size);
-		ifs.read((char*)&points[0], sizeof(Vector3)*size);
+		sPath *path = new sPath;
+		path->id = paths.size();
+		path->poss.resize(size);
+		ifs.read((char*)&path->poss[0], sizeof(Vector3)*size);
+		paths.push_back(path);
+	}
 
-		if (points.size() < 100)
-			continue;
+	vector<sPath*> integrates;
+	IntergratePath(paths, integrates);
 
-		// read 100 point path
-		vector<vector<Vector3>> chunks;
-		int cnt = 0;
-		vector<Vector3> chunk;
-		chunk.reserve(100);
-		for (uint i = 0; i < points.size(); ++i)
+	// remove
+	for (auto &p : paths)
+		delete p;
+	paths.clear();
+	for (auto &p : integrates)
+		delete p;
+	integrates.clear();
+	return true;
+}
+
+
+// search all path, intergrate and generate simple path
+bool cPathCompare::IntergratePath(const vector<cPathCompare::sPath*> &paths
+	, OUT vector<cPathCompare::sPath*> &out)
+{
+	vector<cPathCompare::sPath*> all; // intergrate path
+
+	for (uint i = 0; i < paths.size(); ++i)
+	{
+		sPath *path = paths[i];
+
+		sPath *integrate = nullptr; // new path
+		for (uint k = 0; k < path->poss.size(); ++k)
 		{
-			if (cnt < 100)
+			const Vector3 &pos = path->poss[k];
+
+			vector<cPathCompare::sSegment> segs;
+			if (SearchSimilarPath(i, pos, all, segs))
 			{
-				++cnt;
-				chunk.push_back(points[i]);
+				// insert new point or ignore
+				integrate = nullptr;
+				continue;
+			}
+
+			Vector3 avrPos = pos;
+			if (SearchSimilarPath(i, pos, paths, segs))
+			{
+				Vector3 tmp = pos;
+				for (auto &seg : segs)
+				{
+					const Vector3 &p0 = paths[seg.id]->poss[seg.edge.from];
+					const Vector3 &p1 = paths[seg.id]->poss[seg.edge.to];
+					common::Line line(p0, p1);
+					tmp += line.Projection(pos);
+				}
+				avrPos = tmp / (float)(segs.size() + 1);
+			}
+
+			if (integrate)
+			{
+				integrate->poss.push_back(avrPos);
 			}
 			else
 			{
-				chunks.push_back(chunk);
-				chunk.clear();
+				integrate = new sPath;
+				integrate->poss.push_back(avrPos);
+				all.push_back(integrate);
 			}
 		}
-
-		// same path에서 같은 path가 있는지 검사
-		sChunk *same = nullptr;
-		
-		for (sChunk *c : spath)
-		{
-			if (c->chunks.empty())
-				continue;
-
-			// 대표 path와 검사한다.
-			vector<Vector3> &cmp = c->chunks[0];		
-
-
-
-		}
-
 	}
 
+	out = all;
+
 	return true;
+}
+
+
+// search and collect near path segment
+bool cPathCompare::SearchSimilarPath(const uint id
+	, const Vector3 &pos
+	, const vector<cPathCompare::sPath*> &paths
+	, OUT vector<cPathCompare::sSegment> &out
+)
+{
+	// limit distance is 30m
+	const float LIMIT = gis::Meter23DUnit(30.f);	
+
+	for (uint i=0; i < paths.size(); ++i)
+	{
+		if (i == id)
+			continue;
+
+		sPath *path = paths[i];
+
+		sSegment seg; // minimum distance edge
+		seg.id = i;
+		seg.edge.from = USHORT_MAX;
+
+		float minLen = FLT_MAX;
+		for (uint k = 1; k < path->poss.size(); ++k)
+		{
+			const Vector3 &p0 = path->poss[k - 1];
+			const Vector3 &p1 = path->poss[k];
+
+			common::Line line(p0, p1);
+			const float len = line.GetDistance(pos);
+			if (LIMIT < len)
+				continue;
+			if (minLen <= len)
+				continue;
+
+			minLen = len;
+			seg.edge.from = k - 1;
+			seg.edge.to = k;
+		}
+
+		if (seg.edge.from == USHORT_MAX)
+			continue;
+
+		out.push_back(seg);
+	}
+
+	return !out.empty();
 }

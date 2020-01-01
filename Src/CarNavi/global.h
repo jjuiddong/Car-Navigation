@@ -100,5 +100,8 @@ public:
 	double m_renderT2;
 	bool m_isShowMapView;
 
+	// option
+	bool m_isDebugMode;
+
 	cTimer m_timer;
 };

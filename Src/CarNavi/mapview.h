@@ -21,6 +21,8 @@ public:
 
 
 protected:
+	void RenderRPMGuage(const ImVec2 &pos, const float guageH, const float deltaSeconds);
+	void RenderGraph(const ImVec2 &pos);
 	void UpdateGPS(const float deltaSeconds);
 	void UpdateOBD2(const float deltaSeconds);
 	void UpdateMapScanning(const float deltaSeconds);
