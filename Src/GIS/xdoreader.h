@@ -22,7 +22,7 @@ public:
 	cXdoReader();
 	cXdoReader(graphic::cRenderer &renderer, const char *fileName);
 	cXdoReader(graphic::cRenderer &renderer, const cXdoReader *src, const char *fileName
-		, const graphic::sFileLoaderArg &args) {
+		, const graphic::sFileLoaderArg2 &args) {
 		throw std::exception();
 	}
 	virtual ~cXdoReader();
@@ -33,7 +33,8 @@ public:
 	Quaternion GetRotation(const common::Vector2 &offsetLonLat);
 	void Clear();
 
-	static StrPath GetFileName(const StrPath &directoryName, const int level, const int xLoc, const int yLoc
+	static StrPath GetFileName(const StrPath &directoryName
+		, const int level, const int xLoc, const int yLoc
 		, const char *dataFileName);
 
 

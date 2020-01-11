@@ -914,12 +914,19 @@ Vector3 cTerrainQuadTree::Get3DPosPrecise(graphic::cRenderer &renderer, const Ve
 		{
 			// insert heightmap fileloader for clear memory
 			const StrPath fileName = cHeightmap2::GetFileName(g_mediaDir, level, x, y);
-			typedef graphic::cFileLoader<cHeightmap2, 1000> FileLoaderType;
+			//typedef graphic::cFileLoader<cHeightmap2, 1000> FileLoaderType;
+			//FileLoaderType::sChunk chunk;
+			//chunk.accessTime = 0.f;
+			//chunk.state = FileLoaderType::COMPLETE;
+			//chunk.data = tile->m_hmap;
+			//m_tileMgr->m_hmaps.m_files.insert({ fileName.GetHashCode(), chunk });
+
+			typedef graphic::cFileLoader2<2000, 5> FileLoaderType;
 			FileLoaderType::sChunk chunk;
 			chunk.accessTime = 0.f;
 			chunk.state = FileLoaderType::COMPLETE;
 			chunk.data = tile->m_hmap;
-			m_tileMgr->m_hmaps.m_files.insert({ fileName.GetHashCode(), chunk });
+			m_tileMgr->m_loader.m_files.insert({ fileName.GetHashCode(), chunk });
 		}
 
 		if (tile->m_hmap)

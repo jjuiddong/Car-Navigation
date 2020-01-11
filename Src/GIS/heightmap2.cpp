@@ -43,7 +43,7 @@ cHeightmap2::cHeightmap2(graphic::cRenderer &renderer, const char *fileName)
 }
 
 cHeightmap2::cHeightmap2(graphic::cRenderer &renderer, const cHeightmap2 *src, const char *fileName
-	, const graphic::sFileLoaderArg &args) 
+	, const graphic::sFileLoaderArg2 &args) 
 {
 	throw std::exception();
 }

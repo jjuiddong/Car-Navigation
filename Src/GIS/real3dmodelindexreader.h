@@ -25,7 +25,7 @@ public:
 	cReal3DModelIndexReader();
 	cReal3DModelIndexReader(graphic::cRenderer &renderer, const char *fileName);
 	cReal3DModelIndexReader(graphic::cRenderer &renderer, const cReal3DModelIndexReader *src, const char *fileName
-		, const graphic::sFileLoaderArg &args) {
+		, const graphic::sFileLoaderArg2 &args) {
 		throw std::exception();
 	}
 	virtual ~cReal3DModelIndexReader();

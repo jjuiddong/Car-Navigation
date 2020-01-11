@@ -26,7 +26,7 @@ public:
 	cPoiReader();
 	cPoiReader(graphic::cRenderer &renderer, const char *fileName);
 	cPoiReader(graphic::cRenderer &renderer, const cPoiReader *src, const char *fileName
-		, const graphic::sFileLoaderArg &args);
+		, const graphic::sFileLoaderArg2 &args);
 
 	virtual ~cPoiReader();
 
