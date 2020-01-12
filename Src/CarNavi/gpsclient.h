@@ -17,10 +17,12 @@ public:
 	bool ReadPathFile(const char *fileName);
 	bool GetGpsInfo(OUT gis::sGPRMC &out);
 	bool GetGpsInfoFromFile(OUT gis::sGPRMC &out);
+	bool GpsReplay();
 	bool FileReplay();
 	bool StopFileReplay();
 	bool IsConnect();
-	bool IsFileReplay();
+	bool IsGpsReplay();
+	bool IsPathReplay();
 	bool IsServer();
 	bool IsReadyConnect();
 	void Clear();
@@ -31,20 +33,22 @@ protected:
 
 
 public:
-	enum class eState {
-		Server, PathFile, GpsFile
-	};
 	enum class eInputType {
-		Network, Serial
+		Network, Serial, GpsFile, PathFile
 	};
 
-	eState m_state;
 	eInputType m_inputType;
 	cTimer m_timer;
+
+	// network
 	Str16 m_ip;
 	int m_port;
 	network2::cTcpClient m_client;
+	// serial
 	common::cSerialAsync m_serial;
+	// gps file
+	std::ifstream m_gpsFs; // gps file input stream
+
 	Str512 m_recvStr;
 	int m_recvCount;
 	double m_recvTime;

@@ -128,6 +128,7 @@ namespace gis
 #include "terrainquadtree.h"
 #include "triangulate.h"
 #include "route.h"
+#include "shapefileloader.h"
 #include "root.h"
 
 

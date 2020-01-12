@@ -106,7 +106,7 @@ void cInformationView::OnRender(const float deltaSeconds)
 			}
 		}
 
-		if (g_global->m_gpsClient.IsFileReplay())
+		if (g_global->m_gpsClient.IsPathReplay())
 		{
 			if (ImGui::Button("End File Trace"))
 			{

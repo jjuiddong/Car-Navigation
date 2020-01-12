@@ -47,6 +47,7 @@ cTerrainQuadTree::cTerrainQuadTree()
 	, m_t1(0)
 	, m_t2(0)
 	, m_nodeBuffer(NULL)
+	, m_distanceLevelOffset(20)
 {
 	m_techName[0] = "Light";
 	m_techName[1] = "NoTexture";
@@ -774,7 +775,7 @@ inline bool cTerrainQuadTree::IsContain(const graphic::cFrustum &frustum, const 
 // 카메라와 거리에 따라, 쿼드 레벨을 계산한다.
 inline int cTerrainQuadTree::GetLevel(const float distance)
 {
-	int dist = (int)distance - 20;
+	int dist = (int)distance - m_distanceLevelOffset;
 
 #define CALC(lv) \
 	if ((dist >>= 1) < 1) \
@@ -870,13 +871,15 @@ Vector3 cTerrainQuadTree::Get3DPos(const Vector2d &lonLat)
 	Vector3 relPos = gis::GetRelationPos(globalPos);
 	const sQuadTreeNode<sQuadData> *node = 
 		m_qtree.GetNode(sRectf::Rect(globalPos.x, globalPos.z, 0,0));
+	if (node && !node->data.tile)
+		node = m_qtree.GetNode(node->level-1, node->xLoc>>1, node->yLoc>>1);
+
 	if (node && node->data.tile)
 	{
 		cQuadTile *tile = node->data.tile;
 
 		const float u = (relPos.x - tile->m_rect.left) / tile->m_rect.Width();
 		const float v = 1.f + (tile->m_rect.top - relPos.z) / tile->m_rect.Height();
-		//relPos.y = (tile->m_hmap->GetHeight(Vector2(u,v)) - 0.1f) * 2500.f;
 		relPos.y = tile->GetHeight(Vector2(u, v)) * 2500.f;
 	}
 
@@ -914,12 +917,6 @@ Vector3 cTerrainQuadTree::Get3DPosPrecise(graphic::cRenderer &renderer, const Ve
 		{
 			// insert heightmap fileloader for clear memory
 			const StrPath fileName = cHeightmap2::GetFileName(g_mediaDir, level, x, y);
-			//typedef graphic::cFileLoader<cHeightmap2, 1000> FileLoaderType;
-			//FileLoaderType::sChunk chunk;
-			//chunk.accessTime = 0.f;
-			//chunk.state = FileLoaderType::COMPLETE;
-			//chunk.data = tile->m_hmap;
-			//m_tileMgr->m_hmaps.m_files.insert({ fileName.GetHashCode(), chunk });
 
 			typedef graphic::cFileLoader2<2000, 5> FileLoaderType;
 			FileLoaderType::sChunk chunk;

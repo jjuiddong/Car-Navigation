@@ -91,6 +91,7 @@ public:
 	int m_techniqType;
 	int m_fps;
 	float m_calcOptimizeTime;
+	int m_distanceLevelOffset;
 	common::cTimer m_timer; // for analyze rendering
 	double m_t0; // buildtree time
 	double m_t1; // render tesselation time

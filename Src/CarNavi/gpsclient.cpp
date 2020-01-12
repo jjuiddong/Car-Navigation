@@ -7,7 +7,6 @@
 
 cGpsClient::cGpsClient()
 	: m_client(new network2::cPacketHeaderNoFormat())
-	, m_state(eState::Server)
 	, m_ip("192.168.1.102")
 	, m_port(60660)
 	, m_recvTime(0)
@@ -32,6 +31,8 @@ bool cGpsClient::Init()
 	m_port = g_global->m_config.GetInt("gps_server_port", 60660);
 	m_inputType = (eInputType)g_global->m_config.GetInt("gps_input_type", 0);
 
+	GpsReplay();
+
 	return true;
 }
 
@@ -55,14 +56,14 @@ bool cGpsClient::ConnectGpsServer(const Str16 &ip, const int port)
 bool cGpsClient::ConnectGpsSerial(const int portNum, const int baudRate)
 {
 	const bool result = m_serial.Open(portNum, baudRate, '\n');
-	g_global->m_config.SetValue("gps_input_type", (int)m_inputType);
-	return result;
+g_global->m_config.SetValue("gps_input_type", (int)m_inputType);
+return result;
 }
 
 
 bool cGpsClient::GetGpsInfo(OUT gis::sGPRMC &out)
 {
-	if (eState::PathFile == m_state)
+	if (eInputType::PathFile == m_inputType)
 		return false;
 
 	if (!IsConnect())
@@ -152,6 +153,35 @@ bool cGpsClient::GetGpsInfo(OUT gis::sGPRMC &out)
 	}
 	break;
 
+	case eInputType::GpsFile:
+	{
+		if (m_gpsFs.is_open() 
+			&& !m_gpsFs.eof()
+			&& ((curT - m_recvTime) > 0.001f))
+		{
+			m_recvTime = curT;
+
+			while (1)
+			{
+				string line;
+				if (!getline(m_gpsFs, line))
+					break;
+
+				m_recvStr = line;
+
+				gis::sGPRMC tmp;
+				if (ParseStr(m_recvStr, tmp))
+				{
+					isRead = true;
+					out = tmp;
+					m_recvCount++;
+					break;
+				}
+			}
+		}
+	}
+	break;
+
 	default: assert(0); break;
 	}
 
@@ -159,30 +189,55 @@ bool cGpsClient::GetGpsInfo(OUT gis::sGPRMC &out)
 }
 
 
+bool cGpsClient::GpsReplay()
+{
+	m_gpsFs = std::ifstream("gps.txt");
+	if (!m_gpsFs.is_open())
+	{
+		m_inputType = eInputType::Serial;
+		return false;
+	}
+
+	m_inputType = eInputType::GpsFile;
+
+	string line;
+	for (int i = 0; i < 40000; ++i)
+		getline(m_gpsFs, line);
+
+	return true;
+}
+
+
 bool cGpsClient::FileReplay() 
 {
-	m_state = eState::PathFile;
+	m_inputType = eInputType::PathFile;
 	return true;
 }
 
 
 bool cGpsClient::StopFileReplay()
 {
-	m_state = eState::Server;
+	m_inputType = eInputType::Serial;
 	m_fileAnimationIdx = 0; 
 	return true;
 }
 
 
-bool cGpsClient::IsFileReplay()
+bool cGpsClient::IsPathReplay()
 {
-	return eState::PathFile == m_state;
+	return (eInputType::PathFile == m_inputType);
+}
+
+
+bool cGpsClient::IsGpsReplay()
+{
+	return (eInputType::GpsFile == m_inputType);
 }
 
 
 bool cGpsClient::IsServer()
 {
-	return eState::Server == m_state;
+	return eInputType::Network == m_inputType;
 }
 
 
@@ -220,6 +275,8 @@ bool cGpsClient::IsConnect()
 		return m_client.IsConnect();
 	case eInputType::Serial:
 		return m_serial.IsOpen();
+	case eInputType::GpsFile:
+		return true;
 	default: assert(0); break;
 	}
 	return false;

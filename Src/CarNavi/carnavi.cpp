@@ -53,6 +53,9 @@ bool cViewer::OnInit()
 	m_camera.SetProjection(MATH_PI / 4.f, (float)WINSIZE_X / (float)WINSIZE_Y, 1.0f, 10000.f);
 	m_camera.SetViewPort(WINSIZE_X, WINSIZE_Y);
 
+	//cShapefileLoader shape;
+	//shape.Read("./media/road/Z_UPIS_C_UQ1512.shp");
+
 	GetMainLight().Init(cLight::LIGHT_DIRECTIONAL,
 		Vector4(0.2f, 0.2f, 0.2f, 1), Vector4(0.9f, 0.9f, 0.9f, 1),
 		Vector4(0.2f, 0.2f, 0.2f, 1));
@@ -93,7 +96,7 @@ bool cViewer::OnInit()
 	m_gui.SetContext();
 	m_gui.SetStyleColorsDark();
 
-	//ShowWindow(getSystemHandle(), SW_MAXIMIZE);
+	ShowWindow(getSystemHandle(), SW_MAXIMIZE);
 	//g_global->ConvertTrackPos2Path();
 
 	return true;

@@ -49,7 +49,7 @@ bool cMapView::Init(cRenderer &renderer)
 	const Vector3 eyePos(3040.59766f, 10149.6260f, -4347.90381f);
 	const Vector3 lookAt(2825.30078f, 0.000000000f, 2250.73193f);
 	m_camera.SetCamera(eyePos, lookAt, Vector3(0, 1, 0));
-	m_camera.SetProjection(MATH_PI / 4.f, m_rect.Width() / m_rect.Height(), 1.f, 1000000.f);
+	m_camera.SetProjection(MATH_PI / 4.f, m_rect.Width() / m_rect.Height(), 0.1f, 100000.f);
 	m_camera.SetViewPort(m_rect.Width(), m_rect.Height());
 
 	sf::Vector2u size((u_int)m_rect.Width() - 15, (u_int)m_rect.Height() - 50);
@@ -93,6 +93,7 @@ bool cMapView::Init(cRenderer &renderer)
 	m_naviServerIp = g_global->m_config.GetString("naviserver_ip", "220.77.251.119");
 	m_naviServerPort = g_global->m_config.GetInt("naviserver_port", 10001);
 	g_global->m_isDebugMode = g_global->m_config.GetBool("debug_mode", false);
+	m_quadTree.m_distanceLevelOffset = g_global->m_config.GetInt("distance_lv_offset", 20);
 
 	m_naviClient.RegisterProtocol(&m_gpsProtocol);
 	m_netController.StartTcpClient(&m_naviClient, m_naviServerIp, m_naviServerPort);
@@ -114,7 +115,7 @@ void cMapView::OnUpdate(const float deltaSeconds)
 	// 꽁수.
 	// FileReplay 중일 때, 파일을 다운로드 중이라면 대기한다.
 	// 카메라를 이동하지 않는다.
-	if (gpsClient.IsFileReplay()
+	if (gpsClient.IsPathReplay()
 		&& (m_quadTree.m_tileMgr->m_geoDownloader.m_requestIds.size() > 1))
 	{
 		dt = 0.f;
@@ -174,7 +175,8 @@ void cMapView::UpdateGPS(const float deltaSeconds)
 	}
 
 	// path 로그 파일에 저장
-	if (g_global->m_gpsClient.IsConnect())
+	if (g_global->m_gpsClient.IsConnect()
+		&& !g_global->m_gpsClient.IsGpsReplay())
 	{
 		const string date = common::GetCurrentDateTime();
 		static Vector2d prevGpsPos;
@@ -236,16 +238,19 @@ void cMapView::UpdateGPS(const float deltaSeconds)
 		m_avrDir = avrDir;
 	}
 
+	m_lookAtDistance = 0.01f;
+
 	Vector3 dir = (g_global->m_isRotateTrace) ? avrDir : m_camera.GetDirection();
 	dir.y = m_lookAtYVector;
 	const float lookAtDis = pos.Distance(m_camera.GetEyePos());
 	const float offsetY = max(1.f, min(8.f, (lookAtDis - 25.f) * 0.2f));
 	const Vector3 lookAtPos = pos + Vector3(0, offsetY, 0);
-	const Vector3 newEyePos = lookAtPos + dir * -m_lookAtDistance;
+	Vector3 newEyePos = lookAtPos + dir * -m_lookAtDistance;
 	float cameraSpeed = 30.f;
 	const float eyeDistance = newEyePos.Distance(m_camera.GetEyePos());
 	if (eyeDistance > m_lookAtDistance * 3)
 		cameraSpeed = eyeDistance * 1.f;
+	newEyePos.y = pos.y + offsetY;
 
 	const Vector3 p0(pos.x, 0, pos.z);
 	const Vector3 p1(oldPos2.x, 0, oldPos2.z);
@@ -357,10 +362,11 @@ void cMapView::UpdateMapScanning(const float deltaSeconds)
 }
 
 
+// path 경로로 이동 중일 때 처리
 void cMapView::UpdateMapTrace(const float deltaSeconds)
 {
 	cGpsClient &gpsClient = g_global->m_gpsClient;
-	if (!gpsClient.IsFileReplay())
+	if (!gpsClient.IsPathReplay())
 		return;
 
 	// 파일을 다운로드 중이라면, 목표점을 이동하지 않는다.
@@ -457,6 +463,7 @@ void cMapView::OnPreRender(const float deltaSeconds)
 			Vector3 prevPos;
 			const Vector3 camPos = GetMainCamera().GetEyePos();
 			renderer.m_dbgLine.SetColor(cColor::RED);
+			renderer.m_dbgLine.m_isSolid = true;
 			for (int i = 0; i < (int)track.size() - 1; ++i)
 			{
 				const Vector2d &ll0 = track[i].lonLat;
@@ -484,6 +491,7 @@ void cMapView::OnPreRender(const float deltaSeconds)
 				renderer.m_dbgLine.Render(renderer);
 				prevPos = p1;
 			}
+			renderer.m_dbgLine.m_isSolid = false;
 
 			renderer.GetDevContext()->OMSetDepthStencilState(states.DepthDefault(), 0);
 
@@ -506,7 +514,7 @@ void cMapView::OnPreRender(const float deltaSeconds)
 			// 카메라와의 거리에 따라 크기를 변경한다. (항상 같은 크기로 보이기 위함)
 			m_curPosObj.m_transform.pos = p0 + Vector3(0, 1, 0);
 			const float dist = GetMainCamera().GetEyePos().Distance(p0);
-			const float scale = common::clamp(0.2f, 1000.f, (dist * 1.5f) / 140.f);
+			const float scale = common::clamp(0.02f, 1000.f, (dist * 1.5f) / 180.f);
 			m_curPosObj.m_transform.scale = Vector3::Ones * scale;
 			m_curPosObj.Render(renderer);
 		}
@@ -951,9 +959,10 @@ void cMapView::OnWheelMove(const float delta, const POINT mousePt)
 	// 지형보다 아래에 카메라가 위치하면, 높이를 조절한다.
 	const Vector3 eyePos = m_camera.GetEyePos();
 	const float h = m_quadTree.GetHeight(Vector2(eyePos.x, eyePos.z));
-	if (eyePos.y < (h + 2))
+	const float offset = 0.01f;
+	if (eyePos.y < (h + offset))
 	{
-		const Vector3 newPos(eyePos.x, h + 2, eyePos.z);
+		const Vector3 newPos(eyePos.x, h + offset, eyePos.z);
 		m_camera.SetEyePos(newPos);
 	}
 
@@ -1054,9 +1063,10 @@ void cMapView::OnMouseMove(const POINT mousePt)
 	// 지형보다 아래에 카메라가 위치하면, 높이를 조절한다.
 	const Vector3 eyePos = m_camera.GetEyePos();
 	const float h = m_quadTree.GetHeight(Vector2(eyePos.x, eyePos.z));
-	if (eyePos.y < (h + 2))
+	const float offset = 0.01f;
+	if (eyePos.y < (h + offset))
 	{
-		const Vector3 newPos(eyePos.x, h + 2, eyePos.z);
+		const Vector3 newPos(eyePos.x, h + offset, eyePos.z);
 		m_camera.SetEyePos(newPos);
 	}
 

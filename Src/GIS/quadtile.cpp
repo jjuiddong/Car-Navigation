@@ -416,9 +416,25 @@ void cQuadTile::UpdateTexture(graphic::cRenderer &renderer)
 float cQuadTile::GetHeight(const Vector2 &uv) const
 {
 	if (m_hmap)
+	{
 		return m_hmap->GetHeight(uv) - 0.1f;
+	}
 	else if (m_replaceParentHmap)
-		return m_replaceParentHmap->GetHeight(uv) - 0.1f;
+	{
+		// original relation position by uv
+		const Vector2 pos = Vector2(m_rect.left + m_rect.Width() * uv.x
+			, m_rect.top + m_rect.Height() * (uv.y - 1.f));
+
+		// parent tile rect
+		const common::sRectf prect = cQuadTree<cQuadTile>::GetNodeRect(
+			m_replaceParentHmap->m_level, m_replaceParentHmap->m_xLoc
+			, m_replaceParentHmap->m_yLoc);
+
+		// calc parent tile uv coordinate
+		const float u = (pos.x - prect.left) / prect.Width();
+		const float v = 1.f + (prect.top - pos.y) / prect.Height();
+		return m_replaceParentHmap->GetHeight(Vector2(u,v)) - 0.1f;
+	}
 	return 0.f;
 }
 
