@@ -87,7 +87,7 @@
       <ConformanceMode>false</ConformanceMode>
       <AdditionalIncludeDirectories>../../../Common/Framework11/external/sfml/include;../../../Common/Framework11/external/sfml/src/;../../../Common/Framework11/external/imgui/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PrecompiledHeader>Use</PrecompiledHeader>
-      <PreprocessorDefinitions>WIN32;USE_D3D11_MATH;_DEBUG;_WINDOWS;_HAS_ITERATOR_DEBUGGING=0;_ITERATOR_DEBUG_LEVEL=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;USE_D3D11_MATH;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>../../../Common/external;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
