@@ -31,7 +31,7 @@ bool cGpsClient::Init()
 	m_port = g_global->m_config.GetInt("gps_server_port", 60660);
 	m_inputType = (eInputType)g_global->m_config.GetInt("gps_input_type", 0);
 
-	GpsReplay();
+	//GpsReplay();
 
 	return true;
 }

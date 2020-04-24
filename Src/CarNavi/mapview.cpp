@@ -572,6 +572,33 @@ void cMapView::OnPreRender(const float deltaSeconds)
 				m_landMarkObj2.Render(renderer);
 			}
 		}
+
+
+		// road
+		//if (!g_global->m_shape.m_polygons.empty())
+		//{
+		//	renderer.m_dbgLine.SetColor(cColor::RED);
+		//	for (uint i = 0; i < g_global->m_shape.m_polygons.size() && (i < 10); ++i)
+		//	{
+		//		cShapefileLoader::sPolygon *polygon = g_global->m_shape.m_polygons[i];
+		//		for (int k = 1; k < polygon->numPoints; ++k)
+		//		{
+		//			cShapefileLoader::sPoint &pos0 = polygon->points[k-1];
+		//			cShapefileLoader::sPoint &pos1 = polygon->points[k];
+
+		//			const Vector2d lonLat0(pos0.x, pos0.y);
+		//			const Vector2d lonLat1(pos1.x, pos1.y);
+		//			const Vector3 p0 = gis::GetRelationPos(gis::WGS842Pos(lonLat0));
+		//			const Vector3 p1 = gis::GetRelationPos(gis::WGS842Pos(lonLat1));
+		//			//Vector3 p0((float)pos0.x, 0, pos0.y);
+		//			const float h = 0.5f;
+		//			renderer.m_dbgLine.SetLine(p0 + Vector3(0, h, 0), p1 + Vector3(0, h, 0), 0.03f);
+		//			renderer.m_dbgLine.Render(renderer);
+		//		}
+		//	}
+		//	renderer.m_dbgLine.SetColor(cColor::WHITE);
+		//}
+
 	}
 	m_renderTarget.End(renderer);
 

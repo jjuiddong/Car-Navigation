@@ -23,8 +23,10 @@ protected:
 
 public:
 	network2::cTcpServer m_svr;
+	MySQLConnection m_sqlCon;
 	StrPath m_pathFilename;
 	string m_dateStr;
+	unsigned __int64 m_journeyTimeId;
 	Vector2d m_prevGpsPos;
 };
 

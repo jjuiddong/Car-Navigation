@@ -336,6 +336,9 @@ Package/imgui.ini
 Package/path/
 Package/path2/
 Package/path3/
+Package/path_new/
+Package/path_new2/
+Package/path_new3/
 Package/gps.txt
 Package/naviserver_config.txt
 Package/naviserver_errlog.txt

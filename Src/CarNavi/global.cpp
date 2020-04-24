@@ -65,6 +65,8 @@ bool cGlobal::Init(HWND hwnd)
 		++fileId;
 	} while (m_pathFilename.IsFileExist());
 
+	m_shape.Read("./media/road/Z_UPIS_C_UQ1512.shp");
+
 	return true;
 }
 

@@ -103,5 +103,7 @@ public:
 	// option
 	bool m_isDebugMode;
 
+	cShapefileLoader m_shape;
+
 	cTimer m_timer;
 };

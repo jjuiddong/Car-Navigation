@@ -4,6 +4,7 @@
 //
 #include "stdafx.h"
 #include "naviserver.h"
+#pragma comment( lib, "libmysql.lib" )
 
 
 using namespace std;
