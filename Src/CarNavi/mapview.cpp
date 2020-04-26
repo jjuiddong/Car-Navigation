@@ -191,7 +191,7 @@ void cMapView::UpdateGPS(const float deltaSeconds)
 			{
 				++m_sendGpsInfo;
 				m_gpsProtocol.GPSInfo(network2::SERVER_NETID
-					, m_curGpsPos.x, m_curGpsPos.y);
+					, m_curGpsPos.x, m_curGpsPos.y, gpsInfo.altitude, gpsInfo.speed);
 			}
 		}
 	}

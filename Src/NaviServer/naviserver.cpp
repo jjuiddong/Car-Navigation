@@ -96,15 +96,14 @@ bool cNaviServer::GPSInfo(gps::GPSInfo_Packet &packet)
 		if (m_sqlCon.IsConnected())
 		{
 			const int userId = 1;
-			const float speed = 0.f;
-			const float altitude = 0.f;
 
 			const string sql =
 				common::format("INSERT INTO path (date_time, user_id, journey_time_id"
 					", lon, lat, speed, altitude)"
 					" VALUES ('%s', '%d', '%I64u', '%f', '%f', '%f', '%f');"
 					, strDateTime.c_str()
-					, userId, m_journeyTimeId, packet.lon, packet.lat, speed, altitude);
+					, userId, m_journeyTimeId, packet.lon, packet.lat
+					, packet.speed, packet.altitude);
 
 			MySQLQuery query(&m_sqlCon, sql);
 			query.ExecuteInsert();

@@ -91,6 +91,7 @@ namespace gis
 		, const sRectf &rect);
 	Vector3 WGS842Pos(const Vector2d &lonLat);
 	Vector3 GetRelationPos(const Vector3 &globalPos);
+	double WGS84Distance(const Vector2d &lonLat0, const Vector2d &lonLat1);
 
 	// meter -> 3D unit
 	float Meter23DUnit(const float meter);

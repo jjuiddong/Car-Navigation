@@ -16,6 +16,8 @@ using namespace marshalling;
 		netid senderId;
 		double lon;
 		double lat;
+		float altitude;
+		float speed;
 	};
 
 

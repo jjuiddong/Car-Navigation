@@ -32,6 +32,8 @@ bool gps::c2s_Dispatcher::Dispatch(cPacket &packet, const ProtocolHandlers &hand
 			data.senderId = packet.GetSenderId();
 			packet >> data.lon;
 			packet >> data.lat;
+			packet >> data.altitude;
+			packet >> data.speed;
 			SEND_HANDLER(c2s_ProtocolHandler, prtHandler, GPSInfo(data));
 		}
 		break;
