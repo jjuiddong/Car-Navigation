@@ -12,7 +12,7 @@ public:
 	cTileTexture();
 	cTileTexture(graphic::cRenderer &renderer, const char *fileName);
 	cTileTexture(graphic::cRenderer &renderer, const cTileTexture *src, const char *fileName
-		, const graphic::sFileLoaderArg &args) {
+		, const graphic::sFileLoaderArg2 &args) {
 		throw std::exception();
 	}
 	virtual ~cTileTexture();

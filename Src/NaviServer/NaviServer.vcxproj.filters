@@ -1,0 +1,40 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="stdafx.cpp" />
+    <ClCompile Include="..\Protocol\Src\gps_Protocol.cpp">
+      <Filter>protocol_src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Protocol\Src\gps_ProtocolHandler.cpp">
+      <Filter>protocol_src</Filter>
+    </ClCompile>
+    <ClCompile Include="naviserver.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="stdafx.h" />
+    <ClInclude Include="..\Protocol\Src\gps_Protocol.h">
+      <Filter>protocol_src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Protocol\Src\gps_ProtocolData.h">
+      <Filter>protocol_src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Protocol\Src\gps_ProtocolHandler.h">
+      <Filter>protocol_src</Filter>
+    </ClInclude>
+    <ClInclude Include="naviserver.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="protocol_src">
+      <UniqueIdentifier>{5d45111b-2fd7-4df7-a5ce-47e1608c06ee}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="protocol">
+      <UniqueIdentifier>{9d35aa42-8580-438c-a7b2-3b3e9a076a8c}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="..\Protocol\gps.prt">
+      <Filter>protocol</Filter>
+    </CustomBuild>
+  </ItemGroup>
+</Project>

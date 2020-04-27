@@ -5,8 +5,6 @@
 //
 #pragma once
 
-#include "../../../Common/Graphic11/importer/fileloader.h"
-#include "vworldwebdownloader.h"
 
 class cTerrainQuadTree;
 struct sQuadData;
@@ -141,15 +139,11 @@ public:
 	map<__int64, sTileMem> m_tiles; // key = cQuadTree<sQuadData>::MakeKey(level, xLoc, yLoc)
 	graphic::cVertexBuffer m_tileVtxBuff;
 	graphic::cVertexBuffer m_tileLineVtxBuff;
-	graphic::cFileLoader<cTileTexture, 1000> m_tmaps;
-	graphic::cFileLoader<cHeightmap, 1000, sHeightmapArgs> m_hmaps;
-	graphic::cFileLoader<cPoiReader, 1000> m_pmaps[2]; // 0:poi_base, 1:poi_bound
-	graphic::cFileLoader<cReal3DModelIndexReader, 3000, graphic::sFileLoaderArg, sDistanceCompare> m_modelIndices;
-	graphic::cFileLoader<cXdoReader, 5000, graphic::sFileLoaderArg, sDistanceCompare> m_facilities;
-	graphic::cFileLoader<cTileTexture, 5000, graphic::sFileLoaderArg, sDistanceCompare> m_facilitiesTex;
 	map<int64, float> m_heights; // key = cQuadTree<sQuadData>::MakeKey(level, xLoc, yLoc)
+	graphic::cFileLoader2<2000, 5> m_loader; // texture, heightmap
+	graphic::cFileLoader2<10000, 1> m_loader2; // poi, index, xdo
 
-	gis::cVWorldWebDownloader m_vworldDownloader;
+	gis::cGeoDownloader m_geoDownloader;
 	vector<gis::sDownloadData> m_downloadFiles;
 
 	// delay loading

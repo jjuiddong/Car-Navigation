@@ -17,7 +17,6 @@ public:
 		, m_scaleY(1.f)
 		, m_offsetY(0.184964865f)
 		, m_scale(0.018f)
-		//, m_trackOffsetY(0.0f)
 	{}
 	virtual ~cRoot() {}
 
@@ -41,11 +40,6 @@ public:
 	float m_genRouteGap = 0.0005f;
 	float m_genRouteAltitude = 20.f;
 	vector<Vector2d> m_route;
-
-	//bool m_isShowGPS;
-	//bool m_isTraceGPSPos;
-	//float m_trackOffsetY;
-	//vector<Vector3> m_track;
 };
 
 extern cRoot g_root;

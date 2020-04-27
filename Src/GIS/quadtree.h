@@ -53,11 +53,12 @@ public:
 	sQuadTreeNode<T>* GetSouthNeighbor(const sQuadTreeNode<T> *node);
 	sQuadTreeNode<T>* GetWestNeighbor(const sQuadTreeNode<T> *node);
 	sQuadTreeNode<T>* GetEastNeighbor(const sQuadTreeNode<T> *node);
-	sRectf GetNodeRect(const int level, const int xLoc, const int yLoc) const;
-	sRectf GetNodeRect(const sQuadTreeNode<T> *node) const;
-	sRectf GetNodeGlobalRect(const sQuadTreeNode<T> *node) const;
-	Vector3 GetGlobalPos(const Vector3 &relPos) const;
-	Vector3 GetRelationPos(const Vector3 &globalPos) const;
+
+	static sRectf GetNodeRect(const int level, const int xLoc, const int yLoc);
+	static sRectf GetNodeRect(const sQuadTreeNode<T> *node);
+	static sRectf GetNodeGlobalRect(const sQuadTreeNode<T> *node);
+	static Vector3 GetGlobalPos(const Vector3 &relPos);
+	static Vector3 GetRelationPos(const Vector3 &globalPos);
 	static __int64 MakeKey(const int level, const int xLoc, const int yLoc);
 	void Clear(const bool isRmTree = true);
 
@@ -67,10 +68,11 @@ public:
 
 	vector<sQuadTreeNode<T>*> m_roots; // root nodes (multiple root node)
 	sRectf m_rootRect;
-	const float m_quadScale = 1.f;
+	static const float m_quadScale;
 	std::map<__int64, sQuadTreeNode<T>*> m_nodeTable[MAX_LEVEL]; // level quad tree map
 														  // key = quad node x,y index (linear)
 };
+template<class T> const float cQuadTree<T>::m_quadScale = 1.f;
 
 
 // m_nodeTable key
@@ -235,7 +237,7 @@ inline sQuadTreeNode<T>* cQuadTree<T>::GetNode(const sRectf &rect)
 }
 
 
-// return nodeLeve, x, y correspond rect
+// return nodeLevel, x, y correspond rect
 template<class T>
 std::tuple<int, int, int> cQuadTree<T>::GetNodeLevel(const sRectf &rect)
 {
@@ -334,7 +336,7 @@ inline sQuadTreeNode<T>* cQuadTree<T>::GetEastNeighbor(const sQuadTreeNode<T> *n
 
 // return Relation Coordinate
 template<class T>
-inline sRectf cQuadTree<T>::GetNodeRect(const int level, const int xLoc, const int yLoc) const
+inline sRectf cQuadTree<T>::GetNodeRect(const int level, const int xLoc, const int yLoc)
 {
 	sRectf rect;
 	if (level >= 7)
@@ -365,7 +367,7 @@ inline sRectf cQuadTree<T>::GetNodeRect(const int level, const int xLoc, const i
 
 // return Relation Coordinate
 template<class T>
-inline sRectf cQuadTree<T>::GetNodeRect(const sQuadTreeNode<T> *node) const
+inline sRectf cQuadTree<T>::GetNodeRect(const sQuadTreeNode<T> *node)
 {
 	sRectf rect;
 	if (node->level >= 7)
@@ -396,7 +398,7 @@ inline sRectf cQuadTree<T>::GetNodeRect(const sQuadTreeNode<T> *node) const
 
 // return Global Coordinate
 template<class T>
-inline sRectf cQuadTree<T>::GetNodeGlobalRect(const sQuadTreeNode<T> *node) const
+inline sRectf cQuadTree<T>::GetNodeGlobalRect(const sQuadTreeNode<T> *node)
 {
 	const float size = (1 << (16 - node->level)) * m_quadScale;
 	const sRectf rect = sRectf::Rect(node->xLoc * size, node->yLoc*size, size, size);
@@ -406,7 +408,7 @@ inline sRectf cQuadTree<T>::GetNodeGlobalRect(const sQuadTreeNode<T> *node) cons
 
 // covert relation coordinate to global coordinate
 template<class T>
-inline Vector3 cQuadTree<T>::GetGlobalPos(const Vector3 &relPos) const
+inline Vector3 cQuadTree<T>::GetGlobalPos(const Vector3 &relPos)
 {
 	const float size = (1 << (16 - 7)) * m_quadScale;
 	const int xLoc = 1088;
@@ -419,7 +421,7 @@ inline Vector3 cQuadTree<T>::GetGlobalPos(const Vector3 &relPos) const
 
 // covert relation coordinate to global coordinate
 template<class T>
-inline Vector3 cQuadTree<T>::GetRelationPos(const Vector3 &globalPos) const
+inline Vector3 cQuadTree<T>::GetRelationPos(const Vector3 &globalPos)
 {
 	const float size = (1 << (16 - 7)) * m_quadScale;
 	const int xLoc = 1088;

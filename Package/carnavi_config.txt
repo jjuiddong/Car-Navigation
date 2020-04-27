@@ -1,0 +1,11 @@
+media_path = G:\media\data
+
+gps_input_type = 1
+naviserver_ip = 220.77.251.119
+naviserver_port = 10001
+debug_mode = 1
+db_ip = localhost
+db_port = 3306
+db_id = navi
+db_passwd = 1111
+db_name = navi

@@ -142,14 +142,19 @@ void cQuadTile::RenderGeometry(graphic::cRenderer &renderer
 		renderer.m_cbTessellation.m_v->huvs[3] = 1.f;
 		m_hmap->m_texture->Bind(renderer, 8);
 
-		SAFE_DELETE(m_replaceParentHmap);
+		// heighmap이 로딩됐다면, 예전 대체된 높이맵은 제거한다.
+		//SAFE_DELETE(m_replaceParentHmap);
 	}
 	else if (m_replaceParentHmap && m_replaceParentHmap->IsLoaded())
 	{
-		renderer.m_cbTessellation.m_v->huvs[0] = 0.f;
-		renderer.m_cbTessellation.m_v->huvs[1] = 0.f;
-		renderer.m_cbTessellation.m_v->huvs[2] = 1.f;
-		renderer.m_cbTessellation.m_v->huvs[3] = 1.f;
+		//renderer.m_cbTessellation.m_v->huvs[0] = 0.f;
+		//renderer.m_cbTessellation.m_v->huvs[1] = 0.f;
+		//renderer.m_cbTessellation.m_v->huvs[2] = 1.f;
+		//renderer.m_cbTessellation.m_v->huvs[3] = 1.f;
+		renderer.m_cbTessellation.m_v->huvs[0] = m_huvs[0];
+		renderer.m_cbTessellation.m_v->huvs[1] = m_huvs[1];
+		renderer.m_cbTessellation.m_v->huvs[2] = m_huvs[2];
+		renderer.m_cbTessellation.m_v->huvs[3] = m_huvs[3];
 		m_replaceParentHmap->m_texture->Bind(renderer, 8);
 	}
 	//else if (m_replaceHmap)
@@ -300,8 +305,8 @@ case 1: expr; \
 
 	RETV((direction != eDirection::WEST) && (direction != eDirection::SOUTH), false);
 
-	cHeightmap *srcMap = (tile.m_hmap)? tile.m_hmap : tile.m_replaceHmap;
-	cHeightmap *dstMap = (m_hmap) ? m_hmap : m_replaceHmap;
+	cHeightmap2 *srcMap = (tile.m_hmap)? tile.m_hmap : tile.m_replaceHmap;
+	cHeightmap2 *dstMap = (m_hmap) ? m_hmap : m_replaceHmap;
 	RETV(!srcMap || !dstMap, false);
 	RETV(!srcMap->m_data || !dstMap->m_data, false);
 
@@ -376,7 +381,7 @@ case 1: expr; \
 // West South 꼭지점 3 픽셀 값의 평균을 저장한다.
 void cQuadTile::SmoothPostProcess(cQuadTile &southWestTile)
 {
-	cHeightmap *srcMap = (southWestTile.m_hmap) ? southWestTile.m_hmap : southWestTile.m_replaceHmap;
+	cHeightmap2 *srcMap = (southWestTile.m_hmap) ? southWestTile.m_hmap : southWestTile.m_replaceHmap;
 	RET(!srcMap);
 
 	const float h1 = srcMap->m_data[srcMap->m_width-1];
@@ -411,9 +416,25 @@ void cQuadTile::UpdateTexture(graphic::cRenderer &renderer)
 float cQuadTile::GetHeight(const Vector2 &uv) const
 {
 	if (m_hmap)
+	{
 		return m_hmap->GetHeight(uv) - 0.1f;
+	}
 	else if (m_replaceParentHmap)
-		return m_replaceParentHmap->GetHeight(uv) - 0.1f;
+	{
+		// original relation position by uv
+		const Vector2 pos = Vector2(m_rect.left + m_rect.Width() * uv.x
+			, m_rect.top + m_rect.Height() * (uv.y - 1.f));
+
+		// parent tile rect
+		const common::sRectf prect = cQuadTree<cQuadTile>::GetNodeRect(
+			m_replaceParentHmap->m_level, m_replaceParentHmap->m_xLoc
+			, m_replaceParentHmap->m_yLoc);
+
+		// calc parent tile uv coordinate
+		const float u = (pos.x - prect.left) / prect.Width();
+		const float v = 1.f + (prect.top - pos.y) / prect.Height();
+		return m_replaceParentHmap->GetHeight(Vector2(u,v)) - 0.1f;
+	}
 	return 0.f;
 }
 
@@ -458,5 +479,5 @@ void cQuadTile::Clear()
 {
 	m_loaded = false;
 	m_modelLoadState = 0;
-	SAFE_DELETE(m_replaceParentHmap);
+	//SAFE_DELETE(m_replaceParentHmap);
 }

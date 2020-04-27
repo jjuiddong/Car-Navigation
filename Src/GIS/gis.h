@@ -2,7 +2,7 @@
 // 2018-04-26, jjuiddong
 // GIS 관련된 정의 모음
 //
-// vworld 3D coordinate system
+// world 3D coordinate system
 //
 //  /\ Z 
 //  |
@@ -63,7 +63,7 @@ namespace gis
 	};
 
 
-	// vworld tile
+	// world tile
 	//
 	//  /\ tileLoc Y (row)
 	//  |
@@ -91,6 +91,7 @@ namespace gis
 		, const sRectf &rect);
 	Vector3 WGS842Pos(const Vector2d &lonLat);
 	Vector3 GetRelationPos(const Vector3 &globalPos);
+	double WGS84Distance(const Vector2d &lonLat0, const Vector2d &lonLat1);
 
 	// meter -> 3D unit
 	float Meter23DUnit(const float meter);
@@ -113,9 +114,12 @@ namespace gis
 
 
 #include "UTM.h"
-#include "vworldwebdownloader.h"
+#include "webdownload.h"
+#include "taskwebdownload.h"
+#include "geodownloader.h"
 #include "quadtree.h"
 #include "heightmap.h"
+#include "heightmap2.h"
 #include "tiletexture.h"
 #include "poireader.h"
 #include "real3dmodelindexreader.h"
@@ -125,10 +129,10 @@ namespace gis
 #include "terrainquadtree.h"
 #include "triangulate.h"
 #include "route.h"
+#include "shapefileloader.h"
 #include "root.h"
 
 
 
 extern StrPath g_mediaDir;
-extern StrPath g_mediaDir2;
 
