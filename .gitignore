@@ -353,3 +353,6 @@ Package/NaviServerd.exe
 Package/path/*.*
 Package/path_new/*.*
 Package/path-backup/*.*
+*.exe
+Package/media/road/*
+Package/gps_original.txt
