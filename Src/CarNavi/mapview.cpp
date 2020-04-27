@@ -487,7 +487,7 @@ void cMapView::OnPreRender(const float deltaSeconds)
 					&& (i < (int)(track.size() - 20)))
 					continue;
 
-				renderer.m_dbgLine.SetLine(prevPos, p1, 0.03f);
+				renderer.m_dbgLine.SetLine(prevPos, p1, 0.06f);
 				renderer.m_dbgLine.Render(renderer);
 				prevPos = p1;
 			}
