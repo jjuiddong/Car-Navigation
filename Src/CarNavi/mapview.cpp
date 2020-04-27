@@ -169,10 +169,7 @@ void cMapView::UpdateGPS(const float deltaSeconds)
 		oldGpsPos2 = m_curGpsPos;
 
 	if (m_lookAtDistance == 0)
-	{
 		m_lookAtDistance = min(200.f, m_camera.GetEyePos().Distance(m_camera.GetLookAt()));
-		m_lookAtYVector = m_camera.GetDirection().y;
-	}
 
 	// path 로그 파일에 저장
 	if (g_global->m_gpsClient.IsConnect()
@@ -206,6 +203,11 @@ void cMapView::UpdateGPS(const float deltaSeconds)
 	const bool isTraceGPSPos = g_global->m_isTraceGPSPos
 		&& !m_mouseDown[0] && !m_mouseDown[1] 
 		&& (g_global->m_touch.m_type != eTouchType::Gesture);
+	if (!isTraceGPSPos)
+		m_lookAtYVector = 0;
+
+	if (isTraceGPSPos && (m_lookAtYVector == 0.f))
+		m_lookAtYVector = m_camera.GetDirection().y;
 
 	// 카메라 방향을 바꾼다. 이동하는 방향으로 향하게 한다.
 	// 최근 이동 궤적에서 n개의 벡터를 평균해서 최종 방향을 결정한다. (가중치 평균)
@@ -238,7 +240,7 @@ void cMapView::UpdateGPS(const float deltaSeconds)
 		m_avrDir = avrDir;
 	}
 
-	m_lookAtDistance = 0.01f;
+	//m_lookAtDistance = 0.01f;
 
 	Vector3 dir = (g_global->m_isRotateTrace) ? avrDir : m_camera.GetDirection();
 	dir.y = m_lookAtYVector;
@@ -250,7 +252,7 @@ void cMapView::UpdateGPS(const float deltaSeconds)
 	const float eyeDistance = newEyePos.Distance(m_camera.GetEyePos());
 	if (eyeDistance > m_lookAtDistance * 3)
 		cameraSpeed = eyeDistance * 1.f;
-	newEyePos.y = pos.y + offsetY;
+	//newEyePos.y = pos.y + offsetY;
 
 	const Vector3 p0(pos.x, 0, pos.z);
 	const Vector3 p1(oldPos2.x, 0, oldPos2.z);
@@ -260,7 +262,8 @@ void cMapView::UpdateGPS(const float deltaSeconds)
 	if (oldPos2.Distance(pos) > MIN_LENGTH)
 	{
 		// 제스처 입력 시에는 카메라를 자동으로 움직이지 않는다.
-		if (isTraceGPSPos && !avrDir.IsEmpty() && !isIgnoreTrace)
+		if (isTraceGPSPos && !avrDir.IsEmpty() && !isIgnoreTrace
+			&& (m_lookAtYVector != 0))
 			m_camera.Move(newEyePos, lookAtPos, cameraSpeed);
 
 		if (!isIgnoreTrace)
@@ -271,7 +274,8 @@ void cMapView::UpdateGPS(const float deltaSeconds)
 
 		oldGpsPos2 = m_curGpsPos;
 	}
-	else if (isTraceGPSPos && !avrDir.IsEmpty() && !isIgnoreTrace)
+	else if (isTraceGPSPos && !avrDir.IsEmpty() && !isIgnoreTrace
+		&& (m_lookAtYVector != 0))
 	{
 		m_camera.Move(oldEyePos, lookAtPos, cameraSpeed);
 	}
@@ -1009,7 +1013,7 @@ void cMapView::UpdateCameraTraceLookat(
 		const Vector3 p0 = m_quadTree.Get3DPos(track.back().lonLat);
 		if (isUpdateDistance)
 			m_lookAtDistance = min(200.f, m_camera.GetEyePos().Distance(p0));
-		m_lookAtYVector = m_camera.GetDirection().y;
+		//m_lookAtYVector = m_camera.GetDirection().y;
 	}
 }
 
