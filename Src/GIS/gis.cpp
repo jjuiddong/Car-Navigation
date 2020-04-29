@@ -138,6 +138,7 @@ Vector3 gis::GetRelationPos(const Vector3 &globalPos)
 
 // return distance lonLat0 - lonLat2
 // http://www.movable-type.co.uk/scripts/latlong.html
+// return distance (meter unit)
 double gis::WGS84Distance(const Vector2d &lonLat0, const Vector2d &lonLat1)
 {
 	const double r = 6371000.f;

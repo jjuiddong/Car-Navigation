@@ -88,9 +88,17 @@ bool cNaviServer::GPSInfo(gps::GPSInfo_Packet &packet)
 	if (m_prevGpsPos != pos)
 	{
 		const string ctime = common::GetCurrentDateTime();
-		dbg::Logp2(m_pathFilename.c_str(), "%s, %.15f, %.15f\n"
-			, ctime.c_str(), packet.lon, packet.lat);
+		dbg::Logp2(m_pathFilename.c_str(), "%s, %.15f, %.15f, %f, %f\n"
+			, ctime.c_str(), packet.lon, packet.lat, packet.speed, packet.altitude);
 		m_prevGpsPos = pos;
+
+		// filter lon/lat (korea)
+		if ((pos.x < 123.f) || (pos.x > 133.f)
+			|| (pos.y < 31.f) || (pos.y > 39.f))
+		{
+			// lon/lat position crack
+			return true;
+		}
 
 		// upload db path
 		if (m_sqlCon.IsConnected())

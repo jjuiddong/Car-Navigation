@@ -179,8 +179,8 @@ void cMapView::UpdateGPS(const float deltaSeconds)
 		static Vector2d prevGpsPos;
 		if (prevGpsPos != m_curGpsPos)
 		{
-			dbg::Logp2(g_global->m_pathFilename.c_str(), "%s, %.15f, %.15f\n"
-				, date.c_str(), m_curGpsPos.x, m_curGpsPos.y);
+			dbg::Logp2(g_global->m_pathFilename.c_str(), "%s, %.15f, %.15f, %f, %f\n"
+				, date.c_str(), m_curGpsPos.x, m_curGpsPos.y, gpsInfo.speed, gpsInfo.altitude);
 			prevGpsPos = m_curGpsPos;
 
 			// send to Navigation Server with GPS Information
@@ -240,8 +240,6 @@ void cMapView::UpdateGPS(const float deltaSeconds)
 		m_avrDir = avrDir;
 	}
 
-	//m_lookAtDistance = 0.01f;
-
 	Vector3 dir = (g_global->m_isRotateTrace) ? avrDir : m_camera.GetDirection();
 	dir.y = m_lookAtYVector;
 	const float lookAtDis = pos.Distance(m_camera.GetEyePos());
@@ -262,8 +260,7 @@ void cMapView::UpdateGPS(const float deltaSeconds)
 	if (oldPos2.Distance(pos) > MIN_LENGTH)
 	{
 		// 제스처 입력 시에는 카메라를 자동으로 움직이지 않는다.
-		if (isTraceGPSPos && !avrDir.IsEmpty() && !isIgnoreTrace
-			&& (m_lookAtYVector != 0))
+		if (isTraceGPSPos && !avrDir.IsEmpty() && !isIgnoreTrace && (m_lookAtYVector != 0))
 			m_camera.Move(newEyePos, lookAtPos, cameraSpeed);
 
 		if (!isIgnoreTrace)
@@ -274,8 +271,7 @@ void cMapView::UpdateGPS(const float deltaSeconds)
 
 		oldGpsPos2 = m_curGpsPos;
 	}
-	else if (isTraceGPSPos && !avrDir.IsEmpty() && !isIgnoreTrace
-		&& (m_lookAtYVector != 0))
+	else if (isTraceGPSPos && !avrDir.IsEmpty() && !isIgnoreTrace && (m_lookAtYVector != 0))
 	{
 		m_camera.Move(oldEyePos, lookAtPos, cameraSpeed);
 	}
