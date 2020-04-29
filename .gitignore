@@ -340,7 +340,7 @@ Package/path_new/
 Package/path_new2/
 Package/path_new3/
 Package/gps.txt
-#Package/carnavi_config.txt
+Package/carnavi_config.txt
 Package/naviserver_config.txt
 Package/naviserver_errlog.txt
 Package/naviserver_log.txt
