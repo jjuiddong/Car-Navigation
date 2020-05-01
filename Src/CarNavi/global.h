@@ -12,6 +12,23 @@ enum class eAnalysisType : int
 };
 
 
+// trace camera view type
+enum class eCameraType : int
+{
+	Custom
+	, Camera1 // first person view
+	, Camera2
+	, Camera3
+	, MAX
+};
+
+struct sCameraInfo {
+	float lookAtY;
+	float distance;
+};
+
+
+
 class cMapView;
 class cInformationView;
 class cNavigationView;
@@ -57,6 +74,10 @@ public:
 	int m_speed; // km/s
 	int m_gear; // transimission gear
 	int m_obdRcvCnt;
+
+	// View Type
+	eCameraType m_camType;
+	sCameraInfo m_camInfo[(int)eCameraType::MAX];
 
 	// Render Overhead
 	bool m_isShowTerrain;

@@ -54,6 +54,7 @@ bool cNaviServer::GPSInfo(gps::GPSInfo_Packet &packet)
 {
 	const string dateStr = common::GetCurrentDateTime4();
 	const Str32 strDateTime = common::GetCurrentDateTime5(); // yyyy-mm-dd hh:mm:ss
+	const int userId = 1;
 
 	if (m_dateStr != dateStr)
 	{
@@ -64,6 +65,8 @@ bool cNaviServer::GPSInfo(gps::GPSInfo_Packet &packet)
 		m_pathFilename = "./path/path_";
 		m_pathFilename += dateStr;
 		m_pathFilename += ".txt";
+		m_prevGpsPos = Vector2d(0, 0); // initialize
+		m_totalDistance = 0.f;
 
 		m_dateStr = dateStr;
 		m_journeyTimeId = common::GetCurrentDateTime3();
@@ -71,8 +74,6 @@ bool cNaviServer::GPSInfo(gps::GPSInfo_Packet &packet)
 		// upload db journey_date
 		if (m_sqlCon.IsConnected())
 		{
-			const int userId = 1;
-
 			const string sql =
 				common::format("INSERT INTO journey_date (date, user_id, time_id"
 					", distance, journey_time)"
@@ -90,6 +91,14 @@ bool cNaviServer::GPSInfo(gps::GPSInfo_Packet &packet)
 		const string ctime = common::GetCurrentDateTime();
 		dbg::Logp2(m_pathFilename.c_str(), "%s, %.15f, %.15f, %f, %f\n"
 			, ctime.c_str(), packet.lon, packet.lat, packet.speed, packet.altitude);
+
+		// update distance
+		if (m_prevGpsPos != Vector2d(0, 0))
+		{
+			const double distance = WGS84Distance(m_prevGpsPos, pos);
+			m_totalDistance += distance;
+		}
+
 		m_prevGpsPos = pos;
 
 		// filter lon/lat (korea)
@@ -103,8 +112,6 @@ bool cNaviServer::GPSInfo(gps::GPSInfo_Packet &packet)
 		// upload db path
 		if (m_sqlCon.IsConnected())
 		{
-			const int userId = 1;
-
 			const string sql =
 				common::format("INSERT INTO path (date_time, user_id, journey_time_id"
 					", lon, lat, speed, altitude)"
@@ -116,9 +123,45 @@ bool cNaviServer::GPSInfo(gps::GPSInfo_Packet &packet)
 			MySQLQuery query(&m_sqlCon, sql);
 			query.ExecuteInsert();
 		}
+
+		// upload db journey_date
+		if (m_sqlCon.IsConnected())
+		{
+			const cDateTime2 date0(m_journeyTimeId);
+			const cDateTime2 now(common::GetCurrentDateTime3());
+			const cDateTime2 journeyTime = now - date0;
+
+			const string sql =
+				common::format("UPDATE journey_date SET journey_time = '%I64u', distance = '%f' "
+					" WHERE time_id = '%I64u' AND user_id = '%d';"
+					, journeyTime.m_t, m_totalDistance
+					, m_journeyTimeId, userId);
+
+			MySQLQuery query(&m_sqlCon, sql);
+			query.ExecuteInsert();
+		}
 	}
 
 	return true;
+}
+
+
+// return distance lonLat0 - lonLat2
+// http://www.movable-type.co.uk/scripts/latlong.html
+// return distance (meter unit)
+double cNaviServer::WGS84Distance(const Vector2d &lonLat0, const Vector2d &lonLat1)
+{
+	const double r = 6371000.f;
+	const double lat0 = ANGLE2RAD2(lonLat0.y);
+	const double lat1 = ANGLE2RAD2(lonLat1.y);
+	const double dlat = ANGLE2RAD2(abs(lonLat0.y - lonLat1.y));
+	const double dlon = ANGLE2RAD2(abs(lonLat0.x - lonLat1.x));
+
+	const double a = sin(dlat / 2.f) * sin(dlat / 2.f)
+		+ cos(lat0) * cos(lat1) * sin(dlon / 2.f) * sin(dlon / 2.f);
+	const double c = 2 * atan2(sqrt(a), sqrt(1.f - a));
+	const double d = r * c;
+	return d;
 }
 
 

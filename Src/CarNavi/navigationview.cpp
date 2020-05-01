@@ -66,6 +66,20 @@ void cNavigationView::OnRender(const float deltaSeconds)
 	static bool isDetailOption = false;
 	ImGui::Checkbox("Detail Setting", &isDetailOption);
 
+	ImGui::SameLine();
+	if (ImGui::RadioButton("custom", (int*)&g_global->m_camType, (int)eCameraType::Custom))
+		g_global->m_mapView->ChangeViewCamera(eCameraType::Custom);
+	ImGui::SameLine();
+	if (ImGui::RadioButton("cam1", (int*)&g_global->m_camType, (int)eCameraType::Camera1))
+		g_global->m_mapView->ChangeViewCamera(eCameraType::Camera1);
+	ImGui::SameLine();
+	if (ImGui::RadioButton("cam2", (int*)&g_global->m_camType, (int)eCameraType::Camera2))
+		g_global->m_mapView->ChangeViewCamera(eCameraType::Camera2);
+	ImGui::SameLine();
+	if (ImGui::RadioButton("cam3", (int*)&g_global->m_camType, (int)eCameraType::Camera3))
+		g_global->m_mapView->ChangeViewCamera(eCameraType::Camera3);
+
+
 	cTerrainQuadTree &terrain = g_global->m_mapView->m_quadTree;
 	cGpsClient &gpsClient = g_global->m_gpsClient;
 

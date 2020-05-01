@@ -19,6 +19,8 @@ public:
 	virtual void OnEventProc(const sf::Event &evt) override;
 	virtual void OnResetDevice() override;
 
+	void ChangeViewCamera(const eCameraType camType);
+
 
 protected:
 	void RenderRPMGuage(const ImVec2 &pos, const float guageH, const float deltaSeconds);

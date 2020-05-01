@@ -57,7 +57,7 @@ public:
 
 	// path pump
 	struct sPath {
-		uint64 t;
+		uint64 t; // yyyymmddhhmmssmmm
 		Vector2d lonLat;
 	};
 	vector<sPath> m_paths;

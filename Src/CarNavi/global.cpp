@@ -32,6 +32,7 @@ cGlobal::cGlobal()
 	, m_gear(0)
 	, m_obdRcvCnt(0)
 	, m_isDebugMode(false)
+	, m_camType(eCameraType::Custom)
 {
 }
 
@@ -47,6 +48,15 @@ bool cGlobal::Init(HWND hwnd)
 {
 	m_config.Read("carnavi_config.txt");
 	g_mediaDir = m_config.GetString("media_path", "D:\\media\\data");
+
+	// read camera information
+	for (int i = 0; i < (int)eCameraType::MAX; ++i)
+	{
+		string key1 = common::format("view_camera%d_lookat_y", i);
+		string key2 = common::format("view_camera%d_distance", i);
+		m_camInfo[i].lookAtY = m_config.GetFloat(key1, -0.5f);
+		m_camInfo[i].distance = m_config.GetFloat(key2, 30.f);
+	}
 
 	m_timer.Create();
 	m_touch.Init(hwnd);

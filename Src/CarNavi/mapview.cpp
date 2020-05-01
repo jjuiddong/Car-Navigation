@@ -160,11 +160,8 @@ void cMapView::UpdateGPS(const float deltaSeconds)
 	m_gpsInfo = gpsInfo;
 	m_curGpsPos = gpsInfo.lonLat;
 
-	static Vector2d oldGpsPos;
 	static Vector2d oldGpsPos2; // for trace gps position
 	static Vector3 oldEyePos;
-	if (oldGpsPos.IsEmpty())
-		oldGpsPos = m_curGpsPos;
 	if (oldGpsPos2.IsEmpty())
 		oldGpsPos2 = m_curGpsPos;
 
@@ -197,13 +194,12 @@ void cMapView::UpdateGPS(const float deltaSeconds)
 	// lookAt이 바뀜에 따라 카메라 위치도 기존 거리를 유지하며 이동한다.
 	g_root.m_lonLat = Vector2((float)m_curGpsPos.x, (float)m_curGpsPos.y);
 	const Vector3 pos = m_quadTree.Get3DPos(m_curGpsPos);
-	const Vector3 oldPos = m_quadTree.Get3DPos(oldGpsPos);
 	const Vector3 oldPos2 = m_quadTree.Get3DPos(oldGpsPos2);
 
 	const bool isTraceGPSPos = g_global->m_isTraceGPSPos
 		&& !m_mouseDown[0] && !m_mouseDown[1] 
 		&& (g_global->m_touch.m_type != eTouchType::Gesture);
-	if (!isTraceGPSPos)
+	if (!isTraceGPSPos && (g_global->m_camType == eCameraType::Custom))
 		m_lookAtYVector = 0;
 
 	if (isTraceGPSPos && (m_lookAtYVector == 0.f))
@@ -213,8 +209,8 @@ void cMapView::UpdateGPS(const float deltaSeconds)
 	// 최근 이동 궤적에서 n개의 벡터를 평균해서 최종 방향을 결정한다. (가중치 평균)
 	Vector3 avrDir;
 	{
-		// 최근 n1개 50% 가중치
-		// 나머지 n2개 50% 가중치
+		// 최근 n1개 80% 가중치
+		// 나머지 n2개 20% 가중치
 		const int n1 = 5;
 		const int n2 = 5;
 		const float r1 = 80.f / (float)n1;
@@ -243,15 +239,24 @@ void cMapView::UpdateGPS(const float deltaSeconds)
 	Vector3 dir = (g_global->m_isRotateTrace) ? avrDir : m_camera.GetDirection();
 	dir.y = m_lookAtYVector;
 	const float lookAtDis = pos.Distance(m_camera.GetEyePos());
-	const float offsetY = max(1.f, min(8.f, (lookAtDis - 25.f) * 0.2f));
+	const float offsetY = (g_global->m_camType == eCameraType::Camera1)?
+		0.2f : max(1.f, min(8.f, (lookAtDis - 25.f) * 0.2f));
 	const Vector3 lookAtPos = pos + Vector3(0, offsetY, 0);
 	Vector3 newEyePos = lookAtPos + dir * -m_lookAtDistance;
+	const float newY = m_quadTree.Get3DPos(m_quadTree.GetWGS84(newEyePos)).y;
+	newEyePos.y = max(newEyePos.y, newY + 0.1f);
+
 	float cameraSpeed = 30.f;
 	const float eyeDistance = newEyePos.Distance(m_camera.GetEyePos());
 	if (eyeDistance > m_lookAtDistance * 3)
 		cameraSpeed = eyeDistance * 1.f;
 	//newEyePos.y = pos.y + offsetY;
 
+	//m_lookAtDistance = 3.f;
+	//m_lookAtYVector = -0.01f;
+
+
+	// 짧은 시간에 차이가 큰 값이 들어오면 무시한다.
 	const Vector3 p0(pos.x, 0, pos.z);
 	const Vector3 p1(oldPos2.x, 0, oldPos2.z);
 	const bool isIgnoreTrace = (p1.Distance(p0) > MAX_LENGTH) && (m_gpsUpdateDelta < 3.f);
@@ -265,7 +270,6 @@ void cMapView::UpdateGPS(const float deltaSeconds)
 
 		if (!isIgnoreTrace)
 		{
-			oldGpsPos = m_curGpsPos;
 			oldEyePos = newEyePos;
 		}
 
@@ -276,7 +280,7 @@ void cMapView::UpdateGPS(const float deltaSeconds)
 		m_camera.Move(oldEyePos, lookAtPos, cameraSpeed);
 	}
 
-	// 이동궤적 저장
+	// save move path
 	// 그전 위치와 거의 같다면 저장하지 않는다.
 	{
 		auto &track = g_global->m_gpsClient.m_paths;
@@ -456,7 +460,7 @@ void cMapView::OnPreRender(const float deltaSeconds)
 
 		// render track pos
 		auto &track = g_global->m_gpsClient.m_paths;
-		if (!track.empty())
+		if (!track.empty() && (g_global->m_camType != eCameraType::Camera1))
 		{
 			renderer.GetDevContext()->OMSetDepthStencilState(states.DepthNone(), 0);
 
@@ -498,6 +502,7 @@ void cMapView::OnPreRender(const float deltaSeconds)
 		} // ~if trackpos
 
 		// latLong position
+		if (g_global->m_camType != eCameraType::Camera1)
 		{
 			const Vector3 p0 = m_quadTree.Get3DPos({ (double)g_root.m_lonLat.x, (double)g_root.m_lonLat.y });
 			renderer.m_dbgLine.SetColor(cColor::WHITE);
@@ -658,7 +663,7 @@ void cMapView::OnRender(const float deltaSeconds)
 	// Render Information
 	ImGui::SetNextWindowPos(ImVec2(pos.x, pos.y + guageH + dateH));
 	ImGui::SetNextWindowBgAlpha(0.f);
-	ImGui::SetNextWindowSize(ImVec2(min(m_viewRect.Width(), 350.f), m_viewRect.Height()));
+	ImGui::SetNextWindowSize(ImVec2(min(m_viewRect.Width(), 400.f), m_viewRect.Height()));
 	if (ImGui::Begin("Map Information", &isOpen, flags))
 	{
 		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
@@ -931,6 +936,17 @@ void cMapView::RenderGraph(const ImVec2 &pos)
 }
 
 
+// change trace camera variable
+void cMapView::ChangeViewCamera(const eCameraType camType)
+{
+	if (eCameraType::Custom != camType)
+	{
+		m_lookAtDistance = g_global->m_camInfo[(int)camType].distance;
+		m_lookAtYVector = g_global->m_camInfo[(int)camType].lookAtY;
+	}
+}
+
+
 void cMapView::OnResizeEnd(const framework::eDockResize::Enum type, const sRectf &rect) 
 {
 	if (type == eDockResize::DOCK_WINDOW)
@@ -1004,7 +1020,9 @@ void cMapView::UpdateCameraTraceLookat(
 )
 {
 	auto &track = g_global->m_gpsClient.m_paths;
-	if (g_global->m_isTraceGPSPos && !track.empty())
+	if (g_global->m_isTraceGPSPos 
+		&& !track.empty()
+		&& (g_global->m_camType == eCameraType::Custom))
 	{
 		const Vector3 p0 = m_quadTree.Get3DPos(track.back().lonLat);
 		if (isUpdateDistance)
@@ -1073,18 +1091,21 @@ void cMapView::OnMouseMove(const POINT mousePt)
 
 		GetMainCamera().MoveRight(-delta.x * m_rotateLen * 0.001f);
 		GetMainCamera().MoveFrontHorizontal(delta.y * m_rotateLen * 0.001f);
+		UpdateCameraTraceLookat();
 	}
 	else if (m_mouseDown[1])
 	{
 		const float scale = (m_isGestureInput)? 0.001f : 0.005f;
 		m_camera.Yaw2(delta.x * scale, Vector3(0, 1, 0));
 		m_camera.Pitch2(delta.y * scale, Vector3(0, 1, 0));
+		UpdateCameraTraceLookat();
 	}
 	else if (m_mouseDown[2])
 	{
 		const float len = GetMainCamera().GetDistance();
 		GetMainCamera().MoveRight(-delta.x * len * 0.001f);
 		GetMainCamera().MoveUp(delta.y * len * 0.001f);
+		UpdateCameraTraceLookat();
 	}
 
 	// 지형보다 아래에 카메라가 위치하면, 높이를 조절한다.
@@ -1096,8 +1117,6 @@ void cMapView::OnMouseMove(const POINT mousePt)
 		const Vector3 newPos(eyePos.x, h + offset, eyePos.z);
 		m_camera.SetEyePos(newPos);
 	}
-
-	UpdateCameraTraceLookat();
 }
 
 
