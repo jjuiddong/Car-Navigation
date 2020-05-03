@@ -423,7 +423,7 @@ float cQuadTile::GetHeight(const Vector2 &uv) const
 	{
 		// original relation position by uv
 		const Vector2 pos = Vector2(m_rect.left + m_rect.Width() * uv.x
-			, m_rect.top + m_rect.Height() * (uv.y - 1.f));
+			, m_rect.top - (m_rect.Height() * (uv.y - 1.f)));
 
 		// parent tile rect
 		const common::sRectf prect = cQuadTree<cQuadTile>::GetNodeRect(

@@ -44,13 +44,13 @@ cMapView::~cMapView()
 
 bool cMapView::Init(cRenderer &renderer) 
 {
-	//const Vector3 eyePos(331843.563f, 478027.719f, 55058.8672f);
-	//const Vector3 lookAt(331004.031f, 0.000000000f, 157745.281f);
 	const Vector3 eyePos(3040.59766f, 10149.6260f, -4347.90381f);
 	const Vector3 lookAt(2825.30078f, 0.000000000f, 2250.73193f);
 	m_camera.SetCamera(eyePos, lookAt, Vector3(0, 1, 0));
 	m_camera.SetProjection(MATH_PI / 4.f, m_rect.Width() / m_rect.Height(), 0.1f, 100000.f);
 	m_camera.SetViewPort(m_rect.Width(), m_rect.Height());
+	m_camera.m_kp = g_global->m_config.GetFloat("camera_kp", 1.5f);
+	m_camera.m_kd = g_global->m_config.GetFloat("camera_kd", 0.f);
 
 	sf::Vector2u size((u_int)m_rect.Width() - 15, (u_int)m_rect.Height() - 50);
 	cViewport vp = renderer.m_viewPort;
@@ -58,6 +58,8 @@ bool cMapView::Init(cRenderer &renderer)
 	vp.m_vp.Height = (float)size.y;
 	m_renderTarget.Create(renderer, vp, DXGI_FORMAT_R8G8B8A8_UNORM, true, true
 		, DXGI_FORMAT_D24_UNORM_S8_UINT);
+
+	GetMainLight().Init(cLight::LIGHT_DIRECTIONAL);
 
 	if (!m_quadTree.Create(renderer, true))
 		return false;
@@ -160,6 +162,9 @@ void cMapView::UpdateGPS(const float deltaSeconds)
 	m_gpsInfo = gpsInfo;
 	m_curGpsPos = gpsInfo.lonLat;
 
+	if (!g_global->m_obd.IsOpened()) // if not connect OBD2, update from gps info
+		g_global->m_speed = (int)gpsInfo.speed;
+
 	static Vector2d oldGpsPos2; // for trace gps position
 	static Vector3 oldEyePos;
 	if (oldGpsPos2.IsEmpty())
@@ -246,16 +251,6 @@ void cMapView::UpdateGPS(const float deltaSeconds)
 	const float newY = m_quadTree.Get3DPos(m_quadTree.GetWGS84(newEyePos)).y;
 	newEyePos.y = max(newEyePos.y, newY + 0.1f);
 
-	float cameraSpeed = 30.f;
-	const float eyeDistance = newEyePos.Distance(m_camera.GetEyePos());
-	if (eyeDistance > m_lookAtDistance * 3)
-		cameraSpeed = eyeDistance * 1.f;
-	//newEyePos.y = pos.y + offsetY;
-
-	//m_lookAtDistance = 3.f;
-	//m_lookAtYVector = -0.01f;
-
-
 	// 짧은 시간에 차이가 큰 값이 들어오면 무시한다.
 	const Vector3 p0(pos.x, 0, pos.z);
 	const Vector3 p1(oldPos2.x, 0, oldPos2.z);
@@ -266,7 +261,7 @@ void cMapView::UpdateGPS(const float deltaSeconds)
 	{
 		// 제스처 입력 시에는 카메라를 자동으로 움직이지 않는다.
 		if (isTraceGPSPos && !avrDir.IsEmpty() && !isIgnoreTrace && (m_lookAtYVector != 0))
-			m_camera.Move(newEyePos, lookAtPos, cameraSpeed);
+			m_camera.Move(newEyePos, lookAtPos);
 
 		if (!isIgnoreTrace)
 		{
@@ -277,7 +272,7 @@ void cMapView::UpdateGPS(const float deltaSeconds)
 	}
 	else if (isTraceGPSPos && !avrDir.IsEmpty() && !isIgnoreTrace && (m_lookAtYVector != 0))
 	{
-		m_camera.Move(oldEyePos, lookAtPos, cameraSpeed);
+		m_camera.Move(oldEyePos, lookAtPos);
 	}
 
 	// save move path
@@ -486,12 +481,13 @@ void cMapView::OnPreRender(const float deltaSeconds)
 					continue;
 
 				// 카메라와의 거리대비, 간격이 좁은 위치는 출력하지 않는다.
-				// 마지막 20개의 위치는 출력한다.
+				// 마지막 50개의 위치는 출력한다.
 				if ((len / camLen < 0.05f) 
-					&& (i < (int)(track.size() - 20)))
+					&& (i < (int)(track.size() - 50)))
 					continue;
 
-				renderer.m_dbgLine.SetLine(prevPos, p1, 0.06f);
+				const float lineWidth = (camLen / 30.f) * 0.06f;
+				renderer.m_dbgLine.SetLine(prevPos, p1, lineWidth);
 				renderer.m_dbgLine.Render(renderer);
 				prevPos = p1;
 			}
@@ -633,7 +629,9 @@ void cMapView::OnRender(const float deltaSeconds)
 	ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 0));
 	if (g_global->m_isShowMapView)
 	{
-		ImGui::Image(m_renderTarget.m_resolvedSRV, ImVec2(m_rect.Width() - 15, m_rect.Height() - 42));
+		ImGui::Image(m_renderTarget.m_resolvedSRV, ImVec2(m_rect.Width() - 15, m_rect.Height() - 42)
+			, ImVec2(0,0), ImVec2(1,1)
+			, g_global->m_isDarkMode? *(ImVec4*)&g_global->m_darkColor : ImVec4(1,1,1,1));
 
 		RenderRPMGuage(pos, guageH, deltaSeconds);
 
@@ -642,7 +640,7 @@ void cMapView::OnRender(const float deltaSeconds)
 		if (ImGui::Begin("Car Information", &isOpen, flags))
 		{
 			// render datetime
-			ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1, 1, 1, 1));
+			ImGui::PushStyleColor(ImGuiCol_Text, g_global->m_isDarkMode ? ImVec4(1,1,1,0.1f) : ImVec4(1,1,1,1));
 			ImGui::PushFont(m_owner->m_fontBig);
 			const string dateTime = common::GetCurrentDateTime5();
 			ImGui::SetCursorPos(ImVec2(pos.x, 10 + guageH));
@@ -666,8 +664,9 @@ void cMapView::OnRender(const float deltaSeconds)
 	ImGui::SetNextWindowSize(ImVec2(min(m_viewRect.Width(), 400.f), m_viewRect.Height()));
 	if (ImGui::Begin("Map Information", &isOpen, flags))
 	{
+		ImGui::PushStyleColor(ImGuiCol_Text, g_global->m_isDarkMode ? ImVec4(1, 1, 1, 0.1f) : ImVec4(1, 1, 1, 1));
 		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1, 1, 0, 1));
+		ImGui::PushStyleColor(ImGuiCol_Text, g_global->m_isDarkMode ? ImVec4(1, 1, 0, 0.1f) : ImVec4(1, 1, 0, 1));
 
 		const char *touchStr[] = { "Touch" ,"Gesture", "Mouse" };
 		ImGui::Text("%s", touchStr[(int)g_global->m_touch.m_type]);
@@ -685,6 +684,7 @@ void cMapView::OnRender(const float deltaSeconds)
 
 		g_global->m_naviView->OnRender(deltaSeconds);
 
+		ImGui::PopStyleColor();
 		ImGui::End();
 	}
 

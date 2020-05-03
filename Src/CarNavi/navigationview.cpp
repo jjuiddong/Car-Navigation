@@ -66,28 +66,43 @@ void cNavigationView::OnRender(const float deltaSeconds)
 	static bool isDetailOption = false;
 	ImGui::Checkbox("Detail Setting", &isDetailOption);
 
-	ImGui::SameLine();
-	if (ImGui::RadioButton("custom", (int*)&g_global->m_camType, (int)eCameraType::Custom))
-		g_global->m_mapView->ChangeViewCamera(eCameraType::Custom);
-	ImGui::SameLine();
-	if (ImGui::RadioButton("cam1", (int*)&g_global->m_camType, (int)eCameraType::Camera1))
-		g_global->m_mapView->ChangeViewCamera(eCameraType::Camera1);
-	ImGui::SameLine();
-	if (ImGui::RadioButton("cam2", (int*)&g_global->m_camType, (int)eCameraType::Camera2))
-		g_global->m_mapView->ChangeViewCamera(eCameraType::Camera2);
-	ImGui::SameLine();
-	if (ImGui::RadioButton("cam3", (int*)&g_global->m_camType, (int)eCameraType::Camera3))
-		g_global->m_mapView->ChangeViewCamera(eCameraType::Camera3);
+	// camera view selection button
+	const ImGuiWindowFlags flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoBackground;
+	ImGui::SetNextWindowPos(ImVec2(g_global->m_mapView->m_viewRect.right - 260.f
+		, g_global->m_mapView->m_viewRect.bottom - 35.f));
+	ImGui::SetNextWindowSize(ImVec2(360, 35));
+	if (ImGui::Begin("Camera Setting", nullptr, flags))
+	{
+		if (ImGui::RadioButton("custom", (int*)&g_global->m_camType, (int)eCameraType::Custom))
+			g_global->m_mapView->ChangeViewCamera(eCameraType::Custom);
+		ImGui::SameLine();
+		if (ImGui::RadioButton("c1", (int*)&g_global->m_camType, (int)eCameraType::Camera1))
+			g_global->m_mapView->ChangeViewCamera(eCameraType::Camera1);
+		ImGui::SameLine();
+		if (ImGui::RadioButton("c2", (int*)&g_global->m_camType, (int)eCameraType::Camera2))
+			g_global->m_mapView->ChangeViewCamera(eCameraType::Camera2);
+		ImGui::SameLine();
+		if (ImGui::RadioButton("c3", (int*)&g_global->m_camType, (int)eCameraType::Camera3))
+			g_global->m_mapView->ChangeViewCamera(eCameraType::Camera3);
+		ImGui::SameLine();
+		if (ImGui::RadioButton("c4", (int*)&g_global->m_camType, (int)eCameraType::Camera4))
+			g_global->m_mapView->ChangeViewCamera(eCameraType::Camera4);
 
+		ImGui::End();
+	}
+	//
 
 	cTerrainQuadTree &terrain = g_global->m_mapView->m_quadTree;
 	cGpsClient &gpsClient = g_global->m_gpsClient;
 
-	ImGui::RadioButton("Serial", (int*)&gpsClient.m_inputType
-		, (int)cGpsClient::eInputType::Serial);
-	ImGui::SameLine();
-	ImGui::RadioButton("Network", (int*)&gpsClient.m_inputType
-		, (int)cGpsClient::eInputType::Network);
+	if (isDetailOption)
+	{
+		ImGui::RadioButton("Serial", (int*)&gpsClient.m_inputType
+			, (int)cGpsClient::eInputType::Serial);
+		ImGui::SameLine();
+		ImGui::RadioButton("Network", (int*)&gpsClient.m_inputType
+			, (int)cGpsClient::eInputType::Network);
+	}
 
 	const int width = 200;
 	ImVec2 wndSize = ImVec2(width, 35);
@@ -99,7 +114,10 @@ void cNavigationView::OnRender(const float deltaSeconds)
 			wndSize = ImVec2(width, 145);
 	}
 
-	const ImVec4 bgColor = gpsClient.IsConnect() ? ImVec4(0, 1, 0, 0.7f) : ImVec4(1, 0, 0, 0.7f);
+	ImVec4 bgColor = gpsClient.IsConnect()? ImVec4(0, 1, 0, 0.7f) : ImVec4(1, 0, 0, 0.7f);
+	if (g_global->m_isDarkMode)
+		bgColor.w = 0.1f;
+
 	ImGui::PushStyleColor(ImGuiCol_ChildBg, bgColor);
 
 	if (ImGui::BeginChild("Input Device", wndSize))
@@ -226,6 +244,7 @@ void cNavigationView::OnRender(const float deltaSeconds)
 	ImGui::Checkbox("Trace Rotate", &g_global->m_isRotateTrace);
 	ImGui::Checkbox("Show LandMark", &g_global->m_isShowLandMark);
 	ImGui::Checkbox("Show LandMark2", &g_global->m_isShowLandMark2);
+	ImGui::Checkbox("Black Mode", &g_global->m_isDarkMode);
 
 	//ImGui::Separator();
 

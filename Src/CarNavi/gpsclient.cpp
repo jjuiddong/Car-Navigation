@@ -31,7 +31,7 @@ bool cGpsClient::Init()
 	m_port = g_global->m_config.GetInt("gps_server_port", 60660);
 	m_inputType = (eInputType)g_global->m_config.GetInt("gps_input_type", 0);
 
-	//GpsReplay();
+	GpsReplay();
 
 	return true;
 }
@@ -155,9 +155,10 @@ bool cGpsClient::GetGpsInfo(OUT gis::sGPRMC &out)
 
 	case eInputType::GpsFile:
 	{
+		const float updateTime = 0.005f;// 0.001f;
 		if (m_gpsFs.is_open() 
 			&& !m_gpsFs.eof()
-			&& ((curT - m_recvTime) > 0.001f))
+			&& ((curT - m_recvTime) > updateTime))
 		{
 			m_recvTime = curT;
 

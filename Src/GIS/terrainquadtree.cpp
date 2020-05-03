@@ -39,7 +39,7 @@ cTerrainQuadTree::cTerrainQuadTree()
 	, m_isShowDistribute(true)
 	, m_isRenderOptimize(false)
 	, m_optimizeLevel(cQuadTree<sQuadData>::MAX_LEVEL)
-	, m_techniqType(0)
+	, m_techniqType(4)
 	, m_distributeType(0)
 	, m_fps(0)
 	, m_calcOptimizeTime(0)
@@ -404,7 +404,7 @@ void cTerrainQuadTree::RenderQuad(graphic::cRenderer &renderer
 {
 	cShader11 *shader = renderer.m_shaderMgr.FindShader(eVertexType::POSITION);
 	assert(shader);
-	shader->SetTechnique("Unlit");
+	shader->SetTechnique("Light");// "Unlit");
 	shader->Begin();
 	shader->BeginPass(renderer, 0);
 
@@ -879,7 +879,7 @@ Vector3 cTerrainQuadTree::Get3DPos(const Vector2d &lonLat)
 		cQuadTile *tile = node->data.tile;
 
 		const float u = (relPos.x - tile->m_rect.left) / tile->m_rect.Width();
-		const float v = 1.f + (tile->m_rect.top - relPos.z) / tile->m_rect.Height();
+		const float v = 1.f + ((tile->m_rect.top - relPos.z) / tile->m_rect.Height());
 		relPos.y = tile->GetHeight(Vector2(u, v)) * 2500.f;
 	}
 

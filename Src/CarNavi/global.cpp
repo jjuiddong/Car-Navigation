@@ -32,6 +32,8 @@ cGlobal::cGlobal()
 	, m_gear(0)
 	, m_obdRcvCnt(0)
 	, m_isDebugMode(false)
+	, m_isDarkMode(false)
+	, m_darkColor(0.1f, 0.1f, 0.1f, 1.f)
 	, m_camType(eCameraType::Custom)
 {
 }
@@ -57,6 +59,9 @@ bool cGlobal::Init(HWND hwnd)
 		m_camInfo[i].lookAtY = m_config.GetFloat(key1, -0.5f);
 		m_camInfo[i].distance = m_config.GetFloat(key2, 30.f);
 	}
+
+	const float darkColor = m_config.GetFloat("darkcolor", 0.1f);
+	m_darkColor = Vector4(darkColor, darkColor, darkColor, 1.f);
 
 	m_timer.Create();
 	m_touch.Init(hwnd);

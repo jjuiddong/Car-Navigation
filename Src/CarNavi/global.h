@@ -19,6 +19,7 @@ enum class eCameraType : int
 	, Camera1 // first person view
 	, Camera2
 	, Camera3
+	, Camera4
 	, MAX
 };
 
@@ -123,6 +124,8 @@ public:
 
 	// option
 	bool m_isDebugMode;
+	bool m_isDarkMode; // screen dark mode
+	Vector4 m_darkColor;
 
 	cShapefileLoader m_shape;
 
