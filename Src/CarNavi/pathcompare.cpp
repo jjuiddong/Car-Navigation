@@ -120,7 +120,7 @@ bool cPathCompare::SearchSimilarPath(const uint id
 )
 {
 	// limit distance is 30m
-	const float LIMIT = gis::Meter23DUnit(30.f);	
+	const float LIMIT = gis::Meter23DUnit(30.f);
 
 	for (uint i=0; i < paths.size(); ++i)
 	{

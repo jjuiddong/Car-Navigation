@@ -29,6 +29,8 @@ protected:
 	void UpdateOBD2(const float deltaSeconds);
 	void UpdateMapScanning(const float deltaSeconds);
 	void UpdateMapTrace(const float deltaSeconds);
+	void MoveCamera(const Vector3 &newPos, const float camSpeed, const bool isPredict=false);
+
 	void UpdateCameraTraceLookat(const bool isUpdateDistance = true);
 	void UpdateLookAt();
 	void OnWheelMove(const float delta, const POINT mousePt);
@@ -66,6 +68,7 @@ public:
 	float m_lookAtDistance;
 	float m_lookAtYVector;
 	Vector3 m_avrDir;
+	Vector3 m_curDir;
 	bool m_isGestureInput;
 	float m_gpsUpdateDelta;
 

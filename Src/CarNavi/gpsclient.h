@@ -18,8 +18,8 @@ public:
 	bool GetGpsInfo(OUT gis::sGPRMC &out);
 	bool GetGpsInfoFromFile(OUT gis::sGPRMC &out);
 	bool GpsReplay();
-	bool FileReplay();
-	bool StopFileReplay();
+	bool PathFileReplay();
+	bool StopPathFileReplay();
 	bool IsConnect();
 	bool IsGpsReplay();
 	bool IsPathReplay();
@@ -44,9 +44,7 @@ public:
 	Str16 m_ip;
 	int m_port;
 	network2::cTcpClient m_client;
-	// serial
 	common::cSerialAsync m_serial;
-	// gps file
 	std::ifstream m_gpsFs; // gps file input stream
 
 	Str512 m_recvStr;
@@ -59,7 +57,12 @@ public:
 	struct sPath {
 		uint64 t; // yyyymmddhhmmssmmm
 		Vector2d lonLat;
+		float speed;
 	};
 	vector<sPath> m_paths;
+	vector<sPath> m_pathReplayData;
 	int m_fileAnimationIdx;
+	gis::sGPRMC m_gpsInfo;
+	common::cDateTime2 m_prevDateTime;
+	common::cDateTime2 m_prevGpsDateTime;
 };

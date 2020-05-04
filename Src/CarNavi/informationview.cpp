@@ -110,14 +110,14 @@ void cInformationView::OnRender(const float deltaSeconds)
 		{
 			if (ImGui::Button("End File Trace"))
 			{
-				g_global->m_gpsClient.StopFileReplay();
+				g_global->m_gpsClient.StopPathFileReplay();
 			}
 		}
 		else
 		{
 			if (ImGui::Button("Start File Trace"))
 			{
-				g_global->m_gpsClient.FileReplay();
+				g_global->m_gpsClient.PathFileReplay();
 				g_global->m_prevTracePos = Vector3::Zeroes;
 			}
 		}

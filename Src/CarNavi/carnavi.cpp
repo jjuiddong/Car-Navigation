@@ -93,7 +93,7 @@ bool cViewer::OnInit()
 	m_gui.SetContext();
 	m_gui.SetStyleColorsDark();
 
-	//ShowWindow(getSystemHandle(), SW_MAXIMIZE);
+	ShowWindow(getSystemHandle(), SW_MAXIMIZE);
 	//g_global->ConvertTrackPos2Path();
 
 	//double totDistance = 0.f;

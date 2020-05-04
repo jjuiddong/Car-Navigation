@@ -31,7 +31,9 @@ bool cGpsClient::Init()
 	m_port = g_global->m_config.GetInt("gps_server_port", 60660);
 	m_inputType = (eInputType)g_global->m_config.GetInt("gps_input_type", 0);
 
-	GpsReplay();
+	//GpsReplay();
+	//ReadPathFile("path/path_20200502-1.txt");
+	//PathFileReplay();
 
 	return true;
 }
@@ -63,9 +65,6 @@ return result;
 
 bool cGpsClient::GetGpsInfo(OUT gis::sGPRMC &out)
 {
-	if (eInputType::PathFile == m_inputType)
-		return false;
-
 	if (!IsConnect())
 	{
 		m_recvTime = 0.f;
@@ -94,7 +93,9 @@ bool cGpsClient::GetGpsInfo(OUT gis::sGPRMC &out)
 			return false;
 		}
 
-		memcpy(m_recvStr.m_str, packet.m_data, min(m_recvStr.SIZE, (uint)packet.m_writeIdx));
+		memcpy(m_recvStr.m_str, packet.m_data, min(m_recvStr.SIZE-1, (uint)packet.m_writeIdx));
+		m_recvStr.m_str[min(m_recvStr.SIZE - 1, (uint)packet.m_writeIdx)] = NULL;
+
 		if (ParseStr(m_recvStr, out))
 		{
 			if (out.speed == 0.f)
@@ -122,22 +123,16 @@ bool cGpsClient::GetGpsInfo(OUT gis::sGPRMC &out)
 	{
 		while (1)
 		{
-			//int len = 0;
-			//const bool result = m_serial.m_serial.ReadStringUntil('\n'
-			//	, m_recvStr.m_str, len, m_recvStr.SIZE);
-			//if (!result || (len <= 0))
-			//	break;
 			const uint len = m_serial.RecvData((BYTE*)m_recvStr.m_str
-				, m_recvStr.SIZE);
+				, m_recvStr.SIZE - 1);
 			if (len == 0)
 				break;
 
-			if (m_recvStr.SIZE > len)
-				m_recvStr.m_str[len] = NULL;
-
+			m_recvStr.m_str[min(m_recvStr.SIZE - 1, len)] = NULL;
 			m_recvTime = curT;
 
-			dbg::Logp2("gps.txt", m_recvStr.c_str());
+			const string date = common::GetCurrentDateTime();
+			dbg::Logp2("gps.txt", "%s, %s", date.c_str(), m_recvStr.c_str());
 
 			gis::sGPRMC tmp;
 			if (ParseStr(m_recvStr, tmp))
@@ -155,8 +150,8 @@ bool cGpsClient::GetGpsInfo(OUT gis::sGPRMC &out)
 
 	case eInputType::GpsFile:
 	{
-		const float updateTime = 0.005f;// 0.001f;
-		if (m_gpsFs.is_open() 
+		const float updateTime = 0.005f;
+		if (m_gpsFs.is_open()
 			&& !m_gpsFs.eof()
 			&& ((curT - m_recvTime) > updateTime))
 		{
@@ -183,6 +178,40 @@ bool cGpsClient::GetGpsInfo(OUT gis::sGPRMC &out)
 	}
 	break;
 
+	case eInputType::PathFile:
+	{
+		if (0 == m_gpsInfo.date)
+		{
+			if (GetGpsInfoFromFile(m_gpsInfo))
+			{
+				isRead = true;
+				out = m_gpsInfo;
+				m_prevDateTime = cDateTime2::Now();
+				m_prevGpsDateTime.SetTime(m_gpsInfo.date);
+
+				if (!GetGpsInfoFromFile(m_gpsInfo))
+					m_gpsInfo.date = 0; // end of file
+			}
+		}
+		else
+		{
+			const cDateTime2 curDateTime = cDateTime2::Now();
+			const cDateTime2 dt1 = curDateTime - m_prevDateTime;
+			const cDateTime2 dt2 = cDateTime2(m_gpsInfo.date) - m_prevGpsDateTime;
+			if (dt2 < dt1)
+			{
+				isRead = true;
+				out = m_gpsInfo;
+				m_prevDateTime = curDateTime;
+				m_prevGpsDateTime.SetTime(m_gpsInfo.date);
+
+				if (!GetGpsInfoFromFile(m_gpsInfo))
+					m_gpsInfo.date = 0; // end of file
+			}
+		}
+	}
+	break;
+
 	default: assert(0); break;
 	}
 
@@ -201,22 +230,20 @@ bool cGpsClient::GpsReplay()
 
 	m_inputType = eInputType::GpsFile;
 
-	string line;
-	for (int i = 0; i < 40000; ++i)
-		getline(m_gpsFs, line);
-
 	return true;
 }
 
 
-bool cGpsClient::FileReplay() 
+bool cGpsClient::PathFileReplay()
 {
 	m_inputType = eInputType::PathFile;
+	m_fileAnimationIdx = 21;
+	m_gpsInfo.date = 0;
 	return true;
 }
 
 
-bool cGpsClient::StopFileReplay()
+bool cGpsClient::StopPathFileReplay()
 {
 	m_inputType = eInputType::Serial;
 	m_fileAnimationIdx = 0; 
@@ -242,29 +269,30 @@ bool cGpsClient::IsServer()
 }
 
 
-// 파일에서 GPS정보를 읽어온다.
+// Path 파일에서 GPS정보를 읽어온다.
 bool cGpsClient::GetGpsInfoFromFile(OUT gis::sGPRMC &out)
 {
-	if (m_fileAnimationIdx >= (int)m_paths.size())
+	if (m_fileAnimationIdx >= (int)m_pathReplayData.size())
 		return false;
 
 	static Vector2d oldLonLat;
-	while (m_fileAnimationIdx < (int)m_paths.size())
+	while (m_fileAnimationIdx < (int)m_pathReplayData.size())
 	{
-		const Vector2d lonLat = m_paths[m_fileAnimationIdx++].lonLat;
-		if (lonLat.IsEmpty())
+		const sPath &path = m_pathReplayData[m_fileAnimationIdx++];
+		if (path.lonLat.IsEmpty())
 			continue;
 
-		if (oldLonLat != lonLat)
+		if (oldLonLat != path.lonLat)
 		{
 			out.available = true;
-			out.lonLat = lonLat;
-			oldLonLat = lonLat;
-			break;
+			out.date = path.t;
+			out.lonLat = path.lonLat;
+			out.speed = path.speed;
+			oldLonLat = path.lonLat;
+			return true;
 		}
 	}
-	out.speed = 0.f;
-	return true;
+	return false;
 }
 
 
@@ -278,6 +306,8 @@ bool cGpsClient::IsConnect()
 		return m_serial.IsOpen();
 	case eInputType::GpsFile:
 		return true;
+	case eInputType::PathFile:
+		return true;
 	default: assert(0); break;
 	}
 	return false;
@@ -290,6 +320,19 @@ bool cGpsClient::IsReadyConnect()
 }
 
 
+// parse NMEA protocol
+// $GPRMC
+//	- lon/lat
+//	- speed
+// $GPATT
+// $GPVTG
+// $GPGGA
+//	- altitude
+// $GPGSA
+// reference
+//	- http://www.ndgps.go.kr/_prog/_board/index.php?mode=V&no=696&code=dgps1&site_dvs_cd=kr&menu_dvs_cd=&skey=&sval=&GotoPage=8
+//	- https://m.blog.naver.com/PostView.nhn?blogId=thefeel777&logNo=130109531670&proxyReferer=https:%2F%2Fwww.google.com%2F
+//  - http://aprs.gids.nl/nmea/
 bool cGpsClient::ParseStr(const Str512 &str, OUT gis::sGPRMC &out)
 {
 	vector<string> lines;
@@ -335,14 +378,11 @@ bool cGpsClient::ReadPathFile(const char *fileName)
 	if (!ifs.is_open())
 		return false;
 
-	m_paths.clear();
-	m_paths.reserve(1024);
+	m_pathReplayData.clear();
+	m_pathReplayData.reserve(1024);
 
-	int cnt = 0;
 	string line;
-	while (getline(ifs, line) 
-		//&& (cnt++ < 10000)
-		)
+	while (getline(ifs, line))
 	{
 		vector<string> out;
 		common::tokenizer(line, ",", "", out);
@@ -353,10 +393,13 @@ bool cGpsClient::ReadPathFile(const char *fileName)
 		info.t = common::GetCurrentDateTime6(out[0]);
 		info.lonLat.x = atof(out[1].c_str());
 		info.lonLat.y = atof(out[2].c_str());
+		if (out.size() > 3)
+			info.speed = (float)atof(out[3].c_str());
+
 		if (info.lonLat.IsEmpty())
 			continue;
 
-		m_paths.push_back(info);
+		m_pathReplayData.push_back(info);
 	}
 
 	return true;
