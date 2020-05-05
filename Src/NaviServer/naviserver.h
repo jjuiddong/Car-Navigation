@@ -19,6 +19,8 @@ public:
 protected:
 	// gps protocol handler
 	virtual bool GPSInfo(gps::GPSInfo_Packet &packet) override;
+	virtual bool AddLandMark(gps::AddLandMark_Packet &packet) override;
+
 	double WGS84Distance(const Vector2d &lonLat0, const Vector2d &lonLat1);
 
 

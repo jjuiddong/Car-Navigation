@@ -29,6 +29,7 @@ class c2s_ProtocolHandler : virtual public network2::iProtocolHandler
 {
 	friend class c2s_Dispatcher;
 	virtual bool GPSInfo(gps::GPSInfo_Packet &packet) { return true; }
+	virtual bool AddLandMark(gps::AddLandMark_Packet &packet) { return true; }
 };
 
 

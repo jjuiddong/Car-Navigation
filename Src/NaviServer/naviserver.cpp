@@ -146,6 +146,27 @@ bool cNaviServer::GPSInfo(gps::GPSInfo_Packet &packet)
 }
 
 
+// add landmark
+bool cNaviServer::AddLandMark(gps::AddLandMark_Packet &packet)
+{
+	if (!m_sqlCon.IsConnected())
+		return true; // not connect db
+
+	const int userId = 1;
+	const string dateStr = common::GetCurrentDateTime5();
+
+	const string sql =
+		common::format("INSERT INTO landmark (user_id, date_time, lon, lat)"
+			" VALUES ('%d', '%s', '%f', '%f');"
+			, userId, dateStr.c_str(), packet.lon, packet.lat);
+
+	MySQLQuery query(&m_sqlCon, sql);
+	query.ExecuteInsert();
+
+	return true;
+}
+
+
 // return distance lonLat0 - lonLat2
 // http://www.movable-type.co.uk/scripts/latlong.html
 // return distance (meter unit)

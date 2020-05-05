@@ -32,7 +32,7 @@ bool cGpsClient::Init()
 	m_inputType = (eInputType)g_global->m_config.GetInt("gps_input_type", 0);
 
 	//GpsReplay();
-	//ReadPathFile("path/path_20200502-1.txt");
+	//ReadPathFile("path/path_20200504.txt");
 	//PathFileReplay();
 
 	return true;
@@ -196,8 +196,10 @@ bool cGpsClient::GetGpsInfo(OUT gis::sGPRMC &out)
 		else
 		{
 			const cDateTime2 curDateTime = cDateTime2::Now();
-			const cDateTime2 dt1 = curDateTime - m_prevDateTime;
+			cDateTime2 dt1 = curDateTime - m_prevDateTime;
 			const cDateTime2 dt2 = cDateTime2(m_gpsInfo.date) - m_prevGpsDateTime;
+			dt1.m_t *= 2; // x2 speed up
+
 			if (dt2 < dt1)
 			{
 				isRead = true;
@@ -237,7 +239,7 @@ bool cGpsClient::GpsReplay()
 bool cGpsClient::PathFileReplay()
 {
 	m_inputType = eInputType::PathFile;
-	m_fileAnimationIdx = 21;
+	m_fileAnimationIdx = 0;
 	m_gpsInfo.date = 0;
 	return true;
 }

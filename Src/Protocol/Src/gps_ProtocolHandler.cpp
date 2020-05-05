@@ -38,6 +38,23 @@ bool gps::c2s_Dispatcher::Dispatch(cPacket &packet, const ProtocolHandlers &hand
 		}
 		break;
 
+	case 4019554964:
+		{
+			ProtocolHandlers prtHandler;
+			if (!HandlerMatching<c2s_ProtocolHandler>(handlers, prtHandler))
+				return false;
+
+			SetCurrentDispatchPacket( &packet );
+
+			AddLandMark_Packet data;
+			data.pdispatcher = this;
+			data.senderId = packet.GetSenderId();
+			packet >> data.lon;
+			packet >> data.lat;
+			SEND_HANDLER(c2s_ProtocolHandler, prtHandler, AddLandMark(data));
+		}
+		break;
+
 	default:
 		assert(0);
 		break;

@@ -215,81 +215,6 @@ void cMapView::UpdateGPS(const float deltaSeconds)
 	g_root.m_lonLat = Vector2((float)m_curGpsPos.x, (float)m_curGpsPos.y);
 	const Vector3 pos = m_quadTree.Get3DPos(m_curGpsPos);
 	MoveCamera(pos, 0.f);
-	//const Vector3 oldPos2 = m_quadTree.Get3DPos(oldGpsPos2);
-
-	//const bool isTraceGPSPos = g_global->m_isTraceGPSPos
-	//	&& !m_mouseDown[0] && !m_mouseDown[1] 
-	//	&& (g_global->m_touch.m_type != eTouchType::Gesture);
-	//if (!isTraceGPSPos && (g_global->m_camType == eCameraType::Custom))
-	//	m_lookAtYVector = 0;
-
-	//if (isTraceGPSPos && (m_lookAtYVector == 0.f))
-	//	m_lookAtYVector = m_camera.GetDirection().y;
-
-	//// 카메라 방향을 바꾼다. 이동하는 방향으로 향하게 한다.
-	//// 최근 이동 궤적에서 n개의 벡터를 평균해서 최종 방향을 결정한다. (가중치 평균)
-	//Vector3 avrDir;
-	//{
-	//	// 최근 n1개 80% 가중치
-	//	// 나머지 n2개 20% 가중치
-	//	const int n1 = 5;
-	//	const int n2 = 5;
-	//	const float r1 = 80.f / (float)n1;
-	//	const float r2 = 20.f / (float)n2;
-
-	//	int cnt = 0;
-	//	auto &track = g_global->m_gpsClient.m_paths;
-	//	for (int i = (int)track.size() - 1; (i >= 1) && (cnt < (n1 + n2)); --i, ++cnt)
-	//	{
-	//		const Vector2d &ll0 = track[i - 1].lonLat;
-	//		const Vector2d &ll1 = track[i].lonLat;
-	//		const Vector3 p0 = m_quadTree.Get3DPos(ll0);
-	//		const Vector3 p1 = m_quadTree.Get3DPos(ll1);
-	//		Vector3 d = p1 - p0;
-	//		d.y = 0.f;
-	//		d.Normalize();
-	//		if (cnt < n1)
-	//			avrDir += d * r1;
-	//		else
-	//			avrDir += d * r2;
-	//	}
-	//	avrDir.Normalize();
-	//	m_avrDir = avrDir;
-	//}
-
-	//Vector3 dir = (g_global->m_isRotateTrace) ? avrDir : m_camera.GetDirection();
-	//dir.y = m_lookAtYVector;
-	//const float lookAtDis = pos.Distance(m_camera.GetEyePos());
-	//const float offsetY = (g_global->m_camType == eCameraType::Camera1)?
-	//	0.2f : max(1.f, min(8.f, (lookAtDis - 25.f) * 0.2f));
-	//const Vector3 lookAtPos = pos + Vector3(0, offsetY, 0);
-	//Vector3 newEyePos = lookAtPos + dir * -m_lookAtDistance;
-	//const float newY = m_quadTree.Get3DPos(m_quadTree.GetWGS84(newEyePos)).y;
-	//newEyePos.y = max(newEyePos.y, newY + 0.1f);
-
-	//// 짧은 시간에 차이가 큰 값이 들어오면 무시한다.
-	//const Vector3 p0(pos.x, 0, pos.z);
-	//const Vector3 p1(oldPos2.x, 0, oldPos2.z);
-	//const bool isIgnoreTrace = (p1.Distance(p0) > MAX_LENGTH) && (m_gpsUpdateDelta < 3.f);
-	//m_gpsUpdateDelta = 0.f;
-
-	//if (oldPos2.Distance(pos) > MIN_LENGTH)
-	//{
-	//	// 제스처 입력 시에는 카메라를 자동으로 움직이지 않는다.
-	//	if (isTraceGPSPos && !avrDir.IsEmpty() && !isIgnoreTrace && (m_lookAtYVector != 0))
-	//		m_camera.Move(newEyePos, lookAtPos);
-
-	//	if (!isIgnoreTrace)
-	//	{
-	//		oldEyePos = newEyePos;
-	//	}
-
-	//	oldGpsPos2 = m_curGpsPos;
-	//}
-	//else if (isTraceGPSPos && !avrDir.IsEmpty() && !isIgnoreTrace && (m_lookAtYVector != 0))
-	//{
-	//	m_camera.Move(oldEyePos, lookAtPos);
-	//}
 
 	// save move path
 	// 그전 위치와 거의 같다면 저장하지 않는다.
@@ -581,7 +506,9 @@ void cMapView::OnPreRender(const float deltaSeconds)
 
 		// render track pos
 		auto &track = g_global->m_gpsClient.m_paths;
-		if (!track.empty() && (g_global->m_camType != eCameraType::Camera1))
+		if (!track.empty() 
+			&& (g_global->m_camType != eCameraType::Camera1)
+			&& (g_global->m_touch.m_type != eTouchType::Gesture))
 		{
 			renderer.GetDevContext()->OMSetDepthStencilState(states.DepthNone(), 0);
 
@@ -624,7 +551,8 @@ void cMapView::OnPreRender(const float deltaSeconds)
 		} // ~if trackpos
 
 		// latLong position
-		if (g_global->m_camType != eCameraType::Camera1)
+		if ((g_global->m_camType != eCameraType::Camera1)
+			&& (g_global->m_touch.m_type != eTouchType::Gesture))
 		{
 			const Vector3 p0 = m_quadTree.Get3DPos({ (double)g_root.m_lonLat.x, (double)g_root.m_lonLat.y });
 			renderer.m_dbgLine.SetColor(cColor::WHITE);
@@ -763,15 +691,27 @@ void cMapView::OnRender(const float deltaSeconds)
 	ImGui::SetNextWindowSize(ImVec2(min(m_viewRect.Width(), 400.f), m_viewRect.Height()));
 	if (ImGui::Begin("Map Information", &isOpen, flags))
 	{
-		ImGui::PushStyleColor(ImGuiCol_Text, g_global->m_isDarkMode ? ImVec4(1, 1, 1, 0.1f) : ImVec4(1, 1, 1, 1));
+		ImGui::PushStyleColor(ImGuiCol_Text, g_global->m_isDarkMode ? 
+			ImVec4(1, 1, 1, 0.1f) : ImVec4(1, 1, 1, 1));
 		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-		ImGui::PushStyleColor(ImGuiCol_Text, g_global->m_isDarkMode ? ImVec4(1, 1, 0, 0.1f) : ImVec4(1, 1, 0, 1));
 
+		ImGui::PushStyleColor(ImGuiCol_Text, g_global->m_isDarkMode ? 
+			ImVec4(1, 1, 0, 0.1f) : ImVec4(1, 1, 0, 1));
 		const char *touchStr[] = { "Touch" ,"Gesture", "Mouse" };
 		ImGui::Text("%s", touchStr[(int)g_global->m_touch.m_type]);
 		ImGui::PopStyleColor();
+
+		const bool isNaviSvrConnect = m_naviClient.IsConnect();
+		if (!isNaviSvrConnect)
+		{
+			ImGui::PushStyleColor(ImGuiCol_Text, g_global->m_isDarkMode ? 
+				ImVec4(1, 0, 0, 0.1f) : ImVec4(1, 0, 0, 1));
+		}
+
 		ImGui::SameLine();
 		ImGui::Text("GPS = %.6f, %.6f, (%d)", m_curGpsPos.y, m_curGpsPos.x, m_sendGpsInfo);
+		if (!isNaviSvrConnect)
+			ImGui::PopStyleColor();
 		//ImGui::DragInt("rpm", &g_global->m_rpm);
 
 		if (g_global->m_isShowGPS)
@@ -1257,6 +1197,8 @@ void cMapView::OnMouseDown(const sf::Mouse::Button &button, const POINT mousePt)
 		{
 			g_global->m_landMarkSelectState = 0;
 			g_global->m_landMark.AddLandMark("LandMark", lonLat);
+			if (m_naviClient.IsConnect())
+				m_gpsProtocol.AddLandMark(network2::SERVER_NETID, lonLat.x, lonLat.y);
 		}
 		else if (g_global->m_landMarkSelectState2 == 1)
 		{

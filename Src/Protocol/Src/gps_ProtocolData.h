@@ -20,6 +20,13 @@ using namespace marshalling;
 		float speed;
 	};
 
+	struct AddLandMark_Packet {
+		cProtocolDispatcher *pdispatcher;
+		netid senderId;
+		double lon;
+		double lat;
+	};
+
 
 
 }

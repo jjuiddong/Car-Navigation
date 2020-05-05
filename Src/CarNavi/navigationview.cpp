@@ -68,9 +68,9 @@ void cNavigationView::OnRender(const float deltaSeconds)
 
 	// camera view selection button
 	const ImGuiWindowFlags flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoBackground;
-	ImGui::SetNextWindowPos(ImVec2(g_global->m_mapView->m_viewRect.right - 260.f
-		, g_global->m_mapView->m_viewRect.bottom - 35.f));
-	ImGui::SetNextWindowSize(ImVec2(360, 35));
+	ImGui::SetNextWindowPos(ImVec2(g_global->m_mapView->m_viewRect.right - 400.f
+		, g_global->m_mapView->m_viewRect.bottom - 55.f));
+	ImGui::SetNextWindowSize(ImVec2(460, 55));
 	if (ImGui::Begin("Camera Setting", nullptr, flags))
 	{
 		if (ImGui::RadioButton("custom", (int*)&g_global->m_camType, (int)eCameraType::Custom))
@@ -102,6 +102,11 @@ void cNavigationView::OnRender(const float deltaSeconds)
 		ImGui::SameLine();
 		ImGui::RadioButton("Network", (int*)&gpsClient.m_inputType
 			, (int)cGpsClient::eInputType::Network);
+	}
+	else
+	{
+		for (int i=0; i < 8; ++i)
+			ImGui::Spacing();
 	}
 
 	const int width = 200;

@@ -7,4 +7,6 @@ protocol c2s 1000
 	
 	GPSInfo( double lon, double lat, float altitude, float speed );
 
+	AddLandMark( double lon, double lat );
+
 }
