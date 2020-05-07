@@ -5,7 +5,7 @@
 #pragma once
 
 
-class cXdoReader
+class cXdoReader : public graphic::iParallelLoadObject
 {
 public:
 	struct sXdo
@@ -26,6 +26,7 @@ public:
 		throw std::exception();
 	}
 	virtual ~cXdoReader();
+	virtual const char* Type() override { return "cXdoReader"; }
 
 	bool Read(const char *fileName, const DWORD ver= 0x02000003);
 	bool LoadMesh(graphic::cRenderer &renderer);

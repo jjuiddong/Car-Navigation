@@ -5,7 +5,7 @@
 #pragma once
 
 
-class cReal3DModelIndexReader
+class cReal3DModelIndexReader : public graphic::iParallelLoadObject
 {
 public:
 	struct sObject
@@ -29,6 +29,7 @@ public:
 		throw std::exception();
 	}
 	virtual ~cReal3DModelIndexReader();
+	virtual const char* Type() override { return "cReal3DModelIndexReader"; }
 
 	bool Read(const char *fileName);
 	void Clear();

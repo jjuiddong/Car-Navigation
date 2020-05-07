@@ -901,6 +901,10 @@ Vector3 cTerrainQuadTree::Get3DPosPrecise(graphic::cRenderer &renderer, const Ve
 	if (std::get<0>(result) < 0)
 		return relPos;
 
+	// too much file loading, clear all
+	if (m_tileMgr->m_loader.m_files.size() > 1000)
+		m_tileMgr->Clear();
+
 	int level = std::get<0>(result);
 	int x = std::get<1>(result);
 	int y = std::get<2>(result);
@@ -1041,6 +1045,8 @@ std::pair<bool, Vector3> cTerrainQuadTree::Pick(const Ray &ray)
 
 void cTerrainQuadTree::Clear()
 {
+	if (m_tileMgr)
+		m_tileMgr->Clear();
 	m_qtree.Clear(false);
 	SAFE_DELETEA(m_nodeBuffer);
 }

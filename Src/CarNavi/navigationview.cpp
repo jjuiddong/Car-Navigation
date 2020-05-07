@@ -92,6 +92,26 @@ void cNavigationView::OnRender(const float deltaSeconds)
 	}
 	//
 
+	// Show Prev Path CheckBox
+	ImGui::SetNextWindowPos(ImVec2(g_global->m_mapView->m_viewRect.left + 10.f
+		, g_global->m_mapView->m_viewRect.bottom - 55.f));
+	ImGui::SetNextWindowSize(ImVec2(100, 55));
+	if (ImGui::Begin("Prev Path Window", nullptr, flags))
+	{
+		if (ImGui::Checkbox("Show Prev Path", &g_global->m_isShowPrevPath))
+		{
+			if (g_global->m_isShowPrevPath)
+				g_global->ReadAndConvertPathFiles(g_global->m_mapView->GetRenderer()
+					, g_global->m_mapView->m_quadTree, "./path/");
+
+			//cPathCompare comp;
+			//comp.Compare("./path/");
+		}
+		ImGui::End();
+	}
+	//
+
+
 	cTerrainQuadTree &terrain = g_global->m_mapView->m_quadTree;
 	cGpsClient &gpsClient = g_global->m_gpsClient;
 
@@ -235,21 +255,15 @@ void cNavigationView::OnRender(const float deltaSeconds)
 				terrain.m_optimizeLevel = cQuadTree<sQuadData>::MAX_LEVEL;
 	}
 
-	if (ImGui::Checkbox("Show Prev Path", &g_global->m_isShowPrevPath))
-	{
-		if (g_global->m_isShowPrevPath)
-			g_global->ReadAndConvertPathFiles(g_global->m_mapView->GetRenderer()
-				, g_global->m_mapView->m_quadTree, "./path/");
-
-		cPathCompare comp;
-		comp.Compare("./path/");
-	}
-
 	ImGui::Checkbox("Trace GPS", &g_global->m_isTraceGPSPos);
 	ImGui::Checkbox("Trace Rotate", &g_global->m_isRotateTrace);
 	ImGui::Checkbox("Show LandMark", &g_global->m_isShowLandMark);
 	ImGui::Checkbox("Show LandMark2", &g_global->m_isShowLandMark2);
 	ImGui::Checkbox("Black Mode", &g_global->m_isDarkMode);
+	if (g_global->m_isDarkMode)
+		if (ImGui::SliderFloat("Alpha", &g_global->m_darkColor.x, 0.f, 1.f))
+			g_global->m_darkColor = Vector4(g_global->m_darkColor.x
+				, g_global->m_darkColor.x, g_global->m_darkColor.x, g_global->m_darkColor.w);
 
 	//ImGui::Separator();
 

@@ -136,7 +136,7 @@ Vector3 gis::GetRelationPos(const Vector3 &globalPos)
 //	return d;
 //}
 
-// return distance lonLat0 - lonLat2
+// return distance lonLat0 - lonLat2 (use haversine formular)
 // http://www.movable-type.co.uk/scripts/latlong.html
 // return distance (meter unit)
 double gis::WGS84Distance(const Vector2d &lonLat0, const Vector2d &lonLat1)
@@ -181,7 +181,7 @@ float gis::Meter23DUnit(const float meter)
 //		- min: 39
 //		- sec: 6.0
 // return : x=longitude, y=latitude
-bool gis::GetGPRMCLonLat(const Str512 &gprmc, OUT sGPRMC &out)
+bool gis::GetGPRMC(const Str512 &gprmc, OUT sGPRMC &out)
 {
 	if (gprmc.size() < 6)
 		return false;
@@ -307,20 +307,80 @@ bool gis::GetGPRMCLonLat(const Str512 &gprmc, OUT sGPRMC &out)
 }
 
 
-// 소수점 6자리까지 데이타가 없으면, 데이타는 무시한다.
-bool gis::Check6Val(const double val)
+// https://drkein.tistory.com/113
+// $GPGGA,000010.00,3737.36425,N,12650.19084,E,2,09,1.11,33.5,M,18.1,M,,0000*69
+// 000010.00 : zulu time
+// 3737.36425 : latitude 37 degree, 37.36425 min
+// N : north latitude
+// 12650.19084 : 126 degree, 50.19084 min
+// E : east longitude
+// 2 : fix type
+//		0: invalid
+//		1: gps
+//		2: dgps
+// 09 : satelite count
+// 1.11 : horizontal dillusion of position
+// 33.5 : altitude
+// M : altitude meter unit
+// 18.1 :
+// M : 
+// 
+// 0000*69 : checksum
+bool gis::GetGPGGA(const Str512 &gpgga, OUT sGPRMC &out)
 {
-	uint64 c = (uint64)(val * 1000000.f);
-	uint64 d = c % 1000;
-	if (d == 0)
+	if (gpgga.size() < 6)
 		return false;
+
+	if (strncmp(gpgga.m_str, "$GPGGA", 6))
+		return false;
+
+	vector<string> strs;
+	common::tokenizer(gpgga.c_str(), ",", "", strs);
+
+	if (strs.size() < 7)
+		return false;
+
+	if (strs[3] != "N")
+		return false;
+
+	if (strs[5] != "E")
+		return false;
+
+	if (strs[2].size() < 2)
+		return false;
+
+	Vector2d lonLat;
+	const float lat1 = (float)atof(strs[2].substr(0, 2).c_str());
+	const float lat2 = (float)atof(strs[2].substr(2).c_str());
+	if (lat2 == 0.f)
+		return false;
+	lonLat.y = lat1 + (lat2 / 60.f);
+
+	if (strs[4].size() < 3)
+		return false;
+	const float lon1 = (float)atof(strs[4].substr(0, 3).c_str());
+	const float lon2 = (float)atof(strs[4].substr(3).c_str());
+	if (lon2 == 0.f)
+		return false;
+	lonLat.x = lon1 + (lon2 / 60.f);
+
+	out.available = true;
+	out.lonLat = lonLat;
+	out.speed = 0.f;
+	out.angle = 0.f;
+	out.north = 0;
+	out.date = 0;
+
+	if (strs.size() >= 10)
+		out.altitude = (float)atof(strs[9].c_str());
+
 	return true;
 }
 
 
 // GPATT 문자열로 위경도를 리턴한다.
 // $GPATT, 37.939707, 126.836799, 44.3, 143.2, 7.3, 6.6, *71
-bool gis::GetGPATTLonLat(const Str512 &gpatt, OUT sGPRMC &out)
+bool gis::GetGPATT(const Str512 &gpatt, OUT sGPRMC &out)
 {
 	if (gpatt.size() < 6)
 		return false;
@@ -345,5 +405,16 @@ bool gis::GetGPATTLonLat(const Str512 &gpatt, OUT sGPRMC &out)
 	if (!Check6Val(out.lonLat.y))
 		return false;
 
+	return true;
+}
+
+
+// 소수점 6자리까지 데이타가 없으면, 데이타는 무시한다.
+bool gis::Check6Val(const double val)
+{
+	uint64 c = (uint64)(val * 1000000.f);
+	uint64 d = c % 1000;
+	if (d == 0)
+		return false;
 	return true;
 }

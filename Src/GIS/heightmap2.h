@@ -13,7 +13,7 @@
 #include <boost/pool/object_pool.hpp>
 
 
-class cHeightmap2
+class cHeightmap2 : public graphic::iParallelLoadObject
 {
 public:
 	cHeightmap2();
@@ -21,6 +21,7 @@ public:
 	cHeightmap2(graphic::cRenderer &renderer, const cHeightmap2 *src, const char *fileName
 		, const graphic::sFileLoaderArg2 &args);
 	virtual ~cHeightmap2();
+	virtual const char* Type() override { return "cHeightmap2"; }
 
 	bool Read(const char *fileName
 		, const eHeightmapFormat::Enum fmt = eHeightmapFormat::FMT_FLOAT);

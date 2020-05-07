@@ -32,7 +32,7 @@ int main()
 		cnt++;
 
 		gis::sGPRMC gps;
-		if (gis::GetGPRMCLonLat(line, gps))
+		if (gis::GetGPRMC(line, gps))
 		{
 			ofs << cDateTime2::GetTimeStr2(gps.date).c_str()
 				<< ", " << gps.lonLat.x

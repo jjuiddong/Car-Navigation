@@ -107,8 +107,9 @@ namespace gis
 		float north;
 	};
 
-	bool GetGPRMCLonLat(const Str512 &gprmc, OUT sGPRMC &out);
-	bool GetGPATTLonLat(const Str512 &gpatt, OUT sGPRMC &out);
+	bool GetGPRMC(const Str512 &gprmc, OUT sGPRMC &out);
+	bool GetGPATT(const Str512 &gpatt, OUT sGPRMC &out);
+	bool GetGPGGA(const Str512 &gpgga, OUT sGPRMC &out);
 	bool Check6Val(const double val);
 }
 

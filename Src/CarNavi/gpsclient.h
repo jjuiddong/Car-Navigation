@@ -16,7 +16,8 @@ public:
 	bool ConnectGpsSerial(const int portNum, const int baudRate);
 	bool ReadPathFile(const char *fileName);
 	bool GetGpsInfo(OUT gis::sGPRMC &out);
-	bool GetGpsInfoFromFile(OUT gis::sGPRMC &out);
+	bool GetGpsInfoFromPathFile(OUT gis::sGPRMC &out);
+	bool GetGpsInfoFromGpsFile(OUT gis::sGPRMC &out);
 	bool GpsReplay();
 	bool PathFileReplay();
 	bool StopPathFileReplay();
@@ -30,6 +31,7 @@ public:
 
 protected:
 	bool ParseStr(const Str512 &str, OUT gis::sGPRMC &out);
+	bool LogGpsFile(const char* str);
 
 
 public:
@@ -39,6 +41,7 @@ public:
 
 	eInputType m_inputType;
 	cTimer m_timer;
+	StrPath m_gpsFileName; //yyyy-mm-dd
 
 	// network
 	Str16 m_ip;
@@ -52,6 +55,7 @@ public:
 	double m_recvTime;
 	double m_speedRecvTime; // GPRMC에서 받은 정보를 GPATT에 적용하기위해 쓰임
 	float m_speed;
+	float m_altitude;
 
 	// path pump
 	struct sPath {
@@ -63,6 +67,7 @@ public:
 	vector<sPath> m_pathReplayData;
 	int m_fileAnimationIdx;
 	gis::sGPRMC m_gpsInfo;
+	gis::sGPRMC m_prevGpsInfo;
 	common::cDateTime2 m_prevDateTime;
 	common::cDateTime2 m_prevGpsDateTime;
 };

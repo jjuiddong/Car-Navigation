@@ -151,14 +151,16 @@ bool cGlobal::Read3DPosFiles(graphic::cRenderer &renderer, const StrPath pathDir
 // path파일에 해당하는 *.3dpos 파일이 있다면, 해당 파일을 읽어 온다.
 // path파일 - 3dpos 파일은 파일명은 같고, 확장자만 다르다.
 // path파일 중에 3dpos 파일로 변환되지 않는 파일은 변환시킨다.
-bool cGlobal::ReadAndConvertPathFiles(graphic::cRenderer &renderer, cTerrainQuadTree &terrain
-	, const StrPath pathDirectoryName)
+bool cGlobal::ReadAndConvertPathFiles(graphic::cRenderer &renderer
+	, cTerrainQuadTree &terrain
+	, const StrPath &pathDirectoryName)
 {
 	list<string> files;
 	list<string> exts;
 	exts.push_back(".txt");
 	common::CollectFiles(exts, pathDirectoryName.c_str(), files);
 
+	m_pathRenderers.reserve(files.size());
 	const string curPathFileName = m_pathFilename.GetFileName();
 
 	for (auto &file : files)
@@ -183,21 +185,21 @@ bool cGlobal::ReadAndConvertPathFiles(graphic::cRenderer &renderer, cTerrainQuad
 			if (!p->Create(renderer, pos3DFileName))
 			{
 				delete p;
-				continue;
+				continue; // error occurred
 			}
 		}
 		else
 		{
 			cPath path(file);
 			if (!path.IsLoad())
-				continue;
+				continue; // error occurred
 
 			// read *.txt file
 			p = new cPathRenderer();
 			if (!p->Create(renderer, terrain, path, pos3DFileName))
 			{
-				delete p;
-				continue;
+				delete p; 
+				continue; // error occurred
 			}
 		}
 
