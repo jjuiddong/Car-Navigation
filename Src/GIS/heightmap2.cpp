@@ -43,9 +43,11 @@ cHeightmap2::cHeightmap2(graphic::cRenderer &renderer, const char *fileName)
 }
 
 cHeightmap2::cHeightmap2(graphic::cRenderer &renderer, const cHeightmap2 *src, const char *fileName
-	, const graphic::sFileLoaderArg2 &args) 
+	, const sHeightmapArgs2 &args)
 {
-	throw std::exception();
+	if (!Create(renderer, *src, args.huvs, args.level, args.xLoc, args.yLoc))
+		throw std::exception();
+	m_fileName = fileName;
 }
 
 cHeightmap2::~cHeightmap2()
@@ -63,6 +65,150 @@ inline int GetFormatSize(const eHeightmapFormat::Enum fmt)
 	default: assert(0); break;
 	}
 	return 1;
+}
+
+
+// src 높이맵을 복사한다. 
+// 같은 너비이거나, 
+// 큰 너비의 높이맵을, 작은 너비의 높이맵에 복사할 때, 이 함수를 호출해야한다.
+bool cHeightmap2::Create(cRenderer &renderer, const cHeightmap2 &src
+	, const float huvs[4]
+	, const int level, const int xLoc, const int yLoc)
+{
+#define MACRO_SWITCH32(val, expr) \
+switch (val) \
+{ \
+case 64: expr; \
+case 63: expr; \
+case 62: expr; \
+case 61: expr; \
+case 60: expr; \
+case 59: expr; \
+case 58: expr; \
+case 57: expr; \
+case 56: expr; \
+case 55: expr; \
+case 54: expr; \
+case 53: expr; \
+case 52: expr; \
+case 51: expr; \
+case 50: expr; \
+case 49: expr; \
+case 48: expr; \
+case 47: expr; \
+case 46: expr; \
+case 45: expr; \
+case 44: expr; \
+case 43: expr; \
+case 42: expr; \
+case 41: expr; \
+case 40: expr; \
+case 39: expr; \
+case 38: expr; \
+case 37: expr; \
+case 36: expr; \
+case 35: expr; \
+case 34: expr; \
+case 33: expr; \
+case 32: expr; \
+case 31: expr; \
+case 30: expr; \
+case 29: expr; \
+case 28: expr; \
+case 27: expr; \
+case 26: expr; \
+case 25: expr; \
+case 24: expr; \
+case 23: expr; \
+case 22: expr; \
+case 21: expr; \
+case 20: expr; \
+case 19: expr; \
+case 18: expr; \
+case 17: expr; \
+case 16: expr; \
+case 15: expr; \
+case 14: expr; \
+case 13: expr; \
+case 12: expr; \
+case 11: expr; \
+case 10: expr; \
+case 9: expr; \
+case 8: expr; \
+case 7: expr; \
+case 6: expr; \
+case 5: expr; \
+case 4: expr; \
+case 3: expr; \
+case 2: expr; \
+case 1: expr; \
+	break; \
+}
+
+	Clear();
+
+	m_data = (float*)g_memPool256.Alloc();
+	if (!m_data)
+	{
+		dbg::Log("Error cHeightmap2::Create() \n");
+		return false;
+	}
+	ZeroMemory(m_data, src.m_width * src.m_height * sizeof(float));
+
+	const int srcPitch = src.m_width;
+	const int dstPitch = src.m_width;
+	const int srcX = (int)(huvs[0] * src.m_width);
+	const int srcY = (int)(huvs[1] * src.m_height);
+	const int endSrcX = (int)(huvs[2] * src.m_width);
+	const int endSrcY = (int)(huvs[3] * src.m_height);
+	const int incX = (int)(1.f / abs(huvs[0] - huvs[2]));
+	const int incY = (int)(1.f / abs(huvs[1] - huvs[3]));
+
+	assert(srcX >= 0);
+	assert(srcY >= 0);
+	assert(endSrcX >= 0);
+	assert(endSrcY >= 0);
+
+	int dy = 0;
+	int sy = srcY;
+	while (sy < endSrcY)
+	{
+		int dx = 0;
+		int sx = srcX;
+		while (sx < endSrcX)
+		{
+			const float val = src.m_data[sy * srcPitch + sx];
+			MACRO_SWITCH32(incX, m_data[dy * dstPitch + dx++] = val);
+			sx++;
+		}
+		MACRO_SWITCH32(incY-1
+			, memcpy(&m_data[(dy+1) * dstPitch], &m_data[dy * dstPitch], sizeof(float)*dstPitch); ++dy);
+
+		dy++;
+		sy++;
+	}
+
+	m_level = level;
+	m_xLoc = xLoc;
+	m_yLoc = yLoc;
+	m_width = src.m_width;
+	m_height = src.m_height;
+
+	//EdgeSmoothBySelf();
+	GaussianSmoothing();
+	//EdgeSmoothBySelf();
+	m_maxHeight = GetMaxHeight();
+
+	if (m_texture = new graphic::cTexture())
+	{
+		m_texture->Create(renderer, src.m_width, src.m_height
+			, DXGI_FORMAT_R32_FLOAT
+			, m_data, src.m_width * sizeof(float)
+			, D3D11_USAGE_DYNAMIC);
+		m_isTextureUpdate = true;
+	}
+
+	return m_texture ? true : false;
 }
 
 
@@ -505,7 +651,7 @@ void cHeightmap2::GaussianSmoothing()
 				for (int mc = 0; mc < 3; mc++)
 					newValue += MaskGaussian[mr][mc] * *(m_data + ((i + mr - 1) * m_width) + k + mc - 1);
 
-			newValue /= 16.f; // 마스크의 합의 크기로 나누기
+			newValue /= 16.f; // divide mask total sum
 			*(p + (i * m_width) + k) = newValue;
 		}
 	}

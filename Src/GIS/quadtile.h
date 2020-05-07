@@ -49,6 +49,8 @@ public:
 		, const int adjLevel[4]
 		, const XMMATRIX &tm = graphic::XMIdentity);
 
+	float GetHeightByReplaceMap(cHeightmap2 *hmap, const Vector2 &uv) const;
+
 
 public:
 	bool m_loaded;
@@ -66,7 +68,7 @@ public:
 	cTileTexture *m_texture; // reference
 	cTileTexture *m_replaceTex; // reference
 	cHeightmap2 *m_hmap; // reference
-	cHeightmap2 *m_replaceParentHmap;
+	cHeightmap2 *m_deepCpyHmap; // refrence
 	cHeightmap2 *m_replaceHmap; // reference
 	cPoiReader *m_poi[2]; // reference, 0: poi_base, 1: poi_bound
 	vector<cXdoReader*> m_facilities;

@@ -638,7 +638,7 @@ void cTerrainQuadTree::RenderRect3D(graphic::cRenderer &renderer
 	renderer.m_cbMaterial.Update(renderer, 2);
 	renderer.m_rect3D.m_vtxBuff.Bind(renderer);
 	renderer.GetDevContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINESTRIP);
-	renderer.GetDevContext()->DrawInstanced(renderer.m_rect3D.m_lineCount, 1, 0, 0);
+	renderer.GetDevContext()->Draw(renderer.m_rect3D.m_lineCount, 0);
 }
 
 
@@ -902,7 +902,7 @@ Vector3 cTerrainQuadTree::Get3DPosPrecise(graphic::cRenderer &renderer, const Ve
 		return relPos;
 
 	// too much file loading, clear all
-	if (m_tileMgr->m_loader.m_files.size() > 1000)
+	if (m_tileMgr->m_loader1.m_files.size() > 1000)
 		m_tileMgr->Clear();
 
 	int level = std::get<0>(result);
@@ -922,12 +922,12 @@ Vector3 cTerrainQuadTree::Get3DPosPrecise(graphic::cRenderer &renderer, const Ve
 			// insert heightmap fileloader for clear memory
 			const StrPath fileName = cHeightmap2::GetFileName(g_mediaDir, level, x, y);
 
-			typedef graphic::cFileLoader2<2000, 5> FileLoaderType;
+			typedef graphic::cFileLoader2<2000, 6, sHeightmapArgs2> FileLoaderType;
 			FileLoaderType::sChunk chunk;
 			chunk.accessTime = 0.f;
 			chunk.state = FileLoaderType::COMPLETE;
 			chunk.data = tile->m_hmap;
-			m_tileMgr->m_loader.m_files.insert({ fileName.GetHashCode(), chunk });
+			m_tileMgr->m_loader1.m_files.insert({ fileName.GetHashCode(), chunk });
 		}
 
 		if (tile->m_hmap)

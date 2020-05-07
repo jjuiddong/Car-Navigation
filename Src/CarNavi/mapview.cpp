@@ -654,7 +654,7 @@ void cMapView::OnRender(const float deltaSeconds)
 	// Render Date Information
 	const float guageH = m_ledSize + 2.f;
 	const float dateH = 43.f - 10.f;
-	ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 0));
+	ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 1));
 	if (g_global->m_isShowMapView)
 	{
 		ImGui::Image(m_renderTarget.m_resolvedSRV, ImVec2(m_rect.Width() - 15, m_rect.Height() - 42)
@@ -689,7 +689,7 @@ void cMapView::OnRender(const float deltaSeconds)
 	// Render Information
 	ImGui::SetNextWindowPos(ImVec2(pos.x, pos.y + guageH + dateH));
 	ImGui::SetNextWindowBgAlpha(0.f);
-	ImGui::SetNextWindowSize(ImVec2(min(m_viewRect.Width(), 400.f), m_viewRect.Height()));
+	ImGui::SetNextWindowSize(ImVec2(min(m_viewRect.Width(), 400.f), m_viewRect.Height() - 110));
 	if (ImGui::Begin("Map Information", &isOpen, flags))
 	{
 		ImGui::PushStyleColor(ImGuiCol_Text, g_global->m_isDarkMode ? 

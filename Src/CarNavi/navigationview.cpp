@@ -67,7 +67,9 @@ void cNavigationView::OnRender(const float deltaSeconds)
 	ImGui::Checkbox("Detail Setting", &isDetailOption);
 
 	// camera view selection button
-	const ImGuiWindowFlags flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoBackground;
+	const ImGuiWindowFlags flags = ImGuiWindowFlags_NoDecoration 
+		| ImGuiWindowFlags_NoBackground
+		;
 	ImGui::SetNextWindowPos(ImVec2(g_global->m_mapView->m_viewRect.right - 400.f
 		, g_global->m_mapView->m_viewRect.bottom - 55.f));
 	ImGui::SetNextWindowSize(ImVec2(460, 55));
@@ -95,7 +97,7 @@ void cNavigationView::OnRender(const float deltaSeconds)
 	// Show Prev Path CheckBox
 	ImGui::SetNextWindowPos(ImVec2(g_global->m_mapView->m_viewRect.left + 10.f
 		, g_global->m_mapView->m_viewRect.bottom - 55.f));
-	ImGui::SetNextWindowSize(ImVec2(100, 55));
+	ImGui::SetNextWindowSize(ImVec2(300, 55));
 	if (ImGui::Begin("Prev Path Window", nullptr, flags))
 	{
 		if (ImGui::Checkbox("Show Prev Path", &g_global->m_isShowPrevPath))
@@ -107,6 +109,10 @@ void cNavigationView::OnRender(const float deltaSeconds)
 			//cPathCompare comp;
 			//comp.Compare("./path/");
 		}
+
+		ImGui::SameLine();
+		ImGui::Checkbox("DeepCopy Smooth", &g_global->m_mapView->m_quadTree.m_tileMgr->m_isDeepCopySmooth);
+
 		ImGui::End();
 	}
 	//

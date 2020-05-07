@@ -12,8 +12,8 @@ public:
 	cTileTexture();
 	cTileTexture(graphic::cRenderer &renderer, const char *fileName);
 	cTileTexture(graphic::cRenderer &renderer, const cTileTexture *src, const char *fileName
-		, const graphic::sFileLoaderArg2 &args) {
-		throw std::exception();
+		, const sHeightmapArgs2 &args) {
+		throw std::exception(); // nothing~
 	}
 	virtual ~cTileTexture();
 	virtual const char* Type() override { return "cTileTexture"; }

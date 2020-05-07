@@ -16,6 +16,7 @@ namespace gis
 			, FACILITY_BUILD
 			, FACILITY_BUILD_GET  // 3d mesh
 			, FACILITY_BUILD_GET_JPG // texture
+			, DEM_CPY
 			, MAX_LAYERNAME
 		};
 	};

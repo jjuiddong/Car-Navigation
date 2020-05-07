@@ -140,7 +140,7 @@ public:
 	graphic::cVertexBuffer m_tileVtxBuff;
 	graphic::cVertexBuffer m_tileLineVtxBuff;
 	map<int64, float> m_heights; // key = cQuadTree<sQuadData>::MakeKey(level, xLoc, yLoc)
-	graphic::cFileLoader2<2000, 5> m_loader; // texture, heightmap
+	graphic::cFileLoader2<2000, 6, sHeightmapArgs2> m_loader1; // texture, heightmap
 	graphic::cFileLoader2<10000, 1> m_loader2; // poi, index, xdo
 
 	gis::cGeoDownloader m_geoDownloader;
@@ -156,4 +156,7 @@ public:
 
 	// delay load file sorting
 	float m_timeLoadFileSorting;
+
+	// calc deep copy smooth
+	bool m_isDeepCopySmooth;
 };

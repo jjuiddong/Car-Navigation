@@ -9,6 +9,7 @@ cQuadTileManager::cQuadTileManager()
 	: m_timeSortingLoadModel(0)
 	, m_timeLoadFileSorting(0)
 	, m_cntRemoveTile(0)
+	, m_isDeepCopySmooth(true)
 {
 	m_timer.Create();
 }
@@ -52,12 +53,18 @@ bool cQuadTileManager::Update(graphic::cRenderer &renderer, cTerrainQuadTree &te
 
 			{
 				StrPath fileName = cHeightmap2::GetFileName(g_mediaDir, tile->m_level, tile->m_loc.x, tile->m_loc.y);
-				m_loader.Remove<cHeightmap2>(fileName.c_str());
+				m_loader1.Remove<cHeightmap2>(fileName.c_str());
+			}
+
+			{
+				// remove replace deepcopy heightmap
+				StrPath fileName = cHeightmap2::GetFileName(g_mediaDir, tile->m_level, tile->m_loc.x, tile->m_loc.y) + "DeepCpy";
+				m_loader1.Remove<cHeightmap2>(fileName.c_str());
 			}
 
 			{
 				StrPath fileName = cTileTexture::GetFileName(g_mediaDir, tile->m_level, tile->m_loc.x, tile->m_loc.y);
-				m_loader.Remove<cTileTexture>(fileName.c_str());
+				m_loader1.Remove<cTileTexture>(fileName.c_str());
 			}
 
 			{
@@ -86,7 +93,7 @@ bool cQuadTileManager::Update(graphic::cRenderer &renderer, cTerrainQuadTree &te
 						{
 							StrPath fileName = cTileTexture::GetFileName(g_mediaDir, tile->m_level, tile->m_loc.x, tile->m_loc.y
 								, facility->m_xdos[0].imageName);
-							m_loader.Remove<cTileTexture>(fileName.c_str());
+							m_loader1.Remove<cTileTexture>(fileName.c_str());
 						}
 					}
 
@@ -189,7 +196,7 @@ void cQuadTileManager::UpdateDownloadFile(graphic::cRenderer &renderer)
 			if (tile && !tile->m_hmap)
 			{
 				StrPath fileName = cHeightmap2::GetFileName(g_mediaDir, file.level, file.xLoc, file.yLoc);
-				m_loader.LoadParallel<cHeightmap2>(renderer, fileName.c_str()
+				m_loader1.LoadParallel<cHeightmap2>(renderer, fileName.c_str()
 					, &tile->m_loadFlag[file.layer], (void**)&tile->m_hmap, true);
 			}
 		}
@@ -202,7 +209,7 @@ void cQuadTileManager::UpdateDownloadFile(graphic::cRenderer &renderer)
 			if (tile && !tile->m_texture)
 			{
 				StrPath fileName = cTileTexture::GetFileName(g_mediaDir, file.level, file.xLoc, file.yLoc);
-				m_loader.LoadParallel<cTileTexture>(renderer, fileName.c_str()
+				m_loader1.LoadParallel<cTileTexture>(renderer, fileName.c_str()
 					, &tile->m_loadFlag[file.layer], (void**)&tile->m_texture, true);
 			}
 		}
@@ -292,7 +299,7 @@ void cQuadTileManager::UpdateDownloadFile(graphic::cRenderer &renderer)
 			{
 				StrPath fileName = cTileTexture::GetFileName(g_mediaDir, file.level, file.xLoc, file.yLoc
 					, file.dataFile.c_str());
-				m_loader.LoadParallel<cTileTexture>(renderer, fileName.c_str(), &tile->m_loadFlag[file.layer]
+				m_loader1.LoadParallel<cTileTexture>(renderer, fileName.c_str(), &tile->m_loadFlag[file.layer]
 					, (void**)&tile->m_facilitiesTex[file.idx], true);
 			}
 			else
@@ -604,7 +611,7 @@ bool cQuadTileManager::LoadResource(graphic::cRenderer &renderer
 						, xdo->m_xdos[0].imageName);
 					if (fileName.IsFileExist())
 					{
-						m_loader.LoadParallel<cTileTexture>(renderer, fileName.c_str()
+						m_loader1.LoadParallel<cTileTexture>(renderer, fileName.c_str()
 							, &tile.m_loadFlag[gis::eLayerName::FACILITY_BUILD_GET_JPG]
 							, (void**)&tile.m_facilitiesTex[i], true);
 					}
@@ -810,7 +817,7 @@ void cQuadTileManager::LoadTexture(graphic::cRenderer &renderer
 
 	if (fileName.IsFileExist())
 	{
-		m_loader.LoadParallel<cTileTexture>(renderer, fileName.c_str()
+		m_loader1.LoadParallel<cTileTexture>(renderer, fileName.c_str()
 			, &tile.m_loadFlag[gis::eLayerName::TILE], (void**)&tile.m_texture, true);
 	}
 	else
@@ -844,15 +851,13 @@ bool cQuadTileManager::LoadHeightMap(graphic::cRenderer &renderer
 		}
 		else
 		{
-			m_loader.LoadParallel<cHeightmap2>(renderer, fileName.c_str()
+			m_loader1.LoadParallel<cHeightmap2>(renderer, fileName.c_str()
 				, &tile.m_loadFlag[gis::eLayerName::DEM], (void**)&tile.m_hmap, true);
 		}
 	}
 	else
 	{
-		//if (level < 14)
-			//DownloadResourceFile(tile, terrain, level, xLoc, yLoc, gis::eLayerName::DEM);
-			m_geoDownloader.DownloadFile(level, xLoc, yLoc, 0, gis::eLayerName::DEM, *this, this);
+		m_geoDownloader.DownloadFile(level, xLoc, yLoc, 0, gis::eLayerName::DEM, *this, this);
 	}
 
 	// 텍스쳐 파일이 없다면, 더 높은 레벨의 텍스쳐를 이용하고, uv를 재조정한다.
@@ -953,7 +958,7 @@ bool cQuadTileManager::LoadFacilityIndex(graphic::cRenderer &renderer
 		if (level == 15)
 		{
 			tile.m_modelLoadState = 1;
-			m_geoDownloader.DownloadFile(level, xLoc, yLoc, 0, gis::eLayerName::FACILITY_BUILD, *this, this);
+			//m_geoDownloader.DownloadFile(level, xLoc, yLoc, 0, gis::eLayerName::FACILITY_BUILD, *this, this);
 		}
 	}
 
@@ -1056,30 +1061,29 @@ bool cQuadTileManager::ReplaceParentTexture(graphic::cRenderer &renderer
 		tile.m_huvs[3] = v2;
 		tile.m_replaceHmap = NULL;
 
-		if (!tile.m_hmap && parentTile->m_hmap)
+		cHeightmap2 *replaceHmap = parentTile->m_hmap? parentTile->m_hmap : parentTile->m_deepCpyHmap;
+		if (!tile.m_hmap && replaceHmap)
 		{
-			// 2019-12-21, 속도 때문에 깊이복사 되는걸 제외함.
-			// 높이맵은 대체되는 높이맵을 깊이복사해서 저장한다.
-			// 모든 cQuadTile는 자기만의 높이맵을 갖고 있어야, 동적으로 높이맵을 조정할 수 있다.
-			//sHeightmapArgs args;
-			//memcpy(args.huvs, tile.m_huvs, sizeof(args.huvs));
-			//args.level = level;
-			//args.xLoc = xLoc;
-			//args.yLoc = yLoc;
-			//const StrPath fileName = cHeightmap::GetFileName(g_mediaDir, level, xLoc, yLoc);
-			//try {
-			//	tile.m_replaceParentHmap = new cHeightmap(renderer, parentTile->m_hmap, fileName.c_str(), args);
-			//}
-			//catch (...)
-			//{
-			//	dbg::Log("Error cHeightmap() constructor\n");
-			//	tile.m_replaceParentHmap = NULL;
-			//}
+			if (m_isDeepCopySmooth)
+			{
+				sHeightmapArgs2 args;
+				memcpy(args.huvs, tile.m_huvs, sizeof(args.huvs));
+				args.level = level;
+				args.xLoc = xLoc;
+				args.yLoc = yLoc;
+				const StrPath fileName = cHeightmap2::GetFileName(g_mediaDir, level, xLoc, yLoc)
+					+ "DeepCpy";
 
-			tile.m_replaceParentHmap = parentTile->m_hmap;
-			tile.m_replaceHeightLv = (parentTile->m_replaceHeightLv < 0) ?
-				parentTile->m_level : parentTile->m_replaceHeightLv;
+				m_loader1.LoadParallel<cHeightmap2>(renderer
+					, replaceHmap, fileName.c_str()
+					, args, &tile.m_loadFlag[gis::eLayerName::DEM_CPY]
+					, (void**)&tile.m_deepCpyHmap, true);
+			}
+
+			tile.m_replaceHmap = replaceHmap;
+			tile.m_replaceHeightLv = parentTile->m_level;
 		}
+
 	}
 
 	return true;
@@ -1115,7 +1119,7 @@ cQuadTile* cQuadTileManager::GetReplaceNode(
 		}
 		else if (1 == texType) // heightmap
 		{
-			if (tile && tile->m_hmap)
+			if (tile && (tile->m_hmap || tile->m_deepCpyHmap))
 				parentTile = tile;
 		}
 		else
@@ -1134,8 +1138,8 @@ void cQuadTileManager::Clear()
 	m_readyLoadModel.clear();
 	m_geoDownloader.Clear();
 
-	m_loader.ClearFile<cTileTexture>();
-	m_loader.ClearFile<cHeightmap2>();
+	m_loader1.ClearFile<cTileTexture>();
+	m_loader1.ClearFile<cHeightmap2>();
 	m_loader2.ClearFile<cPoiReader>();
 	m_loader2.ClearFile<cReal3DModelIndexReader>();
 	m_loader2.ClearFile<cXdoReader>();

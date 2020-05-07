@@ -14,7 +14,7 @@ cQuadTile::cQuadTile()
 	, m_replaceTexLv(-1)
 	, m_replaceHeightLv(-1)
 	, m_hmap(NULL)
-	, m_replaceParentHmap(NULL)
+	, m_deepCpyHmap(NULL)
 	, m_replaceHmap(NULL)
 	, m_renderFlag(0x01 | 0x02)
 {
@@ -141,30 +141,23 @@ void cQuadTile::RenderGeometry(graphic::cRenderer &renderer
 		renderer.m_cbTessellation.m_v->huvs[2] = 1.f;
 		renderer.m_cbTessellation.m_v->huvs[3] = 1.f;
 		m_hmap->m_texture->Bind(renderer, 8);
-
-		// heighmap이 로딩됐다면, 예전 대체된 높이맵은 제거한다.
-		//SAFE_DELETE(m_replaceParentHmap);
 	}
-	else if (m_replaceParentHmap && m_replaceParentHmap->IsLoaded())
+	else if (m_deepCpyHmap && m_deepCpyHmap->IsLoaded())
 	{
-		//renderer.m_cbTessellation.m_v->huvs[0] = 0.f;
-		//renderer.m_cbTessellation.m_v->huvs[1] = 0.f;
-		//renderer.m_cbTessellation.m_v->huvs[2] = 1.f;
-		//renderer.m_cbTessellation.m_v->huvs[3] = 1.f;
+		renderer.m_cbTessellation.m_v->huvs[0] = 0.f;
+		renderer.m_cbTessellation.m_v->huvs[1] = 0.f;
+		renderer.m_cbTessellation.m_v->huvs[2] = 1.f;
+		renderer.m_cbTessellation.m_v->huvs[3] = 1.f;
+		m_deepCpyHmap->m_texture->Bind(renderer, 8);
+	}
+	else if (m_replaceHmap)
+	{
 		renderer.m_cbTessellation.m_v->huvs[0] = m_huvs[0];
 		renderer.m_cbTessellation.m_v->huvs[1] = m_huvs[1];
 		renderer.m_cbTessellation.m_v->huvs[2] = m_huvs[2];
 		renderer.m_cbTessellation.m_v->huvs[3] = m_huvs[3];
-		m_replaceParentHmap->m_texture->Bind(renderer, 8);
+		m_replaceHmap->m_texture->Bind(renderer, 8);
 	}
-	//else if (m_replaceHmap)
-	//{
-	//	renderer.m_cbTessellation.m_v->huvs[0] = m_huvs[0];
-	//	renderer.m_cbTessellation.m_v->huvs[1] = m_huvs[1];
-	//	renderer.m_cbTessellation.m_v->huvs[2] = m_huvs[2];
-	//	renderer.m_cbTessellation.m_v->huvs[3] = m_huvs[3];
-	//	m_replaceHmap->m_texture.Bind(renderer, 8);
-	//}
 	else
 	{
 		ID3D11ShaderResourceView *ns[1] = { NULL };
@@ -416,26 +409,31 @@ void cQuadTile::UpdateTexture(graphic::cRenderer &renderer)
 float cQuadTile::GetHeight(const Vector2 &uv) const
 {
 	if (m_hmap)
-	{
 		return m_hmap->GetHeight(uv) - 0.1f;
-	}
-	else if (m_replaceParentHmap)
-	{
-		// original relation position by uv
-		const Vector2 pos = Vector2(m_rect.left + m_rect.Width() * uv.x
-			, m_rect.top - (m_rect.Height() * (uv.y - 1.f)));
-
-		// parent tile rect
-		const common::sRectf prect = cQuadTree<cQuadTile>::GetNodeRect(
-			m_replaceParentHmap->m_level, m_replaceParentHmap->m_xLoc
-			, m_replaceParentHmap->m_yLoc);
-
-		// calc parent tile uv coordinate
-		const float u = (pos.x - prect.left) / prect.Width();
-		const float v = 1.f + (prect.top - pos.y) / prect.Height();
-		return m_replaceParentHmap->GetHeight(Vector2(u,v)) - 0.1f;
-	}
+	else if (m_deepCpyHmap)
+		return GetHeightByReplaceMap(m_deepCpyHmap, uv);
+	else if (m_replaceHmap)
+		return GetHeightByReplaceMap(m_replaceHmap, uv);
 	return 0.f;
+}
+
+
+// calc height by argument hmap
+float cQuadTile::GetHeightByReplaceMap(cHeightmap2 *hmap, const Vector2 &uv) const
+{
+	// original relation position by uv
+	const Vector2 pos = Vector2(m_rect.left + m_rect.Width() * uv.x
+		, m_rect.top - (m_rect.Height() * (uv.y - 1.f)));
+
+	// parent tile rect
+	const common::sRectf prect = cQuadTree<cQuadTile>::GetNodeRect(
+		hmap->m_level, hmap->m_xLoc
+		, hmap->m_yLoc);
+
+	// calc parent tile uv coordinate
+	const float u = (pos.x - prect.left) / prect.Width();
+	const float v = 1.f + (prect.top - pos.y) / prect.Height();
+	return hmap->GetHeight(Vector2(u, v)) - 0.1f;
 }
 
 
@@ -479,5 +477,4 @@ void cQuadTile::Clear()
 {
 	m_loaded = false;
 	m_modelLoadState = 0;
-	//SAFE_DELETE(m_replaceParentHmap);
 }
