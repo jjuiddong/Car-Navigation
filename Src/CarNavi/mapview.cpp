@@ -188,7 +188,7 @@ void cMapView::UpdateGPS(const float deltaSeconds)
 	if (m_lookAtDistance == 0)
 		m_lookAtDistance = min(200.f, m_camera.GetEyePos().Distance(m_camera.GetLookAt()));
 
-	// path 로그 파일에 저장
+	// write path log file
 	if (g_global->m_gpsClient.IsConnect()
 		&& !g_global->m_gpsClient.IsGpsReplay()
 		&& !g_global->m_gpsClient.IsPathReplay())
@@ -213,7 +213,7 @@ void cMapView::UpdateGPS(const float deltaSeconds)
 
 	// 현재 위치를 향해 카메라 looAt을 조정한다.
 	// lookAt이 바뀜에 따라 카메라 위치도 기존 거리를 유지하며 이동한다.
-	g_root.m_lonLat = Vector2((float)m_curGpsPos.x, (float)m_curGpsPos.y);
+	g_root.m_lonLat = Vector2((float)gpsInfo.lonLat.x, (float)gpsInfo.lonLat.y);
 	const Vector3 pos = m_quadTree.Get3DPos(m_curGpsPos);
 	MoveCamera(pos, 0.f);
 
@@ -221,11 +221,13 @@ void cMapView::UpdateGPS(const float deltaSeconds)
 	// 그전 위치와 거의 같다면 저장하지 않는다.
 	{
 		auto &track = g_global->m_gpsClient.m_paths;
-		const Vector3 lastPos = track.empty() ? Vector3::Zeroes : m_quadTree.Get3DPos(track.back().lonLat);
+		const Vector3 lastPos = track.empty() ? 
+			Vector3::Zeroes : m_quadTree.Get3DPos(track.back().lonLat);
 
 		if (track.empty()
 			|| (!track.empty() && (lastPos.Distance(pos) > MIN_LENGTH)))
-			track.push_back({ common::GetCurrentDateTime3(), gpsInfo.lonLat });
+			track.push_back({ common::GetCurrentDateTime3(), gpsInfo.lonLat
+				, gpsInfo.speed});
 	}
 }
 
@@ -366,7 +368,7 @@ void cMapView::MoveCamera(const Vector3 &newPos, const float camSpeed
 	if (oldGpsPos2.IsEmpty())
 		oldGpsPos2 = m_curGpsPos;
 
-	const Vector3 pos = newPos;// m_quadTree.Get3DPos(m_curGpsPos);
+	const Vector3 pos = newPos;
 	const Vector3 oldPos2 = m_quadTree.Get3DPos(oldGpsPos2);
 
 	const bool isTraceGPSPos = g_global->m_isTraceGPSPos
@@ -519,10 +521,10 @@ void cMapView::OnPreRender(const float deltaSeconds)
 			renderer.m_dbgLine.m_isSolid = true;
 			for (int i = 0; i < (int)track.size() - 1; ++i)
 			{
-				const Vector2d &ll0 = track[i].lonLat;
-				const Vector2d &ll1 = track[i + 1].lonLat;
-				const Vector3 p0 = m_quadTree.Get3DPos(ll0);
-				const Vector3 p1 = m_quadTree.Get3DPos(ll1);
+				const cGpsClient::sPath &path0 = track[i];
+				const cGpsClient::sPath &path1 = track[i+1];
+				const Vector3 p0 = m_quadTree.Get3DPos(path0.lonLat);
+				const Vector3 p1 = m_quadTree.Get3DPos(path1.lonLat);
 				if (p0.Distance(p1) > 100.f)
 					continue;
 
@@ -553,18 +555,21 @@ void cMapView::OnPreRender(const float deltaSeconds)
 
 		// latLong position
 		if ((g_global->m_camType != eCameraType::Camera1)
-			&& (g_global->m_touch.m_type != eTouchType::Gesture))
+			|| (g_global->m_touch.m_type != eTouchType::Touch))
 		{
-			const Vector3 p0 = m_quadTree.Get3DPos({ (double)g_root.m_lonLat.x, (double)g_root.m_lonLat.y });
-			renderer.m_dbgLine.SetColor(cColor::WHITE);
+			const Vector3 p0 = m_quadTree.Get3DPos(
+				{ (double)g_root.m_lonLat.x, (double)g_root.m_lonLat.y });
+			renderer.m_dbgLine.m_isSolid = true;
+			renderer.m_dbgLine.SetColor(Vector4(1,1,1,0.5f));
 			renderer.m_dbgLine.SetLine(p0, p0 + Vector3(0, 1, 0), 0.01f);
 			renderer.m_dbgLine.Render(renderer);
+			renderer.m_dbgLine.m_isSolid = false;
 
-			renderer.m_dbgArrow.SetColor(cColor::WHITE);
-			renderer.m_dbgArrow.SetDirection(p0 + Vector3(0, 1, 0)
-				, p0 + Vector3(0, 1, 0) + m_avrDir * 2.f
-				, 0.02f);
-			renderer.m_dbgArrow.Render(renderer);
+			//renderer.m_dbgArrow.SetColor(cColor::WHITE);
+			//renderer.m_dbgArrow.SetDirection(p0 + Vector3(0, 1, 0)
+			//	, p0 + Vector3(0, 1, 0) + m_avrDir * 2.f
+			//	, 0.02f);
+			//renderer.m_dbgArrow.Render(renderer);
 
 
 			// 카메라와의 거리에 따라 크기를 변경한다. (항상 같은 크기로 보이기 위함)

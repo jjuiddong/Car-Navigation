@@ -35,7 +35,7 @@ public:
 	float m_scale;
 
 	// lat,lon position
-	Vector2 m_lonLat;	// 경위도
+	Vector2 m_lonLat; // 경위도
 	Vector2d m_utmLoc; // UTM 좌표
 	float m_genRouteGap = 0.0005f;
 	float m_genRouteAltitude = 20.f;

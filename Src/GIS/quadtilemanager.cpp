@@ -36,7 +36,7 @@ bool cQuadTileManager::Update(graphic::cRenderer &renderer, cTerrainQuadTree &te
 	set<__int64> rms;
 
 	const int tileCount = m_tiles.size();
-	double limitTime = (tileCount > 1000) ? 0.4f : ((tileCount > 500) ? 0.5f : LIMIT_TIME);
+	double limitTime = (tileCount > 1000) ? 0.2f : ((tileCount > 500) ? 0.3f : LIMIT_TIME);
 	//if (limitTime < (curT - oldT) + 20)
 	limitTime = max((curT - oldT) * 2.f, limitTime); // FPS 가 낮을 경우를 대비
 	oldT = curT;
@@ -814,8 +814,8 @@ void cQuadTileManager::LoadTexture(graphic::cRenderer &renderer
 {
 	// 파일이 있다면, 텍스쳐를 로딩한다.
 	StrPath fileName = cTileTexture::GetFileName(g_mediaDir, level, xLoc, yLoc);
-
-	if (fileName.IsFileExist())
+	const bool isFileExist = fileName.IsFileExist();
+	if (isFileExist)
 	{
 		m_loader1.LoadParallel<cTileTexture>(renderer, fileName.c_str()
 			, &tile.m_loadFlag[gis::eLayerName::TILE], (void**)&tile.m_texture, true);
@@ -827,7 +827,7 @@ void cQuadTileManager::LoadTexture(graphic::cRenderer &renderer
 
 	// 텍스쳐 파일이 없다면, 더 높은 레벨의 텍스쳐를 이용하고, uv를 재조정한다.
 	// 텍스쳐 로딩이 병렬로 이뤄지기 때문에, 로딩이 이뤄지는 동안, 대체 텍스쳐를 이용한다.
-	ReplaceParentTexture(renderer, terrain, tile, level, xLoc, yLoc, rect, 0);
+	ReplaceParentTexture(renderer, terrain, tile, level, xLoc, yLoc, rect, 0, isFileExist);
 }
 
 
@@ -842,15 +842,18 @@ bool cQuadTileManager::LoadHeightMap(graphic::cRenderer &renderer
 		return true;
 
 	StrPath fileName = cHeightmap2::GetFileName(g_mediaDir, level, xLoc, yLoc);
+	bool isFileExist = false;
 	if (fileName.IsFileExist())
 	{
 		//if ((tile.m_level == 15) && (fileName.FileSize() < 150))
-		if ((tile.m_level >= 14) && (fileName.FileSize() < 150))
+		const int64 fileSize = fileName.FileSize();
+		if ((tile.m_level >= 14) && (fileSize < 150))
 		{
 			// null heightmap, no load this file
 		}
-		else
+		else if (fileSize > 150)
 		{
+			isFileExist = true;
 			m_loader1.LoadParallel<cHeightmap2>(renderer, fileName.c_str()
 				, &tile.m_loadFlag[gis::eLayerName::DEM], (void**)&tile.m_hmap, true);
 		}
@@ -862,7 +865,7 @@ bool cQuadTileManager::LoadHeightMap(graphic::cRenderer &renderer
 
 	// 텍스쳐 파일이 없다면, 더 높은 레벨의 텍스쳐를 이용하고, uv를 재조정한다.
 	// 텍스쳐 로딩이 병렬로 이뤄지기 때문에, 로딩이 이뤄지는 동안, 대체 텍스쳐를 이용한다.
-	ReplaceParentTexture(renderer, terrain, tile, level, xLoc, yLoc, rect, 1);
+	ReplaceParentTexture(renderer, terrain, tile, level, xLoc, yLoc, rect, 1, isFileExist);
 
 	return true;
 }
@@ -1016,6 +1019,7 @@ bool cQuadTileManager::ReplaceParentTexture(graphic::cRenderer &renderer
 	, const int level, const int xLoc, const int yLoc
 	, const sRectf &rect
 	, const int texType //0=texture, 1=heightmap
+	, const bool existFile
 )
 {
 	cQuadTile *parentTile = GetReplaceNode(terrain, level, xLoc, yLoc, texType);
@@ -1064,7 +1068,7 @@ bool cQuadTileManager::ReplaceParentTexture(graphic::cRenderer &renderer
 		cHeightmap2 *replaceHmap = parentTile->m_hmap? parentTile->m_hmap : parentTile->m_deepCpyHmap;
 		if (!tile.m_hmap && replaceHmap)
 		{
-			if (m_isDeepCopySmooth)
+			if (m_isDeepCopySmooth && !existFile)
 			{
 				sHeightmapArgs2 args;
 				memcpy(args.huvs, tile.m_huvs, sizeof(args.huvs));

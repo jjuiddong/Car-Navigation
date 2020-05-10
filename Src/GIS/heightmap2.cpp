@@ -147,7 +147,8 @@ case 1: expr; \
 
 	Clear();
 
-	m_data = (float*)g_memPool256.Alloc();
+	//m_data = (float*)g_memPool256.Alloc();
+	m_data = new float[256 * 256];
 	if (!m_data)
 	{
 		dbg::Log("Error cHeightmap2::Create() \n");
@@ -607,7 +608,8 @@ void cHeightmap2::Resize(const int size)
 
 	const int nw = size;
 	const int nh = size;
-	float *temp = (float*)g_memPool256.Alloc();
+	//float *temp = (float*)g_memPool256.Alloc();
+	float *temp = new float[256 * 256];
 	assert(temp);
 	ZeroMemory(temp, sizeof(float) * nw * nh);
 	const float scale = (float)m_width / (float)size;
@@ -638,7 +640,8 @@ void cHeightmap2::GaussianSmoothing()
 		,{ 1, 2, 1 }
 	};
 
-	float *p = (float*)g_memPool256.Alloc();
+	//float *p = (float*)g_memPool256.Alloc();
+	float *p = new float[256 * 256];
 	assert(p);
 	const int h = m_height - 1;
 	const int w = m_width - 1;
@@ -661,7 +664,8 @@ void cHeightmap2::GaussianSmoothing()
 		for (int x = 1; x < w; x++)
 			*(m_data + (y * m_width) + x) = *(p + (y * m_width) + x);
 
-	g_memPool256.Free(p);
+	//g_memPool256.Free(p);
+	delete[] p;
 }
 
 
@@ -743,7 +747,8 @@ void cHeightmap2::Clear()
 {
 	if (m_data)
 	{
-		g_memPool256.Free(m_data);
+		//g_memPool256.Free(m_data);
+		delete[] m_data;
 		m_data = NULL;
 	}
 

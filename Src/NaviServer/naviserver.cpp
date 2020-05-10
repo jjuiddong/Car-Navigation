@@ -52,8 +52,9 @@ bool cNaviServer::Update(const float deltaSeconds)
 // gps protocol handler
 bool cNaviServer::GPSInfo(gps::GPSInfo_Packet &packet)
 {
-	const string dateStr = common::GetCurrentDateTime4();
-	const Str32 strDateTime = common::GetCurrentDateTime5(); // yyyy-mm-dd hh:mm:ss
+	const cDateTime2 curDateTime = cDateTime2::Now();
+	const Str32 dateStr = curDateTime.GetTimeStr5(); // yyyymmdd
+	const Str32 strDateTime = curDateTime.GetTimeStr3(); // yyyy-mm-dd hh:mm:ss
 	const int userId = 1;
 
 	if (m_dateStr != dateStr)
@@ -63,13 +64,13 @@ bool cNaviServer::GPSInfo(gps::GPSInfo_Packet &packet)
 			::CreateDirectoryA("./path", nullptr);
 
 		m_pathFilename = "./path/path_";
-		m_pathFilename += dateStr;
+		m_pathFilename += dateStr.c_str();
 		m_pathFilename += ".txt";
 		m_prevGpsPos = Vector2d(0, 0); // initialize
 		m_totalDistance = 0.f;
 
 		m_dateStr = dateStr;
-		m_journeyTimeId = common::GetCurrentDateTime3();
+		m_journeyTimeId = curDateTime.GetTimeInt64();
 
 		// upload db journey_date
 		if (m_sqlCon.IsConnected())
@@ -85,25 +86,32 @@ bool cNaviServer::GPSInfo(gps::GPSInfo_Packet &packet)
 		}
 	}
 
-	const Vector2d pos(packet.lon, packet.lat);
-	if (m_prevGpsPos != pos)
+	const Vector2d lonLat(packet.lon, packet.lat);
+	if (m_prevGpsPos != lonLat)
 	{
-		const string ctime = common::GetCurrentDateTime();
+		const Str32 ctime = curDateTime.GetTimeStr2();// yyyy-mm-dd-hh-mm-ss-mmm
 		dbg::Logp2(m_pathFilename.c_str(), "%s, %.15f, %.15f, %f, %f\n"
 			, ctime.c_str(), packet.lon, packet.lat, packet.speed, packet.altitude);
 
 		// update distance
 		if (m_prevGpsPos != Vector2d(0, 0))
 		{
-			const double distance = WGS84Distance(m_prevGpsPos, pos);
+			const double distance = WGS84Distance(m_prevGpsPos, lonLat);
+			const cDateTime2 dtime = curDateTime - m_prevDateTime;
+			const double dt = ((double)dtime.m_t) * 1000.f; // delta time (second unit)
+			const double speed = distance / dt;
+			if (speed > 100.f) // over 300km/h?
+				return false; // error occurred
+
 			m_totalDistance += distance;
 		}
 
-		m_prevGpsPos = pos;
+		m_prevGpsPos = lonLat;
+		m_prevDateTime = curDateTime;
 
 		// filter lon/lat (korea)
-		if ((pos.x < 123.f) || (pos.x > 133.f)
-			|| (pos.y < 31.f) || (pos.y > 39.f))
+		if ((lonLat.x < 123.f) || (lonLat.x > 133.f)
+			|| (lonLat.y < 31.f) || (lonLat.y > 39.f))
 		{
 			// lon/lat position crack
 			return true;
@@ -128,8 +136,7 @@ bool cNaviServer::GPSInfo(gps::GPSInfo_Packet &packet)
 		if (m_sqlCon.IsConnected())
 		{
 			const cDateTime2 date0(m_journeyTimeId);
-			const cDateTime2 now(common::GetCurrentDateTime3());
-			const cDateTime2 journeyTime = now - date0;
+			const cDateTime2 journeyTime = curDateTime - date0;
 
 			const string sql =
 				common::format("UPDATE journey_date SET journey_time = '%I64u', distance = '%f' "
@@ -153,7 +160,7 @@ bool cNaviServer::AddLandMark(gps::AddLandMark_Packet &packet)
 		return true; // not connect db
 
 	const int userId = 1;
-	const string dateStr = common::GetCurrentDateTime5();
+	const string dateStr = common::GetCurrentDateTime5(); // yyyy-mm-dd hh:mm:ss
 
 	const string sql =
 		common::format("INSERT INTO landmark (user_id, date_time, lon, lat)"
@@ -167,9 +174,8 @@ bool cNaviServer::AddLandMark(gps::AddLandMark_Packet &packet)
 }
 
 
-// return distance lonLat0 - lonLat2
+// return distance lonLat0 - lonLat2 (meter unit)
 // http://www.movable-type.co.uk/scripts/latlong.html
-// return distance (meter unit)
 double cNaviServer::WGS84Distance(const Vector2d &lonLat0, const Vector2d &lonLat1)
 {
 	const double r = 6371000.f;

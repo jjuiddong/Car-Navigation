@@ -28,9 +28,10 @@ public:
 	network2::cTcpServer m_svr;
 	MySQLConnection m_sqlCon;
 	StrPath m_pathFilename;
-	string m_dateStr;
+	Str32 m_dateStr; // yyyymmd
 	uint64 m_journeyTimeId;
 	Vector2d m_prevGpsPos;
+	cDateTime2 m_prevDateTime;
 	double m_totalDistance;
 };
 

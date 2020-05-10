@@ -104,7 +104,8 @@ protected:
 		, cQuadTile &tile
 		, const int level, const int xLoc, const int yLoc
 		, const sRectf &rect
-		, const int texType);
+		, const int texType
+		, const bool existFile);
 
 	cQuadTile* GetReplaceNode(
 		cTerrainQuadTree &terrain
@@ -126,7 +127,7 @@ protected:
 
 
 public:
-	const double LIMIT_TIME = 1.f; // m_tiles>1000: 1.f, 2000>0.5f
+	const double LIMIT_TIME = 0.6f; // 1.f, m_tiles>1000: 1.f, 2000>0.5f
 	struct sTileMem
 	{
 		double accessTime; // LIMIT_TIME이상 지나면, 메모리를 제거한다.
@@ -140,7 +141,7 @@ public:
 	graphic::cVertexBuffer m_tileVtxBuff;
 	graphic::cVertexBuffer m_tileLineVtxBuff;
 	map<int64, float> m_heights; // key = cQuadTree<sQuadData>::MakeKey(level, xLoc, yLoc)
-	graphic::cFileLoader2<2000, 6, sHeightmapArgs2> m_loader1; // texture, heightmap
+	graphic::cFileLoader2<2000, 10, sHeightmapArgs2> m_loader1; // texture, heightmap
 	graphic::cFileLoader2<10000, 1> m_loader2; // poi, index, xdo
 
 	gis::cGeoDownloader m_geoDownloader;

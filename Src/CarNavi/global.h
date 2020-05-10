@@ -80,7 +80,7 @@ public:
 	eCameraType m_camType;
 	sCameraInfo m_camInfo[(int)eCameraType::MAX];
 
-	// Render Overhead
+	// Render Overlay
 	bool m_isShowTerrain;
 	bool m_isShowRenderGraph;
 	bool m_isCalcRenderGraph;

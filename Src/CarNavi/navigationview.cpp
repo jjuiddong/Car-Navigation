@@ -95,7 +95,7 @@ void cNavigationView::OnRender(const float deltaSeconds)
 	//
 
 	// Show Prev Path CheckBox
-	ImGui::SetNextWindowPos(ImVec2(g_global->m_mapView->m_viewRect.left + 10.f
+	ImGui::SetNextWindowPos(ImVec2(g_global->m_mapView->m_viewRect.left + 150.f
 		, g_global->m_mapView->m_viewRect.bottom - 55.f));
 	ImGui::SetNextWindowSize(ImVec2(300, 55));
 	if (ImGui::Begin("Prev Path Window", nullptr, flags))
@@ -105,14 +105,11 @@ void cNavigationView::OnRender(const float deltaSeconds)
 			if (g_global->m_isShowPrevPath)
 				g_global->ReadAndConvertPathFiles(g_global->m_mapView->GetRenderer()
 					, g_global->m_mapView->m_quadTree, "./path/");
-
 			//cPathCompare comp;
 			//comp.Compare("./path/");
 		}
-
-		ImGui::SameLine();
-		ImGui::Checkbox("DeepCopy Smooth", &g_global->m_mapView->m_quadTree.m_tileMgr->m_isDeepCopySmooth);
-
+		//ImGui::SameLine();
+		//ImGui::Checkbox("DeepCopy Smooth", &g_global->m_mapView->m_quadTree.m_tileMgr->m_isDeepCopySmooth);
 		ImGui::End();
 	}
 	//

@@ -864,7 +864,7 @@ Vector2d cTerrainQuadTree::GetLongLat(const Ray &ray)
 }
 
 
-// 경위도에 해당하는 3D 위치를 리턴한다. (상대좌표계)
+// 경위도에 해당하는 3D 위치를 리턴한다. (relation coordinate)
 Vector3 cTerrainQuadTree::Get3DPos(const Vector2d &lonLat)
 {
 	const Vector3 globalPos = gis::WGS842Pos(lonLat);
@@ -922,7 +922,7 @@ Vector3 cTerrainQuadTree::Get3DPosPrecise(graphic::cRenderer &renderer, const Ve
 			// insert heightmap fileloader for clear memory
 			const StrPath fileName = cHeightmap2::GetFileName(g_mediaDir, level, x, y);
 
-			typedef graphic::cFileLoader2<2000, 6, sHeightmapArgs2> FileLoaderType;
+			typedef graphic::cFileLoader2<2000, 10, sHeightmapArgs2> FileLoaderType;
 			FileLoaderType::sChunk chunk;
 			chunk.accessTime = 0.f;
 			chunk.state = FileLoaderType::COMPLETE;

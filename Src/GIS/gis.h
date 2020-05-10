@@ -18,27 +18,11 @@
 #include "../../../Common/Common/common.h"
 using namespace common;
 #include "../../../Common/Graphic11/graphic11.h"
-
 #include "CFW1StateSaver.h"
 
 
 namespace gis
 {
-	// using fo x=longitude, y=latitude
-	//struct Vector2d
-	//{
-	//	double x, y;
-
-	//	Vector2d() : x(0), y(0) {}
-	//	Vector2d(const double x0, const double y0) :x(x0), y(y0) {}
-
-	//	bool operator==(const Vector2d &rhs) {
-	//		return (x == rhs.x) && (y == rhs.y);
-	//	}
-	//	bool operator!=(const Vector2d &rhs) {
-	//		return !operator==(rhs);
-	//	}
-	//};
 
 	struct Vector3d
 	{
