@@ -36,7 +36,7 @@ bool cQuadTileManager::Update(graphic::cRenderer &renderer, cTerrainQuadTree &te
 	set<__int64> rms;
 
 	const int tileCount = m_tiles.size();
-	double limitTime = (tileCount > 1000) ? 0.2f : ((tileCount > 500) ? 0.3f : LIMIT_TIME);
+	double limitTime = (tileCount > 1000) ? 0.4f : ((tileCount > 500) ? 0.6f : LIMIT_TIME);
 	//if (limitTime < (curT - oldT) + 20)
 	limitTime = max((curT - oldT) * 2.f, limitTime); // FPS 가 낮을 경우를 대비
 	oldT = curT;

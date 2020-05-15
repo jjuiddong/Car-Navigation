@@ -258,15 +258,18 @@ void cNavigationView::OnRender(const float deltaSeconds)
 				terrain.m_optimizeLevel = cQuadTree<sQuadData>::MAX_LEVEL;
 	}
 
-	ImGui::Checkbox("Trace GPS", &g_global->m_isTraceGPSPos);
-	ImGui::Checkbox("Trace Rotate", &g_global->m_isRotateTrace);
-	ImGui::Checkbox("Show LandMark", &g_global->m_isShowLandMark);
-	ImGui::Checkbox("Show LandMark2", &g_global->m_isShowLandMark2);
-	ImGui::Checkbox("Black Mode", &g_global->m_isDarkMode);
-	if (g_global->m_isDarkMode)
-		if (ImGui::SliderFloat("Alpha", &g_global->m_darkColor.x, 0.f, 1.f))
-			g_global->m_darkColor = Vector4(g_global->m_darkColor.x
-				, g_global->m_darkColor.x, g_global->m_darkColor.x, g_global->m_darkColor.w);
+	if (!isShowOption)
+	{
+		ImGui::Checkbox("Trace GPS", &g_global->m_isTraceGPSPos);
+		ImGui::Checkbox("Trace Rotate", &g_global->m_isRotateTrace);
+		ImGui::Checkbox("Show LandMark", &g_global->m_isShowLandMark);
+		ImGui::Checkbox("Show LandMark2", &g_global->m_isShowLandMark2);
+		ImGui::Checkbox("Black Mode", &g_global->m_isDarkMode);
+		if (g_global->m_isDarkMode)
+			if (ImGui::SliderFloat("Alpha", &g_global->m_darkColor.x, 0.f, 1.f))
+				g_global->m_darkColor = Vector4(g_global->m_darkColor.x
+					, g_global->m_darkColor.x, g_global->m_darkColor.x, g_global->m_darkColor.w);
+	}
 
 	//ImGui::Separator();
 
@@ -275,88 +278,91 @@ void cNavigationView::OnRender(const float deltaSeconds)
 	{
 		ImGui::Text("tile memory %d", terrain.m_tileMgr->m_tiles.size());
 		ImGui::Text("render quad lv %d", terrain.m_optimizeLevel);
-		ImGui::Text("download %d"
-			, terrain.m_tileMgr->m_geoDownloader.m_requestIds.size());
-		ImGui::Text("    - total size %I64d (MB)"
-			, terrain.m_tileMgr->m_geoDownloader.m_totalDownloadFileSize / (1048576)); // 1024*1024
+		//ImGui::Text("download %d"
+		//	, terrain.m_tileMgr->m_geoDownloader.m_requestIds.size());
+		//ImGui::Text("    - total size %I64d (MB)"
+		//	, terrain.m_tileMgr->m_geoDownloader.m_totalDownloadFileSize / (1048576)); // 1024*1024
 	}
 
-	ImGui::Spacing();
-	ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.6f, 0.6f, 0, 1));
-	ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.8f, 0.8f, 0, 1));
-	ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.4f, 0.4f, 0, 1));
-	if (ImGui::Button("Jump to Current Position"))
+	if (!isShowOption)
 	{
-		auto &mapView = g_global->m_mapView;
-		auto &camera = mapView->m_camera;
-		const Vector3 lookAt = mapView->m_quadTree.Get3DPos(mapView->m_curGpsPos);
-		const Vector3 eyePos = lookAt + Vector3(1, 1, 1) * 250.f;
-		camera.Move(eyePos, lookAt);
+		ImGui::Spacing();
+		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.6f, 0.6f, 0, 1));
+		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.8f, 0.8f, 0, 1));
+		ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.4f, 0.4f, 0, 1));
+		if (ImGui::Button("Jump to Current Position"))
+		{
+			auto &mapView = g_global->m_mapView;
+			auto &camera = mapView->m_camera;
+			const Vector3 lookAt = mapView->m_quadTree.Get3DPos(mapView->m_curGpsPos);
+			const Vector3 eyePos = lookAt + Vector3(1, 1, 1) * 250.f;
+			camera.Move(eyePos, lookAt);
+		}
+
+		ImGui::Spacing();
+		ImGui::Spacing();
+		ImGui::Spacing();
+
+		switch (g_global->m_landMarkSelectState)
+		{
+		case 0:
+			if (ImGui::Button("LandMark"))
+				g_global->m_landMarkSelectState = 1;
+			break;
+		case 1:
+		case 2:
+			ImGui::Button("Set LandMark");
+			break;
+		default: assert(0); break;
+		}
+
+		ImGui::Spacing();
+		ImGui::Spacing();
+
+		switch (g_global->m_landMarkSelectState2)
+		{
+		case 0:
+			if (ImGui::Button("LandMark2"))
+				g_global->m_landMarkSelectState2 = 1;
+			break;
+		case 1:
+		case 2:
+			ImGui::Button("Set LandMark2");
+			break;
+		default: assert(0); break;
+		}
+
+		ImGui::PopStyleColor(3);
+		ImGui::Spacing();
+
+		ImGui::Spacing();
+		ImGui::Spacing();
+		ImGui::Spacing();
+		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.6f, 0.1f, 0, 1));
+		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.8f, 0.1f, 0, 1));
+		ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.4f, 0.1f, 0, 1));
+		//if (ImGui::Button("Clear Path"))
+		//{
+		//	auto &track = g_global->m_gpsClient.m_paths;
+		//	track.clear();
+		//}
+
+		//if (ImGui::Button("Read Path File"))
+		//{
+		//	if (g_global->m_gpsClient.ReadPathFile("path.txt"))
+		//	{
+		//	}
+		//}
+
+		//if (ImGui::Button("GPS Path Pump"))
+		//{
+		//	if (g_global->m_gpsClient.ReadPathFile("path.txt"))
+		//	{
+		//		g_global->m_gpsClient.FileReplay();
+		//	}
+		//}
+		ImGui::PopStyleColor(3);
 	}
-
-	ImGui::Spacing();
-	ImGui::Spacing();
-	ImGui::Spacing();
-
-	switch (g_global->m_landMarkSelectState)
-	{
-	case 0:
-		if (ImGui::Button("LandMark"))
-			g_global->m_landMarkSelectState = 1;
-		break;
-	case 1:
-	case 2:
-		ImGui::Button("Set LandMark");
-		break;
-	default: assert(0); break;
-	}
-
-	ImGui::Spacing();
-	ImGui::Spacing();
-
-	switch (g_global->m_landMarkSelectState2)
-	{
-	case 0:
-		if (ImGui::Button("LandMark2"))
-			g_global->m_landMarkSelectState2 = 1;
-		break;
-	case 1:
-	case 2:
-		ImGui::Button("Set LandMark2");
-		break;
-	default: assert(0); break;
-	}
-
-	ImGui::PopStyleColor(3);
-	ImGui::Spacing();
-
-	ImGui::Spacing();
-	ImGui::Spacing();
-	ImGui::Spacing();
-	ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.6f, 0.1f, 0, 1));
-	ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.8f, 0.1f, 0, 1));
-	ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.4f, 0.1f, 0, 1));
-	//if (ImGui::Button("Clear Path"))
-	//{
-	//	auto &track = g_global->m_gpsClient.m_paths;
-	//	track.clear();
-	//}
-
-	//if (ImGui::Button("Read Path File"))
-	//{
-	//	if (g_global->m_gpsClient.ReadPathFile("path.txt"))
-	//	{
-	//	}
-	//}
-
-	//if (ImGui::Button("GPS Path Pump"))
-	//{
-	//	if (g_global->m_gpsClient.ReadPathFile("path.txt"))
-	//	{
-	//		g_global->m_gpsClient.FileReplay();
-	//	}
-	//}
-	ImGui::PopStyleColor(3);
 
 	//ImGui::Spacing();
 	//ImGui::Spacing();

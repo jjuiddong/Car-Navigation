@@ -894,7 +894,7 @@ void cMapView::RenderGraph(const ImVec2 &pos)
 	}
 
 	ImGui::SetNextWindowBgAlpha(0.f);
-	ImGui::SetNextWindowPos(ImVec2(pos.x, pos.y + 300.f));
+	ImGui::SetNextWindowPos(ImVec2(pos.x, pos.y + 170.f));
 	ImGui::SetNextWindowSize(ImVec2(min(m_viewRect.Width(), 700.f)
 		, min(m_viewRect.Height() - 100.f, 550.f)));
 	if (ImGui::Begin("Render Graph", &isOpen, flags))

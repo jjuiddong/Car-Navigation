@@ -127,7 +127,7 @@ protected:
 
 
 public:
-	const double LIMIT_TIME = 0.6f; // 1.f, m_tiles>1000: 1.f, 2000>0.5f
+	const double LIMIT_TIME = 0.8f; // 1.f, m_tiles>1000: 1.f, 2000>0.5f
 	struct sTileMem
 	{
 		double accessTime; // LIMIT_TIME이상 지나면, 메모리를 제거한다.
