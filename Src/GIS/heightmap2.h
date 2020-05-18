@@ -89,7 +89,7 @@ public:
 	int m_waitState;
 	D3D11_MAPPED_SUBRESOURCE m_desc;
 	graphic::cTexture *m_texture; // heightmap texture
-	StrPath m_fileName;
+	string m_fileName;
 	static const float DEFAULT_H;
 };
 

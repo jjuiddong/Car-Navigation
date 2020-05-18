@@ -9,7 +9,7 @@ const float cHeightmap2::DEFAULT_H = 2.f;
 
 extern common::cMemoryPool2<65 * 65 * sizeof(float)> g_memPool65;
 extern common::cMemoryPool2<256 * 256 * sizeof(float)> g_memPool256;
-extern common::cMemoryPool3<graphic::cTexture, 512> g_memPoolTex;
+//extern common::cMemoryPool3<graphic::cTexture, 512> g_memPoolTex;
 
 cHeightmap2::cHeightmap2()
 	: m_level(0)
@@ -42,8 +42,8 @@ cHeightmap2::cHeightmap2(graphic::cRenderer &renderer, const char *fileName)
 		throw std::exception();
 }
 
-cHeightmap2::cHeightmap2(graphic::cRenderer &renderer, const cHeightmap2 *src, const char *fileName
-	, const sHeightmapArgs2 &args)
+cHeightmap2::cHeightmap2(graphic::cRenderer &renderer, const cHeightmap2 *src,
+	const char *fileName, const sHeightmapArgs2 &args)
 {
 	if (!Create(renderer, *src, args.huvs, args.level, args.xLoc, args.yLoc))
 		throw std::exception();

@@ -53,28 +53,28 @@ bool cQuadTileManager::Update(graphic::cRenderer &renderer, cTerrainQuadTree &te
 
 			{
 				StrPath fileName = cHeightmap2::GetFileName(g_mediaDir, tile->m_level, tile->m_loc.x, tile->m_loc.y);
-				m_loader1.Remove<cHeightmap2>(fileName.c_str());
+				m_loader1.RemoveParallel<cHeightmap2>(fileName.c_str());
 			}
 
 			{
 				// remove replace deepcopy heightmap
 				StrPath fileName = cHeightmap2::GetFileName(g_mediaDir, tile->m_level, tile->m_loc.x, tile->m_loc.y) + "DeepCpy";
-				m_loader1.Remove<cHeightmap2>(fileName.c_str());
+				m_loader1.RemoveParallel<cHeightmap2>(fileName.c_str());
 			}
 
 			{
 				StrPath fileName = cTileTexture::GetFileName(g_mediaDir, tile->m_level, tile->m_loc.x, tile->m_loc.y);
-				m_loader1.Remove<cTileTexture>(fileName.c_str());
+				m_loader1.RemoveParallel<cTileTexture>(fileName.c_str());
 			}
 
 			{
 				StrPath fileName = cPoiReader::GetFileName(g_mediaDir, tile->m_level, tile->m_loc.x, tile->m_loc.y, gis::eLayerName::POI_BASE);
-				m_loader2.Remove<cPoiReader>(fileName.c_str());
+				m_loader2.RemoveParallel<cPoiReader>(fileName.c_str());
 			}
 
 			{
 				StrPath fileName = cPoiReader::GetFileName(g_mediaDir, tile->m_level, tile->m_loc.x, tile->m_loc.y, gis::eLayerName::POI_BOUND);
-				m_loader2.Remove<cPoiReader>(fileName.c_str());
+				m_loader2.RemoveParallel<cPoiReader>(fileName.c_str());
 			}
 
 			{
@@ -93,7 +93,7 @@ bool cQuadTileManager::Update(graphic::cRenderer &renderer, cTerrainQuadTree &te
 						{
 							StrPath fileName = cTileTexture::GetFileName(g_mediaDir, tile->m_level, tile->m_loc.x, tile->m_loc.y
 								, facility->m_xdos[0].imageName);
-							m_loader1.Remove<cTileTexture>(fileName.c_str());
+							m_loader1.RemoveParallel<cTileTexture>(fileName.c_str());
 						}
 					}
 
@@ -101,14 +101,14 @@ bool cQuadTileManager::Update(graphic::cRenderer &renderer, cTerrainQuadTree &te
 					{
 						StrPath fileName = cXdoReader::GetFileName(g_mediaDir, tile->m_level, tile->m_loc.x, tile->m_loc.y
 							, obj.dataFile);
-						m_loader2.Remove<cXdoReader>(fileName.c_str());
+						m_loader2.RemoveParallel<cXdoReader>(fileName.c_str());
 					}
 				}
 			}
 
 			{
 				StrPath fileName = cReal3DModelIndexReader::GetFileName(g_mediaDir, tile->m_level, tile->m_loc.x, tile->m_loc.y);
-				m_loader2.Remove<cReal3DModelIndexReader>(fileName.c_str());
+				m_loader2.RemoveParallel<cReal3DModelIndexReader>(fileName.c_str());
 			}
 
 			delete mem.tile;
@@ -1065,7 +1065,8 @@ bool cQuadTileManager::ReplaceParentTexture(graphic::cRenderer &renderer
 		tile.m_huvs[3] = v2;
 		tile.m_replaceHmap = NULL;
 
-		cHeightmap2 *replaceHmap = parentTile->m_hmap? parentTile->m_hmap : parentTile->m_deepCpyHmap;
+		cHeightmap2 *replaceHmap = parentTile->m_hmap? 
+			parentTile->m_hmap : parentTile->m_deepCpyHmap;
 		if (!tile.m_hmap && replaceHmap)
 		{
 			if (m_isDeepCopySmooth && !existFile)
@@ -1075,8 +1076,8 @@ bool cQuadTileManager::ReplaceParentTexture(graphic::cRenderer &renderer
 				args.level = level;
 				args.xLoc = xLoc;
 				args.yLoc = yLoc;
-				const StrPath fileName = cHeightmap2::GetFileName(g_mediaDir, level, xLoc, yLoc)
-					+ "DeepCpy";
+				const StrPath fileName = cHeightmap2::GetFileName(g_mediaDir
+					, level, xLoc, yLoc) + "DeepCpy";
 
 				m_loader1.LoadParallel<cHeightmap2>(renderer
 					, replaceHmap, fileName.c_str()
