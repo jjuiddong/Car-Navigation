@@ -19,6 +19,15 @@ cGeoDownloader::~cGeoDownloader()
 }
 
 
+// create geo downloader
+// setting apikey
+bool cGeoDownloader::Create(const string &apiKey)
+{
+	m_apiKey = apiKey;
+	return true;
+}
+
+
 bool cGeoDownloader::DownloadFile(const int level, const int xLoc, const int yLoc
 	, const int idx
 	, const eLayerName::Enum type

@@ -54,10 +54,8 @@ common::cTask::eRunResult::Enum cTaskWebDownload::Run(const double deltaSeconds)
 		return eRunResult::END;
 	}
 
-	//sample "http://xdworld.vworld.kr:8080/XDServer/requestLayerNode?APIKey=A3C8B7D2-1149-3C99-9862-04D6C24730E9&Layer=dem&Level=7&IDX=1091&IDY=452";
-
-	//const char *apiKey = "A3C8B7D2-1149-3C99-9862-04D6C24730E9";
-	const char *apiKey = "767B7ADF-10BA-3D86-AB7E-02816B5B92E9";
+	//sample "http://xdworld.vworld.kr:8080/XDServer/requestLayerNode?APIKey=A3C8B7D2-1149-3C99-XXXX-XXXXXXXXXXXX&Layer=dem&Level=7&IDX=1091&IDY=452";
+	const char *apiKey = m_webDownloader->m_apiKey.c_str();
 	const char *site = "http://xdworld.vworld.kr:8080/XDServer/";
 	const char *cmd = NULL;
 	const char *layerName = NULL;

@@ -5,6 +5,9 @@
 // 2019-05-18
 //	- download using thread pool
 //
+// 2020-09-10
+//	- apikey external file
+//
 #pragma once
 
 
@@ -19,6 +22,7 @@ namespace gis
 		cGeoDownloader();
 		virtual ~cGeoDownloader();
 
+		bool Create(const string &apiKey);
 		bool DownloadFile(const int level, const int xLoc, const int yLoc
 			, const int idx
 			, const eLayerName::Enum type
@@ -26,7 +30,6 @@ namespace gis
 			, iDownloadFinishListener *listener
 			, const char *dataFileName = NULL
 		);
-
 		void UpdateDownload();
 		bool Insert(const sDownloadData &dnData);
 		bool Remove(const sDownloadData &dnData);
@@ -38,6 +41,7 @@ namespace gis
 
 
 	public:
+		Str64 m_apiKey;
 		bool m_isOfflineMode;
 		CriticalSection m_cs;
 		vector<sDownloadData> m_complete;

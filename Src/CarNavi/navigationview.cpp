@@ -245,6 +245,8 @@ void cNavigationView::OnRender(const float deltaSeconds)
 		ImGui::Checkbox("Quadtree", &terrain.m_isShowQuadTree);
 		ImGui::SameLine();
 		ImGui::Checkbox("Lv", &terrain.m_isShowLevel);
+		ImGui::SameLine();
+		ImGui::Checkbox("Loc", &terrain.m_isShowLoc);
 		//ImGui::Checkbox("Poi1", &terrain.m_isShowPoi1);
 		//ImGui::SameLine();
 		ImGui::Checkbox("Poi2", &terrain.m_isShowPoi2);

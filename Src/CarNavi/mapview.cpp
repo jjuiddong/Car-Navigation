@@ -70,6 +70,9 @@ bool cMapView::Init(cRenderer &renderer)
 	m_quadTree.m_isShowFacility = false;
 	m_quadTree.m_isShowPoi1 = true;
 	m_quadTree.m_isShowPoi2 = false;
+	if (m_quadTree.m_tileMgr)
+		m_quadTree.m_tileMgr->m_geoDownloader.Create(
+			g_global->m_config.GetString("apikey"));
 
 	m_skybox.Create(renderer, "../media/skybox/sky.dds");
 	m_skybox.m_isDepthNone = true;
