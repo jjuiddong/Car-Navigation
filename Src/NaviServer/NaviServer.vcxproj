@@ -152,6 +152,9 @@
   <ItemGroup>
     <ClCompile Include="..\Protocol\Src\gps_Protocol.cpp" />
     <ClCompile Include="..\Protocol\Src\gps_ProtocolHandler.cpp" />
+    <ClCompile Include="database\dbmgr.cpp" />
+    <ClCompile Include="database\mongodb.cpp" />
+    <ClCompile Include="database\mysql.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="naviserver.cpp" />
     <ClCompile Include="stdafx.cpp">
@@ -163,6 +166,10 @@
     <ClInclude Include="..\Protocol\Src\gps_Protocol.h" />
     <ClInclude Include="..\Protocol\Src\gps_ProtocolData.h" />
     <ClInclude Include="..\Protocol\Src\gps_ProtocolHandler.h" />
+    <ClInclude Include="database\dbinterface.h" />
+    <ClInclude Include="database\dbmgr.h" />
+    <ClInclude Include="database\mongodb.h" />
+    <ClInclude Include="database\mysql.h" />
     <ClInclude Include="naviserver.h" />
     <ClInclude Include="stdafx.h" />
   </ItemGroup>

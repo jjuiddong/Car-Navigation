@@ -20,6 +20,7 @@ public:
 	virtual void OnResetDevice() override;
 
 	void ChangeViewCamera(const eCameraType camType);
+	void MoveScanPathCamera(const bool isUpdateCurPos);
 
 
 protected:
@@ -27,9 +28,11 @@ protected:
 	void RenderGraph(const ImVec2 &pos);
 	void UpdateGPS(const float deltaSeconds);
 	void UpdateOBD2(const float deltaSeconds);
-	void UpdateMapScanning(const float deltaSeconds);
+	void UpdateMapScanCircle(const float deltaSeconds);
+	void UpdateMapScanPath(const float deltaSeconds);
 	void UpdateMapTrace(const float deltaSeconds);
 	void MoveCamera(const Vector3 &newPos, const float camSpeed, const bool isPredict=false);
+
 
 	void UpdateCameraTraceLookat(const bool isUpdateDistance = true);
 	void UpdateLookAt();

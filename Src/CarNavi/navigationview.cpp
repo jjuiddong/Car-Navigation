@@ -118,6 +118,9 @@ void cNavigationView::OnRender(const float deltaSeconds)
 	cTerrainQuadTree &terrain = g_global->m_mapView->m_quadTree;
 	cGpsClient &gpsClient = g_global->m_gpsClient;
 
+	for (int i = 0; i < 8; ++i)
+		ImGui::Spacing();
+
 	if (isDetailOption)
 	{
 		ImGui::RadioButton("Serial", (int*)&gpsClient.m_inputType
@@ -125,11 +128,6 @@ void cNavigationView::OnRender(const float deltaSeconds)
 		ImGui::SameLine();
 		ImGui::RadioButton("Network", (int*)&gpsClient.m_inputType
 			, (int)cGpsClient::eInputType::Network);
-	}
-	else
-	{
-		for (int i=0; i < 8; ++i)
-			ImGui::Spacing();
 	}
 
 	const int width = 200;
@@ -265,6 +263,11 @@ void cNavigationView::OnRender(const float deltaSeconds)
 		ImGui::Checkbox("Show LandMark", &g_global->m_isShowLandMark);
 		ImGui::Checkbox("Show LandMark2", &g_global->m_isShowLandMark2);
 		ImGui::Checkbox("Black Mode", &g_global->m_isDarkMode);
+		ImGui::SameLine();
+		bool isBlindMode = !g_global->m_isShowTerrain;
+		if (ImGui::Checkbox("Blind Mode", &isBlindMode))
+			g_global->m_isShowTerrain = !isBlindMode;
+
 		if (g_global->m_isDarkMode)
 			if (ImGui::SliderFloat("Alpha", &g_global->m_darkColor.x, 0.f, 1.f))
 				g_global->m_darkColor = Vector4(g_global->m_darkColor.x
@@ -286,6 +289,7 @@ void cNavigationView::OnRender(const float deltaSeconds)
 
 	if (!isShowOption)
 	{
+		ImGui::Spacing();
 		ImGui::Spacing();
 		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.6f, 0.6f, 0, 1));
 		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.8f, 0.8f, 0, 1));
@@ -316,8 +320,9 @@ void cNavigationView::OnRender(const float deltaSeconds)
 		default: assert(0); break;
 		}
 
-		ImGui::Spacing();
-		ImGui::Spacing();
+		//ImGui::Spacing();
+		//ImGui::Spacing();
+		ImGui::SameLine();
 
 		switch (g_global->m_landMarkSelectState2)
 		{

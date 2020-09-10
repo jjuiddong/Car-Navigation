@@ -7,7 +7,7 @@ using namespace gis;
 
 
 cGeoDownloader::cGeoDownloader()
-	: m_isOfflineMode(true)
+	: m_isOfflineMode(false)
 	, m_totalDownloadFileSize(0)
 {
 	m_tpDownloader.Init(5); // 5 thread

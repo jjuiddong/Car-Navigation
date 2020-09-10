@@ -28,23 +28,32 @@ bool cNaviServer::Init(network2::cNetController &netController)
 	if (!netController.StartTcpServer(&m_svr, port))
 		return false;
 
+	if (!m_db.Init(cDBMgr::Database::MongoDB))
+		return false;
+
 	// connect db server
 	const string dbIp = config.GetString("db_ip", "127.0.0.1");
 	const int dbPort = config.GetInt("db_port", 10002);
 	const string dbId = config.GetString("db_id", "root");
 	const string dbPasswd = config.GetString("db_passwd", "root");
 	const string dbName = config.GetString("db_name", "db");
-	if (!m_sqlCon.Connect(dbIp, dbPort, dbId, dbPasswd, dbName))
-	{
-		std::cout << "DB Connection Error\n";
-	}
-
-	return true;
+	return m_db.Connect(dbIp, dbPort, dbId, dbPasswd, dbName);
 }
 
 
 bool cNaviServer::Update(const float deltaSeconds)
 {
+	//static float dt = 0.f;
+	//dt += deltaSeconds;
+	//if (dt > 3.f) {
+	//	dt = 0.f;
+
+	//	const cDateTime2 curDateTime = cDateTime2::Now();
+	//	const Str32 strDateTime = curDateTime.GetTimeStr3(); // yyyy-mm-dd hh:mm:ss
+	//	const int userId = 1;
+	//	m_journeyTimeId = curDateTime.GetTimeInt64();
+	//	m_db.InsertJourney(strDateTime.c_str(), userId, m_journeyTimeId, 0, 0);
+	//}
 	return true;
 }
 
@@ -54,11 +63,12 @@ bool cNaviServer::GPSInfo(gps::GPSInfo_Packet &packet)
 {
 	const cDateTime2 curDateTime = cDateTime2::Now();
 	const Str32 dateStr = curDateTime.GetTimeStr5(); // yyyymmdd
-	const Str32 strDateTime = curDateTime.GetTimeStr3(); // yyyy-mm-dd hh:mm:ss
 	const int userId = 1;
 
 	if (m_dateStr != dateStr)
 	{
+		const Str32 strDateTime = curDateTime.GetTimeStr4(); // yyyy-mm-dd
+
 		// check path folder
 		if (!StrPath("./path").IsFileExist())
 			::CreateDirectoryA("./path", nullptr);
@@ -73,22 +83,14 @@ bool cNaviServer::GPSInfo(gps::GPSInfo_Packet &packet)
 		m_journeyTimeId = curDateTime.GetTimeInt64();
 
 		// upload db journey_date
-		if (m_sqlCon.IsConnected())
-		{
-			const string sql =
-				common::format("INSERT INTO journey_date (date, user_id, time_id"
-					", distance, journey_time)"
-					" VALUES ('%s', '%d', '%I64u', '%f', '%f');"
-					, strDateTime.c_str(), userId, m_journeyTimeId, 0, 0);
-
-			MySQLQuery query(&m_sqlCon, sql);
-			query.ExecuteInsert();
-		}
+		m_db.InsertJourney(strDateTime.c_str(), userId, m_journeyTimeId, 0, 0);
 	}
 
 	const Vector2d lonLat(packet.lon, packet.lat);
 	if (m_prevGpsPos != lonLat)
 	{
+		const Str32 strDateTime = curDateTime.GetTimeStr3(); // yyyy-mm-dd hh:mm:ss
+
 		const Str32 ctime = curDateTime.GetTimeStr2();// yyyy-mm-dd-hh-mm-ss-mmm
 		dbg::Logp2(m_pathFilename.c_str(), "%s, %.15f, %.15f, %f, %f\n"
 			, ctime.c_str(), packet.lon, packet.lat, packet.speed, packet.altitude);
@@ -118,35 +120,11 @@ bool cNaviServer::GPSInfo(gps::GPSInfo_Packet &packet)
 		}
 
 		// upload db path
-		if (m_sqlCon.IsConnected())
-		{
-			const string sql =
-				common::format("INSERT INTO path (date_time, user_id, journey_time_id"
-					", lon, lat, speed, altitude)"
-					" VALUES ('%s', '%d', '%I64u', '%f', '%f', '%f', '%f');"
-					, strDateTime.c_str()
-					, userId, m_journeyTimeId, packet.lon, packet.lat
-					, packet.speed, packet.altitude);
-
-			MySQLQuery query(&m_sqlCon, sql);
-			query.ExecuteInsert();
-		}
+		m_db.InsertPath(strDateTime.c_str(), userId, m_journeyTimeId
+			, packet.lon, packet.lat, packet.speed, packet.altitude);
 
 		// upload db journey_date
-		if (m_sqlCon.IsConnected())
-		{
-			const cDateTime2 date0(m_journeyTimeId);
-			const cDateTime2 journeyTime = curDateTime - date0;
-
-			const string sql =
-				common::format("UPDATE journey_date SET journey_time = '%I64u', distance = '%f' "
-					" WHERE time_id = '%I64u' AND user_id = '%d';"
-					, journeyTime.m_t, m_totalDistance
-					, m_journeyTimeId, userId);
-
-			MySQLQuery query(&m_sqlCon, sql);
-			query.ExecuteInsert();
-		}
+		m_db.UpdateJourney(userId, m_journeyTimeId, (float)m_totalDistance);
 	}
 
 	return true;
@@ -156,20 +134,9 @@ bool cNaviServer::GPSInfo(gps::GPSInfo_Packet &packet)
 // add landmark
 bool cNaviServer::AddLandMark(gps::AddLandMark_Packet &packet)
 {
-	if (!m_sqlCon.IsConnected())
-		return true; // not connect db
-
 	const int userId = 1;
 	const string dateStr = common::GetCurrentDateTime5(); // yyyy-mm-dd hh:mm:ss
-
-	const string sql =
-		common::format("INSERT INTO landmark (user_id, date_time, lon, lat)"
-			" VALUES ('%d', '%s', '%f', '%f');"
-			, userId, dateStr.c_str(), packet.lon, packet.lat);
-
-	MySQLQuery query(&m_sqlCon, sql);
-	query.ExecuteInsert();
-
+	m_db.InsertLandmark(dateStr.c_str(), userId, packet.lon, packet.lat);
 	return true;
 }
 

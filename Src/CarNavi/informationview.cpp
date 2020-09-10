@@ -55,12 +55,11 @@ void cInformationView::OnRender(const float deltaSeconds)
 			{
 				g_global->m_isSelectMapScanningCenter = false;
 			}
-
 		}
 
 		ImGui::DragScalarN("Left Top", ImGuiDataType_Double
 			, (double*)&g_global->m_scanCenter, 2, 0.001f);
-		ImGui::DragFloat("Scan Height", &g_global->m_scanHeight, 0.001f);
+		ImGui::DragFloat("Scan Height", &g_global->m_scanHeight, 0.01f);
 		ImGui::DragFloat("Scan Speed", &g_global->m_scanSpeed, 0.001f);
 
 		if (g_global->m_isMapScanning)
@@ -72,9 +71,10 @@ void cInformationView::OnRender(const float deltaSeconds)
 		}
 		else
 		{
-			if (ImGui::Button("Map Scanning"))
+			if (ImGui::Button("Map Circle Scanning"))
 			{
 				g_global->m_isMapScanning = true;
+				g_global->m_scanType = 0; // circle scan
 				Vector3 center = terrain.Get3DPos(g_global->m_scanCenter);
 				g_global->m_scanRadius = 10.f;
 				g_global->m_scanPos = center + Vector3(10, 0, 0);
@@ -91,21 +91,56 @@ void cInformationView::OnRender(const float deltaSeconds)
 		//ImGui::Text("load texture %d"
 		//	, terrain.m_tileMgr->m_tmaps.m_tpLoader.m_tasks.size());
 
-		if (g_global->m_isMakeTracePath)
+		ImGui::Spacing();
+		ImGui::Spacing();
+		if (g_global->m_isMakeScanPath)
 		{
-			if (ImGui::Button("End Make Trace Line"))
+			if (ImGui::Button("End Make Scan Path (Convex)"))
 			{
-				g_global->m_isMakeTracePath = false;
+				g_global->m_isMakeScanPath = false;
 			}
 		}
 		else
 		{
-			if (ImGui::Button("Make Trace Line"))
+			if (ImGui::Button("Make Scan Path (Convex)"))
 			{
-				g_global->m_isMakeTracePath = true;
+				g_global->m_isMakeScanPath = true;
+				g_global->m_scanPath.clear();
 			}
 		}
 
+		if (g_global->m_isMapScanning && (g_global->m_scanType == 1))
+		{
+			if (ImGui::Button("Cancel Map Path Scanning"))
+			{
+				g_global->m_isMapScanning = false;
+			}
+		}
+		else
+		{
+			if (ImGui::Button("Map Path Scanning"))
+			{
+				if (g_global->m_scanPath.size() > 2)
+				{
+					Vector2d center(0, 0);
+					for (auto &lonLat : g_global->m_scanPath)
+						center += lonLat;
+					center /= (float)g_global->m_scanPath.size();
+
+					g_global->m_isMapScanning = true;
+					g_global->m_scanType = 1; // path scan
+					g_global->m_scanCenter = center;
+					g_global->m_scanPathIdx = 0;
+					g_global->m_scanSrcPath = g_global->m_scanPath; // copy source
+					g_global->m_mapView->MoveScanPathCamera(true);
+				}
+			}
+		}
+
+
+		ImGui::Spacing();
+		ImGui::Spacing();
+		ImGui::Spacing();
 		if (g_global->m_gpsClient.IsPathReplay())
 		{
 			if (ImGui::Button("End File Trace"))
@@ -117,8 +152,8 @@ void cInformationView::OnRender(const float deltaSeconds)
 		{
 			if (ImGui::Button("Start File Trace"))
 			{
-				g_global->m_gpsClient.PathFileReplay();
-				g_global->m_prevTracePos = Vector3::Zeroes;
+				//g_global->m_gpsClient.PathFileReplay();
+				//g_global->m_prevTracePos = Vector3::Zeroes;
 			}
 		}
 

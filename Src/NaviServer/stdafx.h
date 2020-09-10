@@ -10,5 +10,9 @@ using namespace common;
 #include "../Protocol/Src/gps_ProtocolData.h"
 #include "../Protocol/Src/gps_ProtocolHandler.h"
 
+#include "database/dbinterface.h"
+#include "database/mysql.h"
+#include "database/mongodb.h"
+#include "database/dbmgr.h"
 
 extern string g_configFileName;

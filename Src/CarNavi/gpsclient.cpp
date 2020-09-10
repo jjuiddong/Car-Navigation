@@ -36,11 +36,9 @@ bool cGpsClient::Init()
 	if (!StrPath("./gps").IsDirectory())
 		::CreateDirectoryA("./gps", nullptr);
 
-
-	GpsReplay();
+	//GpsReplay();
 	//ReadPathFile("path/path_20200504.txt");
 	//PathFileReplay();
-
 	return true;
 }
 

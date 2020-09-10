@@ -56,7 +56,8 @@ common::cTask::eRunResult::Enum cTaskWebDownload::Run(const double deltaSeconds)
 
 	//sample "http://xdworld.vworld.kr:8080/XDServer/requestLayerNode?APIKey=A3C8B7D2-1149-3C99-9862-04D6C24730E9&Layer=dem&Level=7&IDX=1091&IDY=452";
 
-	const char *apiKey = "A3C8B7D2-1149-3C99-9862-04D6C24730E9";
+	//const char *apiKey = "A3C8B7D2-1149-3C99-9862-04D6C24730E9";
+	const char *apiKey = "767B7ADF-10BA-3D86-AB7E-02816B5B92E9";
 	const char *site = "http://xdworld.vworld.kr:8080/XDServer/";
 	const char *cmd = NULL;
 	const char *layerName = NULL;
@@ -66,18 +67,18 @@ common::cTask::eRunResult::Enum cTaskWebDownload::Run(const double deltaSeconds)
 	switch (m_dnData.layer)
 	{
 	case eLayerName::DEM:
-		//cmd = "requestLayerNode";
-		//layerName = "dem";
-		//break;
-		m_webDownloader->Remove(m_dnData);
-		return eRunResult::END;
+		cmd = "requestLayerNode";
+		layerName = "dem";
+		break;
+		//m_webDownloader->Remove(m_dnData);
+		//return eRunResult::END;
 
 	case eLayerName::TILE:
-		//cmd = "requestLayerNode";
-		//layerName = "tile";
-		//break;
-		m_webDownloader->Remove(m_dnData);
-		return eRunResult::END;
+		cmd = "requestLayerNode";
+		layerName = "tile";
+		break;
+		//m_webDownloader->Remove(m_dnData);
+		//return eRunResult::END;
 
 	case eLayerName::POI_BASE:
 		cmd = "requestLayerNode";

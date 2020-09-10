@@ -87,18 +87,24 @@ public:
 
 	// map scanning
 	bool m_isMapScanning; // 카메라를 정해진 경로로 움직일 때 true
-	bool m_isSelectMapScanningCenter; // 스캐닝 할 중점을 선택한다.
+	bool m_isMakeScanPath; // setting scanning path?
+	int m_scanType; // 0:circle, 1:path
+	bool m_isSelectMapScanningCenter; // select scanning center mode?
 	Vector2d m_scanCenter;
 	Vector3 m_scanCenterPos;
+	vector<Vector2d> m_scanPath;
+	vector<Vector2d> m_scanSrcPath; // temporary store scan path
+	uint m_scanPathIdx;
 	Vector3 m_scanPos;
 	Vector3 m_scanDir;
+	Vector3 m_scanNextPos;
 	float m_scanRadius;
 	float m_scanHeight;
 	float m_scanSpeed; // m/s
+	float m_prevDistance; // check camera moving
 
 	// map trace
-	bool m_isMakeTracePath;
-	Vector3 m_prevTracePos;
+	//Vector3 m_prevTracePos;
 
 	// path
 	bool m_isShowPrevPath;

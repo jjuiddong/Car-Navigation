@@ -26,7 +26,7 @@ protected:
 
 public:
 	network2::cTcpServer m_svr;
-	MySQLConnection m_sqlCon;
+	cDBMgr m_db;
 	StrPath m_pathFilename;
 	Str32 m_dateStr; // yyyymmd
 	uint64 m_journeyTimeId;

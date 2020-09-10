@@ -10,6 +10,15 @@
       <Filter>protocol_src</Filter>
     </ClCompile>
     <ClCompile Include="naviserver.cpp" />
+    <ClCompile Include="database\dbmgr.cpp">
+      <Filter>database</Filter>
+    </ClCompile>
+    <ClCompile Include="database\mysql.cpp">
+      <Filter>database</Filter>
+    </ClCompile>
+    <ClCompile Include="database\mongodb.cpp">
+      <Filter>database</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h" />
@@ -23,6 +32,18 @@
       <Filter>protocol_src</Filter>
     </ClInclude>
     <ClInclude Include="naviserver.h" />
+    <ClInclude Include="database\mongodb.h">
+      <Filter>database</Filter>
+    </ClInclude>
+    <ClInclude Include="database\dbinterface.h">
+      <Filter>database</Filter>
+    </ClInclude>
+    <ClInclude Include="database\dbmgr.h">
+      <Filter>database</Filter>
+    </ClInclude>
+    <ClInclude Include="database\mysql.h">
+      <Filter>database</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="protocol_src">
@@ -30,6 +51,9 @@
     </Filter>
     <Filter Include="protocol">
       <UniqueIdentifier>{9d35aa42-8580-438c-a7b2-3b3e9a076a8c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="database">
+      <UniqueIdentifier>{a506fed3-08bf-4fdf-864a-5e0294061058}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

@@ -116,13 +116,16 @@ void cMapView::OnUpdate(const float deltaSeconds)
 
 	float dt = deltaSeconds;
 	// 꽁수.
-	// FileReplay 중일 때, 파일을 다운로드 중이라면 대기한다.
+	// FileReplay 중일 때, 데이타를 요청 중이라면 대기한다.
 	// 카메라를 이동하지 않는다.
 	//if (gpsClient.IsPathReplay()
 	//	&& (m_quadTree.m_tileMgr->m_geoDownloader.m_requestIds.size() > 1))
-	//{
-	//	dt = 0.f;
-	//}
+	if (g_global->m_isMapScanning && (g_global->m_scanType != 1)
+		&& (m_quadTree.m_tileMgr->m_geoDownloader.m_requestIds.size() > 1))
+	{
+		dt = 0.f;
+	}
+
 	m_camera.Update(dt);
 	m_netController.Process(dt);
 
@@ -130,7 +133,8 @@ void cMapView::OnUpdate(const float deltaSeconds)
 
 	UpdateOBD2(deltaSeconds);
 	UpdateGPS(deltaSeconds);
-	UpdateMapScanning(deltaSeconds);
+	UpdateMapScanCircle(deltaSeconds);
+	UpdateMapScanPath(deltaSeconds);
 	//UpdateMapTrace(deltaSeconds);
 }
 
@@ -273,14 +277,11 @@ void cMapView::UpdateOBD2(const float deltaSeconds)
 }
 
 
-// 카메라를 이동하면서 파일을 다운로드 받는다.
-// 카메라 위치로 위경도를 파악하고, 특정 범위안에서 움직이도록 한다.
-void cMapView::UpdateMapScanning(const float deltaSeconds)
+// circle scanning
+void cMapView::UpdateMapScanCircle(const float deltaSeconds)
 {
-	if (!g_global->m_isMapScanning)
+	if (!g_global->m_isMapScanning || (g_global->m_scanType != 0))
 		return;
-
-	// 파일을 다운로드 중이라면 대기한다.
 	if (m_quadTree.m_tileMgr->m_geoDownloader.m_requestIds.size() > 1)
 		return;
 
@@ -305,6 +306,100 @@ void cMapView::UpdateMapScanning(const float deltaSeconds)
 }
 
 
+// convex scanning
+void cMapView::UpdateMapScanPath(const float deltaSeconds)
+{
+	if (!g_global->m_isMapScanning || (g_global->m_scanType != 1))
+		return;
+	if (m_quadTree.m_tileMgr->m_geoDownloader.m_requestIds.size() > 1)
+		return;
+
+	cTerrainQuadTree &terrain = m_quadTree;
+	const float dist = g_global->m_scanPos.Distance(g_global->m_scanNextPos);
+	if ((dist < 0.01f) || (dist > g_global->m_prevDistance)) {
+		// arrive, next position
+		const uint nidx = (g_global->m_scanPathIdx + 1) % g_global->m_scanPath.size();
+		g_global->m_scanPathIdx = nidx;
+		g_global->m_prevDistance = FLT_MAX;
+
+		// 1 cycle finished
+		// change scan path to more center nearby
+		if (nidx == 0)
+		{
+			double totDist = 0.f;
+			for (uint i = 0; i < g_global->m_scanPath.size(); ++i) 
+			{
+				const Vector2d lonLat = g_global->m_scanPath[i];
+				totDist += g_global->m_scanCenter.Distance(lonLat);
+				const Vector2d dir = (g_global->m_scanCenter - lonLat).Normal();
+				const Vector2d pos = lonLat + dir * 0.0005f * (double)g_global->m_scanHeight;
+				g_global->m_scanPath[i] = pos;
+			}
+
+			const double avrDist = totDist / (double)g_global->m_scanPath.size();
+			if (avrDist < 0.05f)
+			{
+				// finish scan, recovery source path, height down, re scan
+				g_global->m_scanPath = g_global->m_scanSrcPath;
+				g_global->m_scanHeight -= 20.f;
+				if (g_global->m_scanHeight < 10.f)
+				{
+					// finish scan
+					g_global->m_isMapScanning = false;
+				}
+			}
+		}
+
+		MoveScanPathCamera(true);
+	}
+	else
+	{
+		g_global->m_prevDistance = dist;
+	}
+
+
+	const float camDist = g_global->m_scanHeight * 0.05f; // lookat distance
+	Vector3 eyePos = g_global->m_scanPos + 
+		g_global->m_scanDir * g_global->m_scanSpeed * deltaSeconds;
+	g_global->m_scanPos = eyePos;
+	Vector3 lookAt = eyePos + g_global->m_scanDir * camDist;
+	eyePos.y = g_global->m_scanHeight;
+	m_camera.SetLookAt(lookAt);
+	m_camera.Move(eyePos, lookAt, g_global->m_scanSpeed);
+}
+
+
+// move camera when scan path mode
+void cMapView::MoveScanPathCamera(const bool isUpdateCurPos)
+{
+	if (!g_global->m_isMapScanning || (g_global->m_scanType != 1))
+		return;
+
+	cTerrainQuadTree &terrain = m_quadTree;
+	const vector<Vector2d> &path = g_global->m_scanPath;
+	const uint idx = g_global->m_scanPathIdx;
+	const float height = g_global->m_scanHeight;
+	const uint nidx = (idx + 1) % path.size();
+		
+	if (isUpdateCurPos) 
+	{
+		Vector3 pos = terrain.Get3DPos(path[idx]);
+		pos.y = height;
+		m_camera.SetEyePos(pos);
+	}
+
+	Vector3 pos0 = m_camera.GetEyePos();
+	Vector3 pos1 = terrain.Get3DPos(path[nidx]);
+	pos0.y = 0;
+	pos1.y = 0;
+	const Vector3 dir = (pos1 - pos0).Normal();
+
+	g_global->m_scanPos = pos0;
+	g_global->m_scanNextPos = pos1;
+	g_global->m_scanDir = dir;
+}
+
+
 // path 경로로 이동 중일 때 처리
 void cMapView::UpdateMapTrace(const float deltaSeconds)
 {
@@ -312,7 +407,7 @@ void cMapView::UpdateMapTrace(const float deltaSeconds)
 	//if (!gpsClient.IsPathReplay())
 	//	return;
 
-	//// 파일을 다운로드 중이라면, 목표점을 이동하지 않는다.
+	//// 데이타를 요청 중이라면, 목표점을 이동하지 않는다.
 	//if (m_quadTree.m_tileMgr->m_geoDownloader.m_requestIds.size() > 1)
 	//	return;
 
@@ -477,7 +572,7 @@ void cMapView::OnPreRender(const float deltaSeconds)
 	GetMainCamera().Bind(renderer);
 	GetMainLight().Bind(renderer);
 
-	if (m_renderTarget.Begin(renderer))
+	if (m_renderTarget.Begin(renderer, Vector4(0,0,0,1.f)))
 	{
 		CommonStates states(renderer.GetDevice());
 
@@ -488,7 +583,8 @@ void cMapView::OnPreRender(const float deltaSeconds)
 		else
 		{
 			renderer.GetDevContext()->RSSetState(states.CullCounterClockwise());
-			m_skybox.Render(renderer);
+			if (g_global->m_isShowTerrain)
+				m_skybox.Render(renderer);
 		}
 
 		const Ray ray1 = GetMainCamera().GetRay();
@@ -561,7 +657,7 @@ void cMapView::OnPreRender(const float deltaSeconds)
 				{ (double)g_root.m_lonLat.x, (double)g_root.m_lonLat.y });
 			renderer.m_dbgLine.m_isSolid = true;
 			renderer.m_dbgLine.SetColor(Vector4(1,1,1,0.5f));
-			renderer.m_dbgLine.SetLine(p0, p0 + Vector3(0, 1, 0), 0.01f);
+			renderer.m_dbgLine.SetLine(p0, p0 + Vector3(0, 0.1f, 0), 0.01f);
 			renderer.m_dbgLine.Render(renderer);
 			renderer.m_dbgLine.m_isSolid = false;
 
@@ -573,7 +669,7 @@ void cMapView::OnPreRender(const float deltaSeconds)
 
 
 			// 카메라와의 거리에 따라 크기를 변경한다. (항상 같은 크기로 보이기 위함)
-			m_curPosObj.m_transform.pos = p0 + Vector3(0, 1, 0);
+			m_curPosObj.m_transform.pos = p0 + Vector3(0, 0.1f, 0);
 			const float dist = GetMainCamera().GetEyePos().Distance(p0);
 			const float scale = common::clamp(0.02f, 1000.f, (dist * 1.5f) / 180.f);
 			m_curPosObj.m_transform.scale = Vector3::Ones * scale;
@@ -611,6 +707,7 @@ void cMapView::OnPreRender(const float deltaSeconds)
 				const float dist = GetMainCamera().GetEyePos().Distance(p0);
 				const float scale = common::clamp(0.5f, 30.f, (dist * 1.5f) / 250.f);
 				m_landMarkObj.m_transform.scale = Vector3::Ones * scale;
+				m_landMarkObj2.SetColor(cColor::YELLOW);
 				m_landMarkObj.Render(renderer);
 			}
 		}
@@ -630,7 +727,24 @@ void cMapView::OnPreRender(const float deltaSeconds)
 				const float dist = GetMainCamera().GetEyePos().Distance(p0);
 				const float scale = common::clamp(0.5f, 30.f, (dist * 1.5f) / 250.f);
 				m_landMarkObj2.m_transform.scale = Vector3::Ones * scale;
+				m_landMarkObj2.SetColor(cColor::BLUE);
 				m_landMarkObj2.Render(renderer);
+			}
+		}
+
+		if (g_global->m_isMakeScanPath) 
+		{
+			renderer.m_dbgLine.SetColor(cColor::WHITE);
+			for (int i = 0; i < (int)g_global->m_scanPath.size(); ++i)
+			{
+				auto &lonLat0 = g_global->m_scanPath[i];
+				auto &lonLat1 = g_global->m_scanPath[(i + 1) %
+					g_global->m_scanPath.size()];
+
+				const Vector3 p0 = gis::GetRelationPos(gis::WGS842Pos(lonLat0));
+				const Vector3 p1 = gis::GetRelationPos(gis::WGS842Pos(lonLat1));
+				renderer.m_dbgLine.SetLine(p0 + Vector3(0, 20, 0), p1 + Vector3(0, 20, 0), 0.03f);
+				renderer.m_dbgLine.Render(renderer);
 			}
 		}
 	}
@@ -1193,12 +1307,13 @@ void cMapView::OnMouseDown(const sf::Mouse::Button &button, const POINT mousePt)
 			g_global->m_scanCenter = lonLat;
 			g_global->m_isSelectMapScanningCenter = false;
 		}
-		else if (g_global->m_isMakeTracePath && GetAsyncKeyState(VK_LCONTROL))
+		else if (g_global->m_isMakeScanPath && GetAsyncKeyState(VK_LCONTROL))
 		{
 			cGpsClient::sPath path;
 			path.t = 0;
 			path.lonLat = lonLat;
-			g_global->m_gpsClient.m_paths.push_back(path);
+			//g_global->m_gpsClient.m_paths.push_back(path);
+			g_global->m_scanPath.push_back(lonLat);
 		}
 		else if (g_global->m_landMarkSelectState == 1)
 		{
