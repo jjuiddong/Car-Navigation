@@ -22,7 +22,7 @@ namespace gis
 		cGeoDownloader();
 		virtual ~cGeoDownloader();
 
-		bool Create(const string &apiKey);
+		bool Create(const string &apiKey, const bool isCheckTileMgr=true);
 		bool DownloadFile(const int level, const int xLoc, const int yLoc
 			, const int idx
 			, const eLayerName::Enum type
@@ -43,6 +43,7 @@ namespace gis
 	public:
 		Str64 m_apiKey;
 		bool m_isOfflineMode;
+		bool m_isCheckTileMgr; // if TileMgr has tile, download
 		CriticalSection m_cs;
 		vector<sDownloadData> m_complete;
 		set<iDownloadFinishListener*> m_listeners;

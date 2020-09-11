@@ -76,6 +76,9 @@ public:
 	int m_gear; // transimission gear
 	int m_obdRcvCnt;
 
+	// model parameter
+
+
 	// View Type
 	eCameraType m_camType;
 	sCameraInfo m_camInfo[(int)eCameraType::MAX];
@@ -102,9 +105,6 @@ public:
 	float m_scanHeight;
 	float m_scanSpeed; // m/s
 	float m_prevDistance; // check camera moving
-
-	// map trace
-	//Vector3 m_prevTracePos;
 
 	// path
 	bool m_isShowPrevPath;

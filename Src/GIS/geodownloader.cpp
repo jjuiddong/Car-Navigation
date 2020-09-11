@@ -8,6 +8,7 @@ using namespace gis;
 
 cGeoDownloader::cGeoDownloader()
 	: m_isOfflineMode(false)
+	, m_isCheckTileMgr(true)
 	, m_totalDownloadFileSize(0)
 {
 	m_tpDownloader.Init(5); // 5 thread
@@ -21,9 +22,12 @@ cGeoDownloader::~cGeoDownloader()
 
 // create geo downloader
 // setting apikey
-bool cGeoDownloader::Create(const string &apiKey)
+bool cGeoDownloader::Create(const string &apiKey
+	, const bool isCheckTileMgr // =true
+)
 {
 	m_apiKey = apiKey;
+	m_isCheckTileMgr = isCheckTileMgr;
 	return true;
 }
 

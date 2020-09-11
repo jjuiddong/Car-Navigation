@@ -321,7 +321,7 @@ void cTerrainQuadTree::RenderTessellation(graphic::cRenderer &renderer
 		if (!node->children[0])
 		{
 			cQuadTile *tile = m_tileMgr->GetTile(renderer, node->level, node->xLoc, node->yLoc, rect);
-			tile->m_renderFlag = g_root.m_renderFlag;				
+			tile->m_renderFlag = g_root.m_renderFlag;
 			node->data.tile = tile;
 			m_tileMgr->LoadResource(renderer, *this, *tile, node->level, node->xLoc, node->yLoc, rect);
 			//m_tileMgr->Smooth(renderer, *this, node);

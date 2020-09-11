@@ -11,6 +11,7 @@ using namespace gis;
 
 cTaskWebDownload::cTaskWebDownload()
 	: cTask(common::GenerateId(), "cTaskWebDownload", true)
+	, m_webDownloader(nullptr)
 {
 }
 
@@ -18,6 +19,8 @@ cTaskWebDownload::cTaskWebDownload(cGeoDownloader *webDownloader
 	, cQuadTileManager *tileMgr
 	, const sDownloadData &dnData)
 	: cTask(common::GenerateId(), "cTaskWebDownload", true)
+	, m_tileMgr(nullptr)
+	, m_webDownloader(nullptr)
 {
 	SetParameter(webDownloader, tileMgr, dnData);
 }
@@ -47,10 +50,11 @@ void cTaskWebDownload::SetParameter(cGeoDownloader *webDownloader
 common::cTask::eRunResult::Enum cTaskWebDownload::Run(const double deltaSeconds)
 {
 	// 해당 타일이 지워진 상태라면 다운로드 받지 않는다.
-	if (!m_tileMgr->FindTile(m_dnData.level, m_dnData.xLoc, m_dnData.yLoc))
+	if (m_webDownloader->m_isCheckTileMgr 
+		&& !m_tileMgr->FindTile(m_dnData.level, m_dnData.xLoc, m_dnData.yLoc))
 	{
 		//dbg::Logp("skip web download level=%d, xLoc=%d, yLoc=%d\n", m_dnData.level, m_dnData.xLoc, m_dnData.yLoc);
-		m_webDownloader->Remove(m_dnData);
+		//m_webDownloader->Remove(m_dnData);
 		return eRunResult::END;
 	}
 
