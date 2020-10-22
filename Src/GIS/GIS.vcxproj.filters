@@ -15,119 +15,116 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="poireader.h">
-      <Filter>geo</Filter>
-    </ClInclude>
-    <ClInclude Include="xdoreader.h">
-      <Filter>geo</Filter>
-    </ClInclude>
-    <ClInclude Include="real3dmodelindexreader.h">
-      <Filter>geo</Filter>
-    </ClInclude>
-    <ClInclude Include="quadtile.h">
-      <Filter>tile</Filter>
-    </ClInclude>
-    <ClInclude Include="quadtilemanager.h">
-      <Filter>tile</Filter>
-    </ClInclude>
-    <ClInclude Include="quadtree.h">
-      <Filter>tile</Filter>
-    </ClInclude>
-    <ClInclude Include="heightmap.h">
-      <Filter>tile</Filter>
-    </ClInclude>
-    <ClInclude Include="terrainquadtree.h">
-      <Filter>tile</Filter>
-    </ClInclude>
-    <ClInclude Include="triangulate.h">
-      <Filter>tile</Filter>
-    </ClInclude>
-    <ClInclude Include="tiletexture.h">
-      <Filter>tile</Filter>
-    </ClInclude>
-    <ClInclude Include="webdownload.h">
-      <Filter>download</Filter>
-    </ClInclude>
-    <ClInclude Include="taskwebdownload.h">
-      <Filter>download</Filter>
-    </ClInclude>
     <ClInclude Include="gis.h" />
     <ClInclude Include="stdafx.h" />
-    <ClInclude Include="root.h">
-      <Filter>tile</Filter>
-    </ClInclude>
-    <ClInclude Include="route.h">
-      <Filter>lib</Filter>
-    </ClInclude>
-    <ClInclude Include="UTM.h">
-      <Filter>lib</Filter>
-    </ClInclude>
-    <ClInclude Include="CFW1StateSaver.h">
-      <Filter>lib</Filter>
-    </ClInclude>
-    <ClInclude Include="geodownloader.h">
+    <ClInclude Include="download\geodownloader.h">
       <Filter>download</Filter>
     </ClInclude>
-    <ClInclude Include="heightmap2.h">
+    <ClInclude Include="download\taskwebdownload.h">
+      <Filter>download</Filter>
+    </ClInclude>
+    <ClInclude Include="download\webdownload.h">
+      <Filter>download</Filter>
+    </ClInclude>
+    <ClInclude Include="geo\poireader.h">
+      <Filter>geo</Filter>
+    </ClInclude>
+    <ClInclude Include="geo\real3dmodelindexreader.h">
+      <Filter>geo</Filter>
+    </ClInclude>
+    <ClInclude Include="geo\shapefileloader.h">
+      <Filter>geo</Filter>
+    </ClInclude>
+    <ClInclude Include="geo\xdoreader.h">
+      <Filter>geo</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\CFW1StateSaver.h">
+      <Filter>lib</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\route.h">
+      <Filter>lib</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\UTM.h">
+      <Filter>lib</Filter>
+    </ClInclude>
+    <ClInclude Include="tile\heightmap.h">
       <Filter>tile</Filter>
     </ClInclude>
-    <ClInclude Include="shapefileloader.h">
-      <Filter>geo</Filter>
+    <ClInclude Include="tile\heightmap2.h">
+      <Filter>tile</Filter>
+    </ClInclude>
+    <ClInclude Include="tile\quadtile.h">
+      <Filter>tile</Filter>
+    </ClInclude>
+    <ClInclude Include="tile\quadtilemanager.h">
+      <Filter>tile</Filter>
+    </ClInclude>
+    <ClInclude Include="tile\quadtree.h">
+      <Filter>tile</Filter>
+    </ClInclude>
+    <ClInclude Include="tile\terrainquadtree.h">
+      <Filter>tile</Filter>
+    </ClInclude>
+    <ClInclude Include="tile\tiletexture.h">
+      <Filter>tile</Filter>
+    </ClInclude>
+    <ClInclude Include="tile\triangulate.h">
+      <Filter>tile</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="xdoreader.cpp">
-      <Filter>geo</Filter>
-    </ClCompile>
-    <ClCompile Include="real3dmodelindexreader.cpp">
-      <Filter>geo</Filter>
-    </ClCompile>
-    <ClCompile Include="poireader.cpp">
-      <Filter>geo</Filter>
-    </ClCompile>
-    <ClCompile Include="heightmap.cpp">
-      <Filter>tile</Filter>
-    </ClCompile>
-    <ClCompile Include="quadtile.cpp">
-      <Filter>tile</Filter>
-    </ClCompile>
-    <ClCompile Include="quadtilemanager.cpp">
-      <Filter>tile</Filter>
-    </ClCompile>
-    <ClCompile Include="tiletexture.cpp">
-      <Filter>tile</Filter>
-    </ClCompile>
-    <ClCompile Include="triangulate.cpp">
-      <Filter>tile</Filter>
-    </ClCompile>
-    <ClCompile Include="webdownload.cpp">
-      <Filter>download</Filter>
-    </ClCompile>
-    <ClCompile Include="taskwebdownload.cpp">
-      <Filter>download</Filter>
-    </ClCompile>
-    <ClCompile Include="terrainquadtree.cpp">
-      <Filter>tile</Filter>
-    </ClCompile>
     <ClCompile Include="gis.cpp" />
     <ClCompile Include="stdafx.cpp" />
-    <ClCompile Include="route.cpp">
-      <Filter>lib</Filter>
-    </ClCompile>
-    <ClCompile Include="UTM.cpp">
-      <Filter>lib</Filter>
-    </ClCompile>
-    <ClCompile Include="CFW1StateSaver.cpp">
-      <Filter>lib</Filter>
-    </ClCompile>
-    <ClCompile Include="geodownloader.cpp">
+    <ClCompile Include="download\geodownloader.cpp">
       <Filter>download</Filter>
     </ClCompile>
-    <ClCompile Include="heightmap2.cpp">
+    <ClCompile Include="download\taskwebdownload.cpp">
+      <Filter>download</Filter>
+    </ClCompile>
+    <ClCompile Include="download\webdownload.cpp">
+      <Filter>download</Filter>
+    </ClCompile>
+    <ClCompile Include="geo\poireader.cpp">
+      <Filter>geo</Filter>
+    </ClCompile>
+    <ClCompile Include="geo\real3dmodelindexreader.cpp">
+      <Filter>geo</Filter>
+    </ClCompile>
+    <ClCompile Include="geo\shapefileloader.cpp">
+      <Filter>geo</Filter>
+    </ClCompile>
+    <ClCompile Include="geo\xdoreader.cpp">
+      <Filter>geo</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\CFW1StateSaver.cpp">
+      <Filter>lib</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\route.cpp">
+      <Filter>lib</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\UTM.cpp">
+      <Filter>lib</Filter>
+    </ClCompile>
+    <ClCompile Include="tile\heightmap.cpp">
       <Filter>tile</Filter>
     </ClCompile>
-    <ClCompile Include="shapefileloader.cpp">
-      <Filter>geo</Filter>
+    <ClCompile Include="tile\heightmap2.cpp">
+      <Filter>tile</Filter>
+    </ClCompile>
+    <ClCompile Include="tile\quadtile.cpp">
+      <Filter>tile</Filter>
+    </ClCompile>
+    <ClCompile Include="tile\quadtilemanager.cpp">
+      <Filter>tile</Filter>
+    </ClCompile>
+    <ClCompile Include="tile\terrainquadtree.cpp">
+      <Filter>tile</Filter>
+    </ClCompile>
+    <ClCompile Include="tile\tiletexture.cpp">
+      <Filter>tile</Filter>
+    </ClCompile>
+    <ClCompile Include="tile\triangulate.cpp">
+      <Filter>tile</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

@@ -18,7 +18,6 @@
 #include "../../../Common/Common/common.h"
 using namespace common;
 #include "../../../Common/Graphic11/graphic11.h"
-#include "CFW1StateSaver.h"
 
 
 namespace gis
@@ -98,25 +97,24 @@ namespace gis
 }
 
 
-#include "UTM.h"
-#include "webdownload.h"
-#include "taskwebdownload.h"
-#include "geodownloader.h"
-#include "quadtree.h"
-#include "heightmap.h"
-#include "heightmap2.h"
-#include "tiletexture.h"
-#include "poireader.h"
-#include "real3dmodelindexreader.h"
-#include "xdoreader.h"
-#include "quadtile.h"
-#include "quadtilemanager.h"
-#include "terrainquadtree.h"
-#include "triangulate.h"
-#include "route.h"
-#include "shapefileloader.h"
-#include "root.h"
-
+#include "lib/UTM.h"
+#include "lib/route.h"
+#include "lib/CFW1StateSaver.h"
+#include "download/webdownload.h"
+#include "download/taskwebdownload.h"
+#include "download/geodownloader.h"
+#include "geo/poireader.h"
+#include "geo/real3dmodelindexreader.h"
+#include "geo/xdoreader.h"
+#include "geo/shapefileloader.h"
+#include "tile/quadtree.h"
+#include "tile/heightmap.h"
+#include "tile/heightmap2.h"
+#include "tile/tiletexture.h"
+#include "tile/quadtile.h"
+#include "tile/quadtilemanager.h"
+#include "tile/terrainquadtree.h"
+#include "tile/triangulate.h"
 
 
 extern StrPath g_mediaDir;

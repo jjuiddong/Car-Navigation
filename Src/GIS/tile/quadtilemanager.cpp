@@ -10,6 +10,8 @@ cQuadTileManager::cQuadTileManager()
 	, m_timeLoadFileSorting(0)
 	, m_cntRemoveTile(0)
 	, m_isDeepCopySmooth(true)
+	, m_facilityAngleY(180)
+	, m_facilityScale(0.018f)
 {
 	m_timer.Create();
 }
@@ -427,10 +429,10 @@ bool cQuadTileManager::CreateFacility(graphic::cRenderer &renderer
 
 	const Vector3 pos3D = terrain.Get3DPos(lonLat);
 	tile->m_mods[i].m_transform.pos.y -= (tile->m_mods[i].m_transform.pos.y - pos3D.y) * 0.3f;
-	tile->m_mods[i].m_transform.scale = Vector3(1, 1, 1)*g_root.m_scale;
+	tile->m_mods[i].m_transform.scale = Vector3(1, 1, 1) * m_facilityScale;
 
 	Quaternion q;
-	q.SetRotationY(ANGLE2RAD(g_root.m_angleY));
+	q.SetRotationY(ANGLE2RAD(m_facilityAngleY));
 	tile->m_mods[i].m_transform.rot = q;
 
 	return true;

@@ -96,4 +96,5 @@ public:
 	double m_t0; // buildtree time
 	double m_t1; // render tesselation time
 	double m_t2; // update time
+	int m_tileRenderFlag;
 };

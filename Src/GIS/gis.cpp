@@ -1,7 +1,7 @@
 
 #include "stdafx.h"
 #include "gis.h"
-#include "quadtree.h"
+#include "tile/quadtree.h"
 
 using namespace gis;
 

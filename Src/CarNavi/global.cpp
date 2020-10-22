@@ -102,7 +102,7 @@ bool cGlobal::ReadPathFiles(graphic::cRenderer &renderer
 
 	for (auto &file : files)
 	{
-		cPath path(file);
+		cPathFile path(file);
 		if (!path.IsLoad())
 			continue;
 
@@ -193,7 +193,7 @@ bool cGlobal::ReadAndConvertPathFiles(graphic::cRenderer &renderer
 		}
 		else
 		{
-			cPath path(file);
+			cPathFile path(file);
 			if (!path.IsLoad())
 				continue; // error occurred
 

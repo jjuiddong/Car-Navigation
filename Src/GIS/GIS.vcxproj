@@ -150,53 +150,52 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="CFW1StateSaver.h" />
+    <ClInclude Include="download\geodownloader.h" />
+    <ClInclude Include="download\taskwebdownload.h" />
+    <ClInclude Include="download\webdownload.h" />
+    <ClInclude Include="geo\poireader.h" />
+    <ClInclude Include="geo\real3dmodelindexreader.h" />
+    <ClInclude Include="geo\shapefileloader.h" />
+    <ClInclude Include="geo\xdoreader.h" />
     <ClInclude Include="gis.h" />
-    <ClInclude Include="heightmap.h" />
-    <ClInclude Include="heightmap2.h" />
-    <ClInclude Include="poireader.h" />
-    <ClInclude Include="quadtile.h" />
-    <ClInclude Include="quadtilemanager.h" />
-    <ClInclude Include="quadtree.h" />
-    <ClInclude Include="real3dmodelindexreader.h" />
-    <ClInclude Include="root.h" />
-    <ClInclude Include="route.h" />
-    <ClInclude Include="shapefileloader.h" />
+    <ClInclude Include="lib\CFW1StateSaver.h" />
+    <ClInclude Include="lib\route.h" />
+    <ClInclude Include="lib\UTM.h" />
     <ClInclude Include="stdafx.h" />
-    <ClInclude Include="taskwebdownload.h" />
-    <ClInclude Include="terrainquadtree.h" />
-    <ClInclude Include="tiletexture.h" />
-    <ClInclude Include="triangulate.h" />
-    <ClInclude Include="UTM.h" />
-    <ClInclude Include="geodownloader.h" />
-    <ClInclude Include="webdownload.h" />
-    <ClInclude Include="xdoreader.h" />
+    <ClInclude Include="tile\heightmap.h" />
+    <ClInclude Include="tile\heightmap2.h" />
+    <ClInclude Include="tile\quadtile.h" />
+    <ClInclude Include="tile\quadtilemanager.h" />
+    <ClInclude Include="tile\quadtree.h" />
+    <ClInclude Include="tile\terrainquadtree.h" />
+    <ClInclude Include="tile\tiletexture.h" />
+    <ClInclude Include="tile\triangulate.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="CFW1StateSaver.cpp" />
+    <ClCompile Include="download\geodownloader.cpp" />
+    <ClCompile Include="download\taskwebdownload.cpp" />
+    <ClCompile Include="download\webdownload.cpp" />
+    <ClCompile Include="geo\poireader.cpp" />
+    <ClCompile Include="geo\real3dmodelindexreader.cpp" />
+    <ClCompile Include="geo\shapefileloader.cpp" />
+    <ClCompile Include="geo\xdoreader.cpp" />
     <ClCompile Include="gis.cpp" />
-    <ClCompile Include="heightmap.cpp" />
-    <ClCompile Include="heightmap2.cpp" />
-    <ClCompile Include="poireader.cpp" />
-    <ClCompile Include="quadtile.cpp" />
-    <ClCompile Include="quadtilemanager.cpp" />
-    <ClCompile Include="real3dmodelindexreader.cpp" />
-    <ClCompile Include="route.cpp" />
-    <ClCompile Include="shapefileloader.cpp" />
+    <ClCompile Include="lib\CFW1StateSaver.cpp" />
+    <ClCompile Include="lib\route.cpp" />
+    <ClCompile Include="lib\UTM.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="taskwebdownload.cpp" />
-    <ClCompile Include="terrainquadtree.cpp" />
-    <ClCompile Include="tiletexture.cpp" />
-    <ClCompile Include="triangulate.cpp" />
-    <ClCompile Include="UTM.cpp" />
-    <ClCompile Include="geodownloader.cpp" />
-    <ClCompile Include="webdownload.cpp" />
-    <ClCompile Include="xdoreader.cpp" />
+    <ClCompile Include="tile\heightmap.cpp" />
+    <ClCompile Include="tile\heightmap2.cpp" />
+    <ClCompile Include="tile\quadtile.cpp" />
+    <ClCompile Include="tile\quadtilemanager.cpp" />
+    <ClCompile Include="tile\terrainquadtree.cpp" />
+    <ClCompile Include="tile\tiletexture.cpp" />
+    <ClCompile Include="tile\triangulate.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\Common\Common\Common.vcxproj">

@@ -19,7 +19,7 @@ cPathRenderer::~cPathRenderer()
 // path정보로 mesh를 만든다.
 // pos3DFileName : 파일명이 있다면, 3DPos 포맷으로 파일을 저장한다.
 bool cPathRenderer::Create(graphic::cRenderer &renderer, cTerrainQuadTree &terrain
-	, const cPath &path
+	, const cPathFile &path
 	, const StrPath &pos3DFileName //= ""
 )
 {

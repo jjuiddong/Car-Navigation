@@ -1,22 +1,22 @@
 
 #include "stdafx.h"
-#include "path.h"
+#include "pathfile.h"
 
 
-cPath::cPath(const StrPath &fileName //= ""
+cPathFile::cPathFile(const StrPath &fileName //= ""
 )
 {
 	if (!fileName.empty())
 		Read(fileName);
 }
 
-cPath::~cPath()
+cPathFile::~cPathFile()
 {
 	Clear();
 }
 
 
-bool cPath::Read(const StrPath &fileName)
+bool cPathFile::Read(const StrPath &fileName)
 {
 	cSimpleData simData(fileName.c_str());
 	if (!simData.IsLoad())
@@ -53,13 +53,13 @@ bool cPath::Read(const StrPath &fileName)
 }
 
 
-bool cPath::IsLoad() const
+bool cPathFile::IsLoad() const
 {
 	return !m_table.empty();
 }
 
 
-void cPath::Clear()
+void cPathFile::Clear()
 {
 	m_table.clear();
 }

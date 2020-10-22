@@ -220,7 +220,7 @@ void cMapView::UpdateGPS(const float deltaSeconds)
 
 	// 현재 위치를 향해 카메라 looAt을 조정한다.
 	// lookAt이 바뀜에 따라 카메라 위치도 기존 거리를 유지하며 이동한다.
-	g_root.m_lonLat = Vector2((float)gpsInfo.lonLat.x, (float)gpsInfo.lonLat.y);
+	g_global->m_lonLat = Vector2((float)gpsInfo.lonLat.x, (float)gpsInfo.lonLat.y);
 	const Vector3 pos = m_quadTree.Get3DPos(m_curGpsPos);
 	MoveCamera(pos, 0.f);
 
@@ -657,7 +657,7 @@ void cMapView::OnPreRender(const float deltaSeconds)
 			|| (g_global->m_touch.m_type != eTouchType::Touch))
 		{
 			const Vector3 p0 = m_quadTree.Get3DPos(
-				{ (double)g_root.m_lonLat.x, (double)g_root.m_lonLat.y });
+				{ (double)g_global->m_lonLat.x, (double)g_global->m_lonLat.y });
 			renderer.m_dbgLine.m_isSolid = true;
 			renderer.m_dbgLine.SetColor(Vector4(1,1,1,0.5f));
 			renderer.m_dbgLine.SetLine(p0, p0 + Vector3(0, 0.1f, 0), 0.01f);
@@ -680,20 +680,20 @@ void cMapView::OnPreRender(const float deltaSeconds)
 		}
 
 		// render autopilot route
-		if (!g_root.m_route.empty())
-		{
-			renderer.m_dbgLine.SetColor(cColor::WHITE);
-			for (int i = 0; i < (int)g_root.m_route.size() - 1; ++i)
-			{
-				auto &lonLat0 = g_root.m_route[i];
-				auto &lonLat1 = g_root.m_route[i + 1];
+		//if (!g_root.m_route.empty())
+		//{
+		//	renderer.m_dbgLine.SetColor(cColor::WHITE);
+		//	for (int i = 0; i < (int)g_root.m_route.size() - 1; ++i)
+		//	{
+		//		auto &lonLat0 = g_root.m_route[i];
+		//		auto &lonLat1 = g_root.m_route[i + 1];
 
-				const Vector3 p0 = gis::GetRelationPos(gis::WGS842Pos(lonLat0));
-				const Vector3 p1 = gis::GetRelationPos(gis::WGS842Pos(lonLat1));
-				renderer.m_dbgLine.SetLine(p0 + Vector3(0, 20, 0), p1 + Vector3(0, 20, 0), 0.03f);
-				renderer.m_dbgLine.Render(renderer);
-			}
-		}
+		//		const Vector3 p0 = gis::GetRelationPos(gis::WGS842Pos(lonLat0));
+		//		const Vector3 p1 = gis::GetRelationPos(gis::WGS842Pos(lonLat1));
+		//		renderer.m_dbgLine.SetLine(p0 + Vector3(0, 20, 0), p1 + Vector3(0, 20, 0), 0.03f);
+		//		renderer.m_dbgLine.Render(renderer);
+		//	}
+		//}
 
 		if (g_global->m_isShowLandMark)
 		{
@@ -1302,8 +1302,8 @@ void cMapView::OnMouseDown(const sf::Mouse::Button &button, const POINT mousePt)
 
 		cAutoCam cam(&m_camera);
 		const Vector2d lonLat = m_quadTree.GetWGS84(p1);
-		gis::LatLonToUTMXY(lonLat.y, lonLat.x, 52, g_root.m_utmLoc.x, g_root.m_utmLoc.y);
-		g_root.m_lonLat = Vector2((float)lonLat.x, (float)lonLat.y);
+		gis::LatLonToUTMXY(lonLat.y, lonLat.x, 52, g_global->m_utmLoc.x, g_global->m_utmLoc.y);
+		g_global->m_lonLat = Vector2((float)lonLat.x, (float)lonLat.y);
 
 		if (g_global->m_isSelectMapScanningCenter)
 		{

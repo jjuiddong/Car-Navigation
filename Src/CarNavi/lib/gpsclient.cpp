@@ -1,8 +1,8 @@
 
 #include "stdafx.h"
 #include "gpsclient.h"
-#include "carnavi.h"
-#include "mapview.h"
+#include "../carnavi.h"
+#include "../view/mapview.h"
 
 
 cGpsClient::cGpsClient()

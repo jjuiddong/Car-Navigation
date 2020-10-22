@@ -3,7 +3,6 @@
 #include <iostream>
 using namespace std;
 
-cRoot g_root;
 common::cMemoryPool2<65 * 65 * sizeof(float)> g_memPool65;
 common::cMemoryPool2<67 * 67 * sizeof(float)> g_memPool67;
 common::cMemoryPool2<256 * 256 * sizeof(float)> g_memPool256;

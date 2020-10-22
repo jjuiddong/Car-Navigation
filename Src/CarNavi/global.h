@@ -64,6 +64,11 @@ public:
 	cGpsClient m_gpsClient;
 	cOBD2 m_obd;
 	cConfig m_config;
+
+	// cursor, lat,lon position
+	Vector2 m_lonLat; // 경위도
+	Vector2d m_utmLoc; // UTM 좌표
+	vector<Vector2d> m_route;
 	
 	// GPS
 	bool m_isShowGPS;

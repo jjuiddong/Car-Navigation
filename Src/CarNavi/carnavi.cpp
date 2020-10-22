@@ -2,10 +2,10 @@
 // Car Navigation
 //
 #include "stdafx.h"
-#include "mapview.h"
+#include "view/mapview.h"
 #include "carnavi.h"
-#include "informationview.h"
-#include "navigationview.h"
+#include "view/informationview.h"
+#include "view/navigationview.h"
 
 using namespace graphic;
 using namespace framework;
@@ -18,7 +18,6 @@ common::cMemoryPool2<256 * 256 * sizeof(float)> g_memPool256;
 common::cMemoryPool2<258 * 258 * sizeof(float)> g_memPool258;
 common::cMemoryPool3<graphic::cTexture, 512> g_memPoolTex;
 
-cRoot g_root;
 cGlobal *g_global = NULL;
 
 
@@ -74,15 +73,14 @@ bool cViewer::OnInit()
 	m_naviView = new cNavigationView("Navigation View");
 	m_naviView->m_owner = this;
 
-	m_infoView = new cInformationView("Information View");
-	m_infoView->Create(eDockState::DOCKWINDOW, eDockSlot::RIGHT, this, m_mapView, 0.2f);
+	//m_infoView = new cInformationView("Information View");
+	//m_infoView->Create(eDockState::DOCKWINDOW, eDockSlot::RIGHT, this, m_mapView, 0.2f);
 
 	//m_observerView = new cObserverView("Observer View");
 	//m_observerView->Create(eDockState::DOCKWINDOW, eDockSlot::BOTTOM, this, m_simView, 0.3f);// 0.6f, framework::eDockSizingOption::PIXEL);
 	//result = m_observerView->Init(m_renderer);
 	//assert(result);
 
-	g_root.m_mapView = m_mapView;
 	g_global->m_mapView = m_mapView;
 	g_global->m_infoView = m_infoView;
 	g_global->m_naviView = m_naviView;
@@ -93,7 +91,7 @@ bool cViewer::OnInit()
 	m_gui.SetContext();
 	m_gui.SetStyleColorsDark();
 
-	ShowWindow(getSystemHandle(), SW_MAXIMIZE);
+	//ShowWindow(getSystemHandle(), SW_MAXIMIZE);
 	//g_global->ConvertTrackPos2Path();
 
 	//double totDistance = 0.f;

@@ -1,7 +1,6 @@
 
 #include "stdafx.h"
 #include "navigationview.h"
-#include "carnavi.h"
 #include "mapview.h"
 
 using namespace graphic;

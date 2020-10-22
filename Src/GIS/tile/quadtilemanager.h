@@ -160,4 +160,8 @@ public:
 
 	// calc deep copy smooth
 	bool m_isDeepCopySmooth;
+
+	// facility parameter
+	float m_facilityAngleY;
+	float m_facilityScale;
 };
