@@ -66,7 +66,7 @@ sTileLoc gis::WGS842TileLoc(const Vector2d &lonLat)
 }
 
 
-// Convert 3D Position to longitude, raditude
+// Convert 3D Position to longitude, latitude
 // return: .x = longitude (경도)
 //		   .y = latitude (위도)
 //

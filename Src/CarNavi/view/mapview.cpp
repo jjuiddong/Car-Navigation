@@ -2,6 +2,7 @@
 #include "stdafx.h"
 #include "mapview.h"
 #include "navigationview.h"
+#include "../optimize/pointmapper.h"
 
 using namespace graphic;
 using namespace framework;
@@ -750,6 +751,27 @@ void cMapView::OnPreRender(const float deltaSeconds)
 				renderer.m_dbgLine.Render(renderer);
 			}
 		}
+
+		//if (g_global->m_optPath.m_pointMapper)
+		//{
+		//	renderer.m_dbgBox.SetColor(cColor::WHITE);
+		//	cPointMapper *pointMapper = g_global->m_optPath.m_pointMapper;
+		//	for (auto kv : pointMapper->m_qtrees)
+		//	{
+		//		cQuadTree<sMapping>* qtree = kv.second;
+		//		sQuadTreeNode<sMapping> *node = qtree->m_roots.empty() ?
+		//			nullptr : qtree->m_roots[0];
+		//		if (!node)
+		//			continue;
+		//		for (auto &mpos : node->data.table)
+		//		{
+		//			const Transform tfm(mpos.pos, Vector3(1, 1, 1)*0.03f);
+		//			renderer.m_dbgBox.SetBox(tfm);
+		//			renderer.m_dbgBox.Render(renderer);
+		//		}
+		//	}
+		//}
+
 	}
 	m_renderTarget.End(renderer);
 

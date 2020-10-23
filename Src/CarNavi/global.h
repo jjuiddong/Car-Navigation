@@ -141,4 +141,6 @@ public:
 	cShapefileLoader m_shape;
 
 	cTimer m_timer;
+
+	optimize::cOptimizePath m_optPath;
 };

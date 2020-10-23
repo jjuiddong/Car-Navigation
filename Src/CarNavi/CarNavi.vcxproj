@@ -145,12 +145,15 @@
     <ClCompile Include="lib\gpsclient.cpp" />
     <ClCompile Include="lib\obd2.cpp" />
     <ClCompile Include="lib\touch.cpp" />
+    <ClCompile Include="optimize\historyfile.cpp" />
+    <ClCompile Include="optimize\optimizepath.cpp" />
+    <ClCompile Include="optimize\pathgraph.cpp" />
+    <ClCompile Include="optimize\pointmapper.cpp" />
     <ClCompile Include="path\landmark.cpp" />
-    <ClCompile Include="path\optimizepath.cpp" />
     <ClCompile Include="path\pathcompare.cpp" />
     <ClCompile Include="path\pathfile.cpp" />
+    <ClCompile Include="path\binpathfile.cpp" />
     <ClCompile Include="path\pathrenderer.cpp" />
-    <ClCompile Include="path\pointmapper.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
@@ -169,12 +172,15 @@
     <ClInclude Include="lib\obd2.h" />
     <ClInclude Include="lib\touch.h" />
     <ClInclude Include="lib\utility.h" />
+    <ClInclude Include="optimize\historyfile.h" />
+    <ClInclude Include="optimize\optimizepath.h" />
+    <ClInclude Include="optimize\pathgraph.h" />
+    <ClInclude Include="optimize\pointmapper.h" />
     <ClInclude Include="path\landmark.h" />
-    <ClInclude Include="path\optimizepath.h" />
     <ClInclude Include="path\pathcompare.h" />
     <ClInclude Include="path\pathfile.h" />
+    <ClInclude Include="path\binpathfile.h" />
     <ClInclude Include="path\pathrenderer.h" />
-    <ClInclude Include="path\pointmapper.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="view\informationview.h" />
     <ClInclude Include="view\mapview.h" />

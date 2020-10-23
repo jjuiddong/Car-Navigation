@@ -53,6 +53,31 @@ bool cPathFile::Read(const StrPath &fileName)
 }
 
 
+// write *.3dpath file, binary format, read from cBinPathFile class
+bool cPathFile::Write3DPathFile(graphic::cRenderer &renderer
+	, cTerrainQuadTree &terrain
+	, const StrPath &fileName) const
+{
+	if (!IsLoad())
+		return false; // empty data
+	std::ofstream ofs(fileName.c_str(), std::ios::binary);
+	if (!ofs.is_open())
+		return false;
+	const uint size = m_table.size();
+	ofs.write((char*)&size, sizeof(size));
+
+	for (auto &row : m_table)
+	{
+		const Vector3 pos = terrain.Get3DPosPrecise(renderer, row.lonLat);
+		ofs.write((char*)&row.dateTime, sizeof(uint64));
+		ofs.write((char*)&pos, sizeof(pos));
+		const int dummy = 0;
+		ofs.write((char*)&dummy, sizeof(int)); // 8byte alignment
+	}
+	return true;
+}
+
+
 bool cPathFile::IsLoad() const
 {
 	return !m_table.empty();

@@ -21,6 +21,8 @@ public:
 	virtual ~cPathFile();
 
 	bool Read(const StrPath &fileName);
+	bool Write3DPathFile(graphic::cRenderer &renderer
+		, cTerrainQuadTree &terrain, const StrPath &fileName) const;
 	bool IsLoad() const;
 	void Clear();
 

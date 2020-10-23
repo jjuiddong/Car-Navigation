@@ -13,6 +13,9 @@
     <Filter Include="protocol_src">
       <UniqueIdentifier>{65549a51-80e2-4d95-a748-04103de5ead6}</UniqueIdentifier>
     </Filter>
+    <Filter Include="optimize">
+      <UniqueIdentifier>{2f877bb5-9843-40c0-9e3f-532bfd4f0085}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="carnavi.cpp" />
@@ -54,11 +57,20 @@
     <ClCompile Include="view\navigationview.cpp">
       <Filter>view</Filter>
     </ClCompile>
-    <ClCompile Include="path\optimizepath.cpp">
+    <ClCompile Include="path\binpathfile.cpp">
       <Filter>path</Filter>
     </ClCompile>
-    <ClCompile Include="path\pointmapper.cpp">
-      <Filter>path</Filter>
+    <ClCompile Include="optimize\optimizepath.cpp">
+      <Filter>optimize</Filter>
+    </ClCompile>
+    <ClCompile Include="optimize\pointmapper.cpp">
+      <Filter>optimize</Filter>
+    </ClCompile>
+    <ClCompile Include="optimize\historyfile.cpp">
+      <Filter>optimize</Filter>
+    </ClCompile>
+    <ClCompile Include="optimize\pathgraph.cpp">
+      <Filter>optimize</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -107,11 +119,20 @@
     <ClInclude Include="view\navigationview.h">
       <Filter>view</Filter>
     </ClInclude>
-    <ClInclude Include="path\optimizepath.h">
+    <ClInclude Include="path\binpathfile.h">
       <Filter>path</Filter>
     </ClInclude>
-    <ClInclude Include="path\pointmapper.h">
-      <Filter>path</Filter>
+    <ClInclude Include="optimize\optimizepath.h">
+      <Filter>optimize</Filter>
+    </ClInclude>
+    <ClInclude Include="optimize\pointmapper.h">
+      <Filter>optimize</Filter>
+    </ClInclude>
+    <ClInclude Include="optimize\historyfile.h">
+      <Filter>optimize</Filter>
+    </ClInclude>
+    <ClInclude Include="optimize\pathgraph.h">
+      <Filter>optimize</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

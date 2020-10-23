@@ -13,9 +13,12 @@ using namespace common;
 #include "lib/gpsclient.h"
 #include "lib/touch.h"
 #include "path/pathfile.h"
+#include "path/binpathfile.h"
 #include "path/pathrenderer.h"
 #include "path/pathcompare.h"
 #include "path/landmark.h"
+#include "optimize/pointmapper.h"
+#include "optimize/optimizepath.h"
 #include "global.h"
 
 #include "../Protocol/Src/gps_Protocol.h"

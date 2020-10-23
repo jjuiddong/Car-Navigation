@@ -94,18 +94,8 @@ bool cViewer::OnInit()
 	//ShowWindow(getSystemHandle(), SW_MAXIMIZE);
 	//g_global->ConvertTrackPos2Path();
 
-	//double totDistance = 0.f;
-	//cPath path;
-	//if (path.Read("path/path_20200424.txt"))
-	//{
-	//	for (uint i = 1; i < path.m_table.size(); ++i)
-	//	{
-	//		cPath::sRow r0 = path.m_table[i - 1];
-	//		cPath::sRow r1 = path.m_table[i];
-	//		const double d = gis::WGS84Distance2(r0.lonLat, r1.lonLat);
-	//		totDistance += d;
-	//	}
-	//}
+//	cOptimizePath optPath;
+	g_global->m_optPath.Optimize(m_renderer, m_mapView->m_quadTree);
 
 	return true;
 }

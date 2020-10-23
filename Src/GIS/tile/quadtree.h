@@ -28,13 +28,13 @@ struct sQuadTreeNode : public common::cMemoryPool<sQuadTreeNode<T>>
 		xLoc = 0;
 		yLoc = 0;
 		level = 0;
-		parent = NULL;
-		children[0] = children[1] = children[2] = children[3] = NULL;
+		parent = nullptr;
+		children[0] = children[1] = children[2] = children[3] = nullptr;
 	}
 };
 
 
-template<class T>
+template<class T = int> // int : dummy
 class cQuadTree
 {
 public:
@@ -48,12 +48,13 @@ public:
 	bool RemoveChildren(sQuadTreeNode<T> *node, const bool isRmTree = true);
 	sQuadTreeNode<T>* GetNode(const sRectf &rect);
 	sQuadTreeNode<T>* GetNode(const int level, const int xLoc, const int yLoc);
-	std::tuple<int,int,int> GetNodeLevel(const sRectf &rect);
 	sQuadTreeNode<T>* GetNorthNeighbor(const sQuadTreeNode<T> *node);
 	sQuadTreeNode<T>* GetSouthNeighbor(const sQuadTreeNode<T> *node);
 	sQuadTreeNode<T>* GetWestNeighbor(const sQuadTreeNode<T> *node);
 	sQuadTreeNode<T>* GetEastNeighbor(const sQuadTreeNode<T> *node);
 
+	static std::tuple<int,int,int> GetNodeLevel(const sRectf &rect);
+	static std::pair<int, int> GetNodeLocation(const sRectf &rect, const int level);
 	static sRectf GetNodeRect(const int level, const int xLoc, const int yLoc);
 	static sRectf GetNodeRect(const sQuadTreeNode<T> *node);
 	static sRectf GetNodeGlobalRect(const sQuadTreeNode<T> *node);
@@ -239,10 +240,12 @@ inline sQuadTreeNode<T>* cQuadTree<T>::GetNode(const sRectf &rect)
 
 // return nodeLevel, x, y correspond rect
 template<class T>
-std::tuple<int, int, int> cQuadTree<T>::GetNodeLevel(const sRectf &rect)
+inline std::tuple<int, int, int> cQuadTree<T>::GetNodeLevel(const sRectf &rect)
 {
-	if ((rect.left > m_rootRect.right) || (rect.top > m_rootRect.bottom)
-		|| (rect.right < 0) || (rect.bottom < 0))
+	//if ((rect.left > m_rootRect.right) || (rect.top > m_rootRect.bottom)
+	//	|| (rect.right < 0) || (rect.bottom < 0))
+	//	return std::make_tuple(-1,0,0);
+	if ((rect.right < 0) || (rect.bottom < 0))
 		return std::make_tuple(-1,0,0);
 
 	int x1 = (int)(rect.left * m_quadScale);
@@ -265,6 +268,30 @@ std::tuple<int, int, int> cQuadTree<T>::GetNodeLevel(const sRectf &rect)
 	x1 >>= shiftCount;
 	y1 >>= shiftCount;
 	return std::make_tuple(nodeLevel, x1, y1);
+}
+
+
+// return nodeLevel, x, y correspond rect and level
+template<class T>
+inline std::pair<int, int> cQuadTree<T>::GetNodeLocation(
+	const sRectf &rect, const int level)
+{
+	const auto result = GetNodeLevel(rect);
+	int lv = std::get<0>(result);
+	int xLoc = std::get<1>(result);
+	int yLoc = std::get<2>(result);
+
+	if (lv < level)
+		return std::make_pair(-1, -1); // error occurred!!
+
+	// find level, xloc, yloc
+	while (lv != level)
+	{
+		xLoc >>= 1;
+		yLoc >>= 1;
+		--lv;
+	}
+	return std::make_pair(xLoc, yLoc);
 }
 
 
