@@ -72,6 +72,9 @@
     <ClCompile Include="optimize\pathgraph.cpp">
       <Filter>optimize</Filter>
     </ClCompile>
+    <ClCompile Include="optimize\qtreegraph.cpp">
+      <Filter>optimize</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="carnavi.h" />
@@ -132,6 +135,9 @@
       <Filter>optimize</Filter>
     </ClInclude>
     <ClInclude Include="optimize\pathgraph.h">
+      <Filter>optimize</Filter>
+    </ClInclude>
+    <ClInclude Include="optimize\qtreegraph.h">
       <Filter>optimize</Filter>
     </ClInclude>
   </ItemGroup>

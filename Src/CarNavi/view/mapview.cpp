@@ -3,6 +3,7 @@
 #include "mapview.h"
 #include "navigationview.h"
 #include "../optimize/pointmapper.h"
+#include "../optimize/qtreegraph.h"
 
 using namespace graphic;
 using namespace framework;
@@ -771,6 +772,10 @@ void cMapView::OnPreRender(const float deltaSeconds)
 		//		}
 		//	}
 		//}
+
+		g_global->m_optPath.RenderQTreeGraph(renderer, m_quadTree);
+
+
 
 	}
 	m_renderTarget.End(renderer);

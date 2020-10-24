@@ -15,6 +15,7 @@
 namespace optimize
 {
 	class cPointMapper;
+	class cQTreeGraph;
 
 	class cOptimizePath
 	{
@@ -23,16 +24,23 @@ namespace optimize
 		virtual ~cOptimizePath();
 
 		bool Optimize(graphic::cRenderer &renderer, cTerrainQuadTree &terrain);
+		bool RenderQTreeGraph(graphic::cRenderer &renderer, cTerrainQuadTree &terrain);
 		bool Cancel();
 		void Clear();
 
 
 	protected:
 		static int ThreadProc(cOptimizePath *optimizePath);
+		void RenderRect3D(graphic::cRenderer &renderer
+			, const float deltaSeconds
+			, const sRectf &rect
+			, const graphic::cColor &color
+		);
 
 
 	public:
 		cPointMapper *m_pointMapper;
+		cQTreeGraph *m_qtreeGraph;
 
 		bool m_isLoop;
 		std::thread m_thread;

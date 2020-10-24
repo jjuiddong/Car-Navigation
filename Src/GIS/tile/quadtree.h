@@ -48,6 +48,7 @@ public:
 	bool RemoveChildren(sQuadTreeNode<T> *node, const bool isRmTree = true);
 	sQuadTreeNode<T>* GetNode(const sRectf &rect);
 	sQuadTreeNode<T>* GetNode(const int level, const int xLoc, const int yLoc);
+	sQuadTreeNode<T>* GetNode(const uint64 key);
 	sQuadTreeNode<T>* GetNorthNeighbor(const sQuadTreeNode<T> *node);
 	sQuadTreeNode<T>* GetSouthNeighbor(const sQuadTreeNode<T> *node);
 	sQuadTreeNode<T>* GetWestNeighbor(const sQuadTreeNode<T> *node);
@@ -60,7 +61,7 @@ public:
 	static sRectf GetNodeGlobalRect(const sQuadTreeNode<T> *node);
 	static Vector3 GetGlobalPos(const Vector3 &relPos);
 	static Vector3 GetRelationPos(const Vector3 &globalPos);
-	static __int64 MakeKey(const int level, const int xLoc, const int yLoc);
+	static uint64 MakeKey(const int level, const int xLoc, const int yLoc);
 	void Clear(const bool isRmTree = true);
 
 
@@ -70,7 +71,7 @@ public:
 	vector<sQuadTreeNode<T>*> m_roots; // root nodes (multiple root node)
 	sRectf m_rootRect;
 	static const float m_quadScale;
-	std::map<__int64, sQuadTreeNode<T>*> m_nodeTable[MAX_LEVEL]; // level quad tree map
+	std::map<uint64, sQuadTreeNode<T>*> m_nodeTable[MAX_LEVEL]; // level quad tree map
 														  // key = quad node x,y index (linear)
 };
 template<class T> const float cQuadTree<T>::m_quadScale = 1.f;
@@ -97,14 +98,14 @@ inline cQuadTree<T>::~cQuadTree()
 
 
 template<class T>
-inline __int64 cQuadTree<T>::MakeKey(const int level, const int xLoc, const int yLoc)
+inline uint64 cQuadTree<T>::MakeKey(const int level, const int xLoc, const int yLoc)
 {
 	__int64 lv = level;
 	//__int64 y = yLoc * 10;
 	__int64 y = yLoc << (MAX_LEVEL + 1);
 	lv <<= (MAX_LEVEL + MAX_LEVEL + 2);
 	//y <<= level;
-	return lv + y + xLoc;
+	return (uint64)(lv + y + xLoc);
 }
 
 
@@ -113,7 +114,7 @@ inline bool cQuadTree<T>::Insert(sQuadTreeNode<T> *node)
 {
 	RETV(node->level >= MAX_LEVEL, false);
 
-	const __int64 key = MakeKey(node->level, node->xLoc, node->yLoc);
+	const uint64 key = MakeKey(node->level, node->xLoc, node->yLoc);
 
 	auto it = m_nodeTable[node->level].find(key);
 	if (m_nodeTable[node->level].end() != it)
@@ -135,7 +136,7 @@ inline bool cQuadTree<T>::Remove(sQuadTreeNode<T> *node
 {
 	RETV(node->level >= MAX_LEVEL, false);
 
-	const __int64 key = MakeKey(node->level, node->xLoc, node->yLoc);
+	const uint64 key = MakeKey(node->level, node->xLoc, node->yLoc);
 
 	auto it = m_nodeTable[node->level].find(key);
 	if (m_nodeTable[node->level].end() == it)
@@ -296,17 +297,28 @@ inline std::pair<int, int> cQuadTree<T>::GetNodeLocation(
 
 
 template<class T>
-inline sQuadTreeNode<T>* cQuadTree<T>::GetNode(const int level, const int xLoc, const int yLoc)
+inline sQuadTreeNode<T>* cQuadTree<T>::GetNode(
+	const int level, const int xLoc, const int yLoc)
 {
 	if ((u_int)level >= MAX_LEVEL)
 		return NULL;
-
-	const __int64 key = MakeKey(level, xLoc, yLoc);
-
+	const uint64 key = MakeKey(level, xLoc, yLoc);
 	auto it = m_nodeTable[level].find(key);
 	if (m_nodeTable[level].end() == it)
 		return false; // Error!! Not Exist
+	return m_nodeTable[level][key];
+}
 
+
+template<class T>
+inline sQuadTreeNode<T>* cQuadTree<T>::GetNode(const uint64 key)
+{
+	const int level = (key & 0x3C00000000) >> (MAX_LEVEL + MAX_LEVEL + 2);
+	if ((u_int)level >= MAX_LEVEL)
+		return NULL;
+	auto it = m_nodeTable[level].find(key);
+	if (m_nodeTable[level].end() == it)
+		return false; // Error!! Not Exist
 	return m_nodeTable[level][key];
 }
 

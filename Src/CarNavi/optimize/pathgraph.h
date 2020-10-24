@@ -8,19 +8,6 @@
 namespace optimize
 {
 
-	struct sTransition
-	{
-		uint64 t; // connect quadtree id
-		int idx; // quadtree vertex index
-	};
-
-	struct sVertex
-	{
-		uint64 t; // quadtree id
-		int idx; // quadtree vertex index
-		vector<sTransition> trs;
-	};
-
 	class cPointMapper;
 	class cPathGraph
 	{

@@ -49,4 +49,3 @@ namespace optimize
 		map<uint64, cQuadTree<sMapping>*> m_qtrees; //key: lv + xLoc + yLoc
 	};
 }
-
