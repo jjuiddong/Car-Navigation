@@ -2,7 +2,6 @@
 #include "stdafx.h"
 #include "optimizepath.h"
 #include "historyfile.h"
-#include "qtreegraph.h"
 
 using namespace optimize;
 
@@ -11,6 +10,7 @@ cOptimizePath::cOptimizePath()
 	: m_isLoop(true)
 	, m_pointMapper(nullptr)
 {
+	m_stack = new sStackData[256];
 }
 
 cOptimizePath::~cOptimizePath()
@@ -63,15 +63,32 @@ bool cOptimizePath::Optimize(graphic::cRenderer &renderer
 		qgid id0 = 0;
 		for (auto &row : pathFile.m_table)
 		{
+			sEdge edge = m_qtreeGraph->FindNearEdge(row.pos, 0.5f);
+			if ((edge.from != 0) && (edge.to != 0))
+			{
+				m_qtreeGraph->SmoothEdge(row.pos, edge);
+				if (id0 > 0)
+					m_qtreeGraph->AddTransition(id0, edge.to);
+				id0 = edge.to;
+				continue;
+			}
+
 			const qgid id1 = m_qtreeGraph->AddPoint(row.pos);
+			if (m_qtreeGraph->m_isDivide)
+			{
+				auto it = m_qtreeGraph->m_mappingIds.find(id0);
+				if (it != m_qtreeGraph->m_mappingIds.end())
+					id0 = it->second;
+			}
+
 			if (id0 != 0)
 			{
 				m_qtreeGraph->AddTransition(id0, id1);
 			}
+
 			id0 = id1;
 		}
 	}
-
 
 	//m_isLoop = true;
 	//m_thread = std::thread(cOptimizePath::ThreadProc, this);
@@ -84,17 +101,17 @@ bool cOptimizePath::Optimize(graphic::cRenderer &renderer
 bool cOptimizePath::RenderQTreeGraph(graphic::cRenderer &renderer
 	, cTerrainQuadTree &terrain)
 {
-	using namespace graphic;
+	RenderQuad(renderer, terrain);
+	RenderGraph(renderer, terrain);
+	return true;
+}
 
-	// Quad Tree Traverse Stack Memory
-	struct sData
-	{
-		sRectf rect;
-		int level;
-		cQuadTree<sNode> *qtree;
-		sQuadTreeNode<sNode> *node;
-	};
-	sData *stack = new sData[1024];
+
+// render quadtree quad
+bool cOptimizePath::RenderQuad(graphic::cRenderer &renderer
+	, cTerrainQuadTree &terrain)
+{
+	using namespace graphic;
 
 	cShader11 *shader = renderer.m_shaderMgr.FindShader(eVertexType::POSITION);
 	assert(shader);
@@ -118,15 +135,15 @@ bool cOptimizePath::RenderQTreeGraph(graphic::cRenderer &renderer
 		for (auto &node : qtree->m_roots)
 		{
 			sRectf rect = qtree->GetNodeRect(node);
-			stack[sp++] = { rect, node->level, qtree, node };
+			m_stack[sp++] = { rect, node->level, qtree, node };
 		}
 	}
 
 	// Render Quad-Tree
 	while (sp > 0)
 	{
-		cQuadTree<sNode> *qtree = stack[sp - 1].qtree;
-		sQuadTreeNode<sNode> *node = stack[sp - 1].node;
+		cQuadTree<sNode> *qtree = m_stack[sp - 1].qtree;
+		sQuadTreeNode<sNode> *node = m_stack[sp - 1].node;
 		--sp;
 
 		//const float maxH = node ? terrain.m_tileMgr->GetMaximumHeight(node->level
@@ -152,8 +169,8 @@ bool cOptimizePath::RenderQTreeGraph(graphic::cRenderer &renderer
 			{
 				if (node->children[i])
 				{
-					stack[sp].qtree = qtree;
-					stack[sp].node = node->children[i];
+					m_stack[sp].qtree = qtree;
+					m_stack[sp].node = node->children[i];
 					++sp;
 				}
 			}
@@ -174,7 +191,97 @@ bool cOptimizePath::RenderQTreeGraph(graphic::cRenderer &renderer
 		renderer.GetDevContext()->RSSetState(state.CullCounterClockwise());
 	}
 
-	delete[] stack;
+	return true;
+}
+
+
+// render quadtree - graph
+bool cOptimizePath::RenderGraph(graphic::cRenderer &renderer
+	, cTerrainQuadTree &terrain)
+{
+	using namespace graphic;
+
+	cShader11 *shader = renderer.m_shaderMgr.FindShader(eVertexType::POSITION);
+	assert(shader);
+	shader->SetTechnique("Light");
+	shader->Begin();
+	shader->BeginPass(renderer, 0);
+
+	struct sInfo
+	{
+		sRectf r;
+		sQuadTreeNode<sNode> *node;
+	};
+	sInfo showRects[512];
+	int showRectCnt = 0;
+	vector<std::pair<sRectf, cColor>> ars;
+
+	int sp = 0;
+	for (auto &kv : m_qtreeGraph->m_qtrees)
+	{
+		cQuadTree<sNode> *qtree = kv.second;
+		for (auto &node : qtree->m_roots)
+		{
+			sRectf rect = qtree->GetNodeRect(node);
+			m_stack[sp++] = { rect, node->level, qtree, node };
+		}
+	}
+
+	while (sp > 0)
+	{
+		cQuadTree<sNode> *qtree = m_stack[sp - 1].qtree;
+		sQuadTreeNode<sNode> *node = m_stack[sp - 1].node;
+		--sp;
+
+		//const float maxH = node ? terrain.m_tileMgr->GetMaximumHeight(node->level
+		//	, node->xLoc, node->yLoc) : cHeightmap2::DEFAULT_H;
+		const sRectf rect = qtree->GetNodeRect(node);
+		//const bool isShow = IsContain(frustum, rect, maxH);
+		//if (!isShow)
+		//	continue;
+
+		// leaf node?
+		if (!node->children[0])
+		{
+			if (showRectCnt < ARRAYSIZE(showRects))
+			{
+				showRects[showRectCnt].r = rect;
+				showRects[showRectCnt].node = node;
+				showRectCnt++;
+			}
+		}
+		else
+		{
+			for (int i = 0; i < 4; ++i)
+			{
+				if (node->children[i])
+				{
+					m_stack[sp].qtree = qtree;
+					m_stack[sp].node = node->children[i];
+					++sp;
+				}
+			}
+		}
+	}
+
+	// Render Graph
+	{
+		CommonStates state(renderer.GetDevice());
+		renderer.GetDevContext()->RSSetState(state.CullNone());
+		renderer.GetDevContext()->OMSetDepthStencilState(state.DepthNone(), 0);
+		for (int i = 0; i < showRectCnt; ++i)
+		{
+			sQuadTreeNode<sNode> *node = showRects[i].node;
+			if (node->data.vertices.empty())
+				continue;
+			if (!node->data.lineList)
+				m_qtreeGraph->CreateGraphLines(renderer, node);
+			node->data.lineList->Render(renderer);
+		}
+		renderer.GetDevContext()->OMSetDepthStencilState(state.DepthDefault(), 0);
+		renderer.GetDevContext()->RSSetState(state.CullCounterClockwise());
+	}
+
 	return true;
 }
 
@@ -219,11 +326,31 @@ bool cOptimizePath::Cancel()
 }
 
 
+// read optimize path
+bool cOptimizePath::ReadOptimizePath(const StrPath &fileName)
+{
+
+	return true;
+}
+
+
+// write optimize path
+// generate optimize path from quadtree graph
+bool cOptimizePath::WriteOptimizePath(const StrPath &fileName)
+{
+
+
+
+	return true;
+}
+
+
 // clear optimize path class
 void cOptimizePath::Clear()
 {
 	SAFE_DELETE(m_qtreeGraph);
 	SAFE_DELETE(m_pointMapper);
+	SAFE_DELETEA(m_stack);
 }
 
 
