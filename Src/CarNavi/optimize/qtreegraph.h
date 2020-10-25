@@ -1,6 +1,9 @@
 //
 // 2020-10-24, jjuiddong
 // QuadTree + Graph
+//	- QuadTree Node
+//		- point table
+//		- graph 
 //
 #pragma once
 
@@ -90,6 +93,9 @@ namespace optimize
 		cQTreeGraph();
 		virtual ~cQTreeGraph();
 
+		bool ReadFile();
+		bool WriteFile();
+
 		qgid AddPoint(const Vector3 &pos);
 		
 		bool AddTransition(const qgid id0, const qgid id1);
@@ -126,6 +132,10 @@ namespace optimize
 		bool DivideNodeToChild(cQuadTree<sNode> *qtree
 			, sQuadTreeNode<sNode> *node);
 
+		bool ReadNode(sQuadTreeNode<sNode> *node);
+
+		bool WriteNode(sQuadTreeNode<sNode> *node);
+
 		qgid MakeQgid(const int index
 			, const int level, const int xLoc, const int yLoc);
 		std::tuple<int,int,int,int> ParseQgid(const qgid id);
@@ -134,6 +144,8 @@ namespace optimize
 
 	public:
 		enum { TREE_LEVEL = 6, MAX_TABLESIZE = 200, };
+		const StrPath s_dir = ".\\path\\optimize";
+
 		map<uint64, cQuadTree<sNode>*> m_qtrees; //key: lv + xLoc + yLoc
 		bool m_isDivide; // divided?
 		map<qgid, qgid> m_mappingIds; // key: old id, value: new id

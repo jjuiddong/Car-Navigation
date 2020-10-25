@@ -10,7 +10,7 @@ cOptimizePath::cOptimizePath()
 	: m_isLoop(true)
 	, m_pointMapper(nullptr)
 {
-	m_stack = new sStackData[256];
+	m_stack = new sStackData[512];
 }
 
 cOptimizePath::~cOptimizePath()
@@ -90,6 +90,9 @@ bool cOptimizePath::Optimize(graphic::cRenderer &renderer
 		}
 	}
 
+	m_qtreeGraph->WriteFile();
+
+
 	//m_isLoop = true;
 	//m_thread = std::thread(cOptimizePath::ThreadProc, this);
 	return true;
@@ -119,15 +122,6 @@ bool cOptimizePath::RenderQuad(graphic::cRenderer &renderer
 	shader->Begin();
 	shader->BeginPass(renderer, 0);
 
-	struct sInfo
-	{
-		sRectf r;
-		sQuadTreeNode<sNode> *node;
-	};
-	sInfo showRects[512];
-	int showRectCnt = 0;
-	vector<std::pair<sRectf, cColor>> ars;
-
 	int sp = 0;
 	for (auto &kv : m_qtreeGraph->m_qtrees)
 	{
@@ -140,6 +134,10 @@ bool cOptimizePath::RenderQuad(graphic::cRenderer &renderer
 	}
 
 	// Render Quad-Tree
+	CommonStates state(renderer.GetDevice());
+	renderer.GetDevContext()->RSSetState(state.CullNone());
+	renderer.GetDevContext()->OMSetDepthStencilState(state.DepthNone(), 0);
+
 	while (sp > 0)
 	{
 		cQuadTree<sNode> *qtree = m_stack[sp - 1].qtree;
@@ -156,12 +154,7 @@ bool cOptimizePath::RenderQuad(graphic::cRenderer &renderer
 		// leaf node?
 		if (!node->children[0])
 		{
-			if (showRectCnt < ARRAYSIZE(showRects))
-			{
-				showRects[showRectCnt].r = rect;
-				showRects[showRectCnt].node = node;
-				showRectCnt++;
-			}
+			RenderRect3D(renderer, 0.f, rect, cColor::WHITE);
 		}
 		else
 		{
@@ -177,20 +170,8 @@ bool cOptimizePath::RenderQuad(graphic::cRenderer &renderer
 		}
 	}
 
-	// Render Show QuadNode
-	{
-		CommonStates state(renderer.GetDevice());
-		renderer.GetDevContext()->RSSetState(state.CullNone());
-		renderer.GetDevContext()->OMSetDepthStencilState(state.DepthNone(), 0);
-		for (int i = 0; i < showRectCnt; ++i)
-		{
-			const sRectf &rect = showRects[i].r;
-			RenderRect3D(renderer, 0.f, rect, cColor::WHITE);
-		}
-		renderer.GetDevContext()->OMSetDepthStencilState(state.DepthDefault(), 0);
-		renderer.GetDevContext()->RSSetState(state.CullCounterClockwise());
-	}
-
+	renderer.GetDevContext()->OMSetDepthStencilState(state.DepthDefault(), 0);
+	renderer.GetDevContext()->RSSetState(state.CullCounterClockwise());
 	return true;
 }
 
@@ -207,15 +188,6 @@ bool cOptimizePath::RenderGraph(graphic::cRenderer &renderer
 	shader->Begin();
 	shader->BeginPass(renderer, 0);
 
-	struct sInfo
-	{
-		sRectf r;
-		sQuadTreeNode<sNode> *node;
-	};
-	sInfo showRects[512];
-	int showRectCnt = 0;
-	vector<std::pair<sRectf, cColor>> ars;
-
 	int sp = 0;
 	for (auto &kv : m_qtreeGraph->m_qtrees)
 	{
@@ -226,6 +198,10 @@ bool cOptimizePath::RenderGraph(graphic::cRenderer &renderer
 			m_stack[sp++] = { rect, node->level, qtree, node };
 		}
 	}
+
+	CommonStates state(renderer.GetDevice());
+	renderer.GetDevContext()->RSSetState(state.CullNone());
+	renderer.GetDevContext()->OMSetDepthStencilState(state.DepthNone(), 0);
 
 	while (sp > 0)
 	{
@@ -243,12 +219,12 @@ bool cOptimizePath::RenderGraph(graphic::cRenderer &renderer
 		// leaf node?
 		if (!node->children[0])
 		{
-			if (showRectCnt < ARRAYSIZE(showRects))
-			{
-				showRects[showRectCnt].r = rect;
-				showRects[showRectCnt].node = node;
-				showRectCnt++;
-			}
+			if (node->data.vertices.empty())
+				continue;
+
+			if (!node->data.lineList)
+				m_qtreeGraph->CreateGraphLines(renderer, node);
+			node->data.lineList->Render(renderer);
 		}
 		else
 		{
@@ -264,24 +240,8 @@ bool cOptimizePath::RenderGraph(graphic::cRenderer &renderer
 		}
 	}
 
-	// Render Graph
-	{
-		CommonStates state(renderer.GetDevice());
-		renderer.GetDevContext()->RSSetState(state.CullNone());
-		renderer.GetDevContext()->OMSetDepthStencilState(state.DepthNone(), 0);
-		for (int i = 0; i < showRectCnt; ++i)
-		{
-			sQuadTreeNode<sNode> *node = showRects[i].node;
-			if (node->data.vertices.empty())
-				continue;
-			if (!node->data.lineList)
-				m_qtreeGraph->CreateGraphLines(renderer, node);
-			node->data.lineList->Render(renderer);
-		}
-		renderer.GetDevContext()->OMSetDepthStencilState(state.DepthDefault(), 0);
-		renderer.GetDevContext()->RSSetState(state.CullCounterClockwise());
-	}
-
+	renderer.GetDevContext()->OMSetDepthStencilState(state.DepthDefault(), 0);
+	renderer.GetDevContext()->RSSetState(state.CullCounterClockwise());
 	return true;
 }
 
@@ -322,25 +282,6 @@ bool cOptimizePath::Cancel()
 	m_isLoop = false;
 	if (m_thread.joinable())
 		m_thread.join();
-	return true;
-}
-
-
-// read optimize path
-bool cOptimizePath::ReadOptimizePath(const StrPath &fileName)
-{
-
-	return true;
-}
-
-
-// write optimize path
-// generate optimize path from quadtree graph
-bool cOptimizePath::WriteOptimizePath(const StrPath &fileName)
-{
-
-
-
 	return true;
 }
 

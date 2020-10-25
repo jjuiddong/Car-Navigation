@@ -1,6 +1,7 @@
 
 #include "stdafx.h"
 #include "qtreegraph.h"
+#include <direct.h>
 
 using namespace optimize;
 
@@ -13,6 +14,236 @@ cQTreeGraph::cQTreeGraph()
 cQTreeGraph::~cQTreeGraph()
 {
 	Clear();
+}
+
+
+// read quadtree graph data
+bool cQTreeGraph::ReadFile()
+{
+
+	return true;
+}
+
+
+// write quadtree graph data
+bool cQTreeGraph::WriteFile()
+{
+	if (!s_dir.IsFileExist())
+	{
+		_mkdir(s_dir.c_str());
+	}
+
+	// Quad Tree Traverse Stack Memory
+	struct sData
+	{
+		cQuadTree<sNode> *qtree;
+		sQuadTreeNode<sNode> *node;
+	};
+	sData *stack = new sData[512];
+
+	int sp = 0;
+	for (auto &kv : m_qtrees)
+	{
+		cQuadTree<sNode> *qtree = kv.second;
+		for (auto &node : qtree->m_roots)
+			stack[sp++] = { qtree, node };
+	}
+
+	while (sp > 0)
+	{
+		cQuadTree<sNode> *qtree = stack[sp - 1].qtree;
+		sQuadTreeNode<sNode> *node = stack[sp - 1].node;
+		--sp;
+
+		// leaf node?
+		if (!node->children[0])
+		{
+			WriteNode(node);
+		}
+		else
+		{
+			for (int i = 0; i < 4; ++i)
+			{
+				if (node->children[i])
+				{
+					stack[sp].qtree = qtree;
+					stack[sp].node = node->children[i];
+					++sp;
+				}
+			}
+		}
+	}
+
+	SAFE_DELETEA(stack);
+	return true;
+}
+
+
+// read node data
+bool cQTreeGraph::ReadNode(sQuadTreeNode<sNode> *node)
+{
+	StrPath fileName;
+	fileName.Format("%s\\%d\\%04d\\%04d_%04d.opath", s_dir.c_str()
+		, node->level, node->yLoc, node->yLoc, node->xLoc);
+
+	// header, OPAT (opath, optimize path) (4byte)
+	// node level (4byte)
+	// node xLoc (4byte)
+	// node yLoc (4byte)
+	// table size (4byte)
+	// table (sAccPos * table size)
+	// vertex size (4byte)
+	// vertex table index (4 byte)
+	// vertex transition size (4 byte)
+	// loop transition size
+	//	- transition to index + flag (4byte)
+	//	- if external connect transition (flag -> 0xFFFFFFFF)
+	//		- transition to id (8byte)
+
+	std::ifstream ifs(fileName.c_str(), std::ios::binary);
+	if (!ifs.is_open())
+		return false;
+
+	char format[4];
+	ifs.read(format, 4);
+	if ((format[0] != 'O')
+		|| (format[0] != 'P')
+		|| (format[0] != 'A')
+		|| (format[0] != 'T'))
+		return false;
+
+	int ival = 0;
+	ifs.read((char*)&ival, sizeof(ival));
+	if (ival != node->level)
+		return false;
+	ifs.read((char*)&ival, sizeof(ival));
+	if (ival != node->xLoc)
+		return false;
+	ifs.read((char*)&ival, sizeof(ival));
+	if (ival != node->yLoc)
+		return false;
+	ifs.read((char*)&ival, sizeof(ival)); // table size
+	if (ival > 0)
+	{
+		node->data.table.resize(ival);
+		// tricky code, depend on memory alignment size
+		ifs.read((char*)&node->data.table[0]
+			, sizeof(sAccPos) * node->data.table.size());
+	}
+
+	int verticeSize = 0;
+	ifs.read((char*)&verticeSize, sizeof(verticeSize));
+	if (verticeSize > 0)
+		node->data.vertices.resize(verticeSize);
+
+	for (int i = 0; i < verticeSize; ++i)
+	{
+		sVertex &vtx = node->data.vertices[i];
+
+		ifs.read((char*)&ival, sizeof(ival)); // index
+		MAKE_QGID(vtx.id, ival, node->level, node->xLoc, node->yLoc);
+
+		ifs.read((char*)&vtx.trCnt, sizeof(vtx.trCnt));
+		if (vtx.trCnt > 0)
+		{
+			vtx.trs = new sTransition[vtx.trCnt];
+			vtx.trCapa = vtx.trCnt;
+		}
+
+		for (uint k = 0; k < vtx.trCnt; ++k)
+		{
+			ifs.read((char*)&ival, sizeof(ival)); // to index
+			if (ival == 0xFFFFFFFF)
+			{
+				// external connect transition
+				ifs.read((char*)&vtx.trs[k].to, sizeof(vtx.trs[k].to));
+			}
+			else
+			{
+				MAKE_QGID(vtx.trs[k].to
+					, ival, node->level, node->xLoc, node->yLoc);
+			}
+		}
+	}
+	return true;
+}
+
+
+// write node data
+bool cQTreeGraph::WriteNode(sQuadTreeNode<sNode> *node)
+{
+	StrPath fileName;
+	fileName.Format("%s\\%d\\%04d\\%04d_%04d.opath", s_dir.c_str()
+		, node->level, node->yLoc, node->yLoc, node->xLoc);
+
+	// check directory
+	{
+		StrPath dirPath;
+		dirPath.Format("%s\\%d", s_dir.c_str(), node->level);
+		if (!common::IsFileExist(dirPath))
+			_mkdir(dirPath.c_str());
+
+		dirPath.Format("%s\\%d\\%04d", s_dir.c_str(), node->level, node->yLoc);
+		if (!common::IsFileExist(dirPath))
+			_mkdir(dirPath.c_str());
+	}
+
+	// header, OPAT (opath, optimize path) (4byte)
+	// node level (4byte)
+	// node xLoc (4byte)
+	// node yLoc (4byte)
+	// table size (4byte)
+	// table (sAccPos * table size)
+	// vertex size (4byte)
+	// vertex table index (4 byte)
+	// vertex transition size (4 byte)
+	// loop transition size
+	//	- transition to index + flag (4byte)
+	//	- if external connect transition (flag -> 0xFFFFFFFF)
+	//		- transition to id (8byte)
+
+	std::ofstream ofs(fileName.c_str(), std::ios::binary);
+	if (!ofs.is_open())
+		return false;
+
+	ofs.write("OPATH", 4);
+	ofs.write((char*)&node->level, sizeof(node->level));
+	ofs.write((char*)&node->xLoc, sizeof(node->xLoc));
+	ofs.write((char*)&node->yLoc, sizeof(node->yLoc));
+	int ival = (int)node->data.table.size();
+	ofs.write((char*)&ival, sizeof(ival));
+	if (!node->data.table.empty())
+	{
+		// tricky code, depend on memory alignment size
+		ofs.write((char*)&node->data.table[0]
+			, sizeof(sAccPos) * node->data.table.size());
+	}
+	ival = (int)node->data.vertices.size();
+	ofs.write((char*)&ival, sizeof(ival));
+	for (auto &vtx : node->data.vertices)
+	{
+		int idx;
+		PARSE_QGID_INDEX(vtx.id, idx);
+		ofs.write((char*)&idx, sizeof(idx));
+		ofs.write((char*)&vtx.trCnt, sizeof(vtx.trCnt));
+		for (uint i = 0; i < vtx.trCnt; ++i)
+		{
+			if (COMPARE_QID(vtx.id, vtx.trs[i].to))
+			{
+				int idx;
+				PARSE_QGID_INDEX(vtx.trs[i].to, idx);
+				ofs.write((char*)&idx, sizeof(idx));
+			}
+			else
+			{
+				// external connect transition
+				ival = 0xFFFFFFFF;
+				ofs.write((char*)&ival, sizeof(ival));
+				ofs.write((char*)&vtx.trs[i].to, sizeof(vtx.trs[i].to));
+			}
+		}
+	}
+	return true;
 }
 
 
@@ -438,7 +669,7 @@ bool cQTreeGraph::AddTransition(const qgid id0, const qgid id1)
 		const float len = node0->data.table[idx0].pos.Distance(
 			node1->data.table[idx1].pos
 		);
-		if (len > 50.0f)
+		if (len > 100.0f)
 			return false; // error, too long
 	}
 
@@ -502,10 +733,14 @@ sEdge cQTreeGraph::FindNearEdge(const Vector3 &pos, const float distance)
 {
 	const Vector3 gpos = cQuadTree<>::GetGlobalPos(pos);
 	const sRectf rect = sRectf::Rect(gpos.x, gpos.z, 0, 0);
-	int level = TREE_LEVEL;
-	const auto result = cQuadTree<>::GetNodeLocation(rect, level);
-	int xLoc = std::get<0>(result);
-	int yLoc = std::get<1>(result);
+	//int level = TREE_LEVEL;
+	//const auto result = cQuadTree<>::GetNodeLocation(rect, level);
+	//int xLoc = std::get<0>(result);
+	//int yLoc = std::get<1>(result);
+	const auto result = cQuadTree<>::GetNodeLevel(rect);
+	int level = std::get<0>(result);
+	int xLoc = std::get<1>(result);
+	int yLoc = std::get<2>(result);
 	if (xLoc < 0)
 		return {0,0}; // error occurred!!
 

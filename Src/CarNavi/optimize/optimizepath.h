@@ -34,8 +34,6 @@ namespace optimize
 		virtual ~cOptimizePath();
 
 		bool Optimize(graphic::cRenderer &renderer, cTerrainQuadTree &terrain);
-		bool ReadOptimizePath(const StrPath &fileName);
-		bool WriteOptimizePath(const StrPath &fileName);
 		bool RenderQTreeGraph(graphic::cRenderer &renderer, cTerrainQuadTree &terrain);
 		bool Cancel();
 		void Clear();
