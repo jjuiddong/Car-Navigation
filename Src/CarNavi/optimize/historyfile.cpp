@@ -4,7 +4,9 @@
 
 using namespace optimize;
 
-cOptimizeHistoryFile::cOptimizeHistoryFile(const StrPath &fileName //= ""
+
+cOptimizeHistoryFile::cOptimizeHistoryFile(
+	const string &fileName //= ""
 )
 {
 	if (!fileName.empty())
@@ -13,11 +15,12 @@ cOptimizeHistoryFile::cOptimizeHistoryFile(const StrPath &fileName //= ""
 
 cOptimizeHistoryFile::~cOptimizeHistoryFile()
 {
+	Clear();
 }
 
 
 // read optimize history file
-bool cOptimizeHistoryFile::Read(const StrPath &fileName)
+bool cOptimizeHistoryFile::Read(const string &fileName)
 {
 	cSimpleData simData(fileName.c_str());
 	if (!simData.IsLoad())
@@ -34,8 +37,8 @@ bool cOptimizeHistoryFile::Read(const StrPath &fileName)
 			continue; // error occurred!!
 
 		sRow info;
-		info.fileName = row[0];
-		info.isComplete = row[1] == "complete";
+		info.fileName = common::trim(row[0]);
+		info.isComplete = common::trim(row[1]) == "complete";
 		if (!info.isComplete && (row.size() < 3))
 			continue; // error occurred!!
 		info.line = atoi(row[2].c_str());
@@ -47,7 +50,7 @@ bool cOptimizeHistoryFile::Read(const StrPath &fileName)
 
 
 // write history file
-bool cOptimizeHistoryFile::Write(const StrPath &fileName)
+bool cOptimizeHistoryFile::Write(const string &fileName)
 {
 	std::ofstream ofs(fileName.c_str());
 	if (!ofs.is_open())
@@ -56,12 +59,34 @@ bool cOptimizeHistoryFile::Write(const StrPath &fileName)
 	for (auto &row : m_table)
 	{
 		ofs << row.fileName << ", ";
-		ofs << row.isComplete ? "complete, " : "processing, ";
-		if (!row.isComplete)
-			ofs << row.line;
+		ofs << (row.isComplete ? "complete, " : "processing, ");
+		ofs << (row.isComplete? 0 : row.line);
 		ofs << std::endl;
 	}
 	return true;
+}
+
+
+// add history
+bool cOptimizeHistoryFile::AddHistory(const string &fileName
+	, const bool isComplete, const int line)
+{
+	sRow row;
+	row.fileName = fileName;
+	row.isComplete = isComplete;
+	row.line = line;
+	m_table.push_back(row);
+	return true;
+}
+
+
+// is complete optimize work?
+bool cOptimizeHistoryFile::IsComplete(const string &fileName)
+{
+	for (auto &row : m_table)
+		if (fileName == row.fileName)
+			return row.isComplete;
+	return false;
 }
 
 

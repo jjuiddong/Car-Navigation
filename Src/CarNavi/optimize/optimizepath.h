@@ -56,11 +56,14 @@ namespace optimize
 
 
 	public:
-		cPointMapper *m_pointMapper;
+		enum class State {Wait, Run, Finish, Stop};
+
+		State m_state;
+		cOptimizeHistoryFile m_history;
 		cQTreeGraph *m_qtreeGraph;
 		sStackData *m_stack;
-
-		bool m_isLoop;
+		graphic::cRenderer *m_renderer; // reference
+		cTerrainQuadTree *m_terrain; // reference
 		std::thread m_thread;
 	};
 

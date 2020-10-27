@@ -96,7 +96,7 @@ namespace optimize
 		bool ReadFile();
 		bool WriteFile();
 
-		qgid AddPoint(const Vector3 &pos);
+		qgid AddPoint(const Vector3 &pos, const bool isAverage = true);
 		
 		bool AddTransition(const qgid id0, const qgid id1);
 		
@@ -106,6 +106,10 @@ namespace optimize
 		Vector3 GetVertexPos(const qgid id);
 		
 		sQuadTreeNode<sNode>* FindNode(const qgid id);
+		sQuadTreeNode<sNode>* FindNode(const int level
+			, const int xLoc, const int yLoc);
+		sQuadTreeNode<sNode>* FindBestNode(const Vector3 &pos);
+
 		sVertex* FindVertex(const qgid id);
 		sVertex* FindVertex(sQuadTreeNode<sNode>*node, const qgid id);
 		sTransition* FindTransition(sVertex *vtx, const qgid toId);
@@ -119,18 +123,27 @@ namespace optimize
 
 
 	protected:
-		cQuadTree<sNode>* FindAndCreateTree(const int lv
-			, const int xLoc, const int yLoc);
+		cQuadTree<sNode>* FindAndCreateRootTree(const int level
+			, const int xLoc, const int yLoc);			
 		cQuadTree<sNode>* FindRootTree(const int level
 			, const int xLoc, const int yLoc);
 		sQuadTreeNode<sNode>* FindBestNode(const int level
 			, const int xLoc, const int yLoc);
+		sQuadTreeNode<sNode>* FindAndCreateFromFile(const int level
+			, const int xLoc, const int yLoc);
 
 		qgid AddPointInBestNode(cQuadTree<sNode> *qtree
-			, const sRectf &rect, const Vector3 &pos);
+			, const sRectf &rect, const Vector3 &pos
+			, const bool isAverage = true);
 
 		bool DivideNodeToChild(cQuadTree<sNode> *qtree
 			, sQuadTreeNode<sNode> *node);
+
+		qgid MovePoint(sQuadTreeNode<sNode> *fromNode, const int index);
+
+		void UpdateVertexId(sQuadTreeNode<sNode> *node
+			, sVertex &vtx, const qgid newId, const qgid toId
+			, const int index, const int flag);
 
 		bool ReadNode(sQuadTreeNode<sNode> *node);
 
@@ -140,13 +153,14 @@ namespace optimize
 			, const int level, const int xLoc, const int yLoc);
 		std::tuple<int,int,int,int> ParseQgid(const qgid id);
 		uint64 GetQTreeIdFromQgid(const qgid id);
+		StrPath GetNodeFilePath(const int level, const int xLoc, const int yLoc);
 
 
 	public:
-		enum { TREE_LEVEL = 6, MAX_TABLESIZE = 200, };
+		enum { DEFAULT_TREE_LEVEL = 6, MAX_TABLESIZE = 200, };
 		const StrPath s_dir = ".\\path\\optimize";
 
-		map<uint64, cQuadTree<sNode>*> m_qtrees; //key: lv + xLoc + yLoc
+		map<uint64, cQuadTree<sNode>*> m_roots; //key: lv + xLoc + yLoc
 		bool m_isDivide; // divided?
 		map<qgid, qgid> m_mappingIds; // key: old id, value: new id
 	};

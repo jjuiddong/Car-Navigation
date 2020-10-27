@@ -24,11 +24,14 @@ namespace optimize
 			int line;
 		};
 
-		cOptimizeHistoryFile(const StrPath &fileName = "");
+		cOptimizeHistoryFile(const string &fileName = "");
 		virtual ~cOptimizeHistoryFile();
 
-		bool Read(const StrPath &fileName);
-		bool Write(const StrPath &fileName);
+		bool Read(const string &fileName);
+		bool Write(const string &fileName);
+		bool AddHistory(const string &fileName, const bool isComplete
+			, const int line);
+		bool IsComplete(const string &fileName);
 		bool IsLoad();
 		void Clear();
 
