@@ -8,8 +8,6 @@ using namespace optimize;
 
 cOptimizePath::cOptimizePath()
 	: m_state(State::Wait)
-	, m_renderer(nullptr)
-	, m_terrain(nullptr)
 {
 	m_stack = new sStackData[512];
 }
@@ -29,13 +27,29 @@ bool cOptimizePath::Optimize(graphic::cRenderer &renderer
 
 	Cancel();
 
-	m_renderer = &renderer;
-	m_terrain = &terrain;
+	// convert path file -> *.3dpath
+	list<string> files;
+	list<string> exts;
+	exts.push_back(".txt");
+	common::CollectFiles(exts, "path", files);
+	for (auto &fileName : files)
+	{
+		// if exist *.3dpath file, read this file. (binary format)
+		const StrPath binPathFileName = StrPath(fileName).GetFileNameExceptExt2()
+			+ ".3dpath";
+		if (!binPathFileName.IsFileExist())
+		{
+			// if not exist *.3dpath file, generate file
+			cPathFile pathFile(fileName);
+			if (!pathFile.IsLoad())
+				continue; // error occurred!!
+			pathFile.Write3DPathFile(renderer, terrain, binPathFileName);
+		}
+	}
+	//
 
 	m_state = State::Run;
 	m_thread = std::thread(cOptimizePath::ThreadProc, this);
-	m_thread.join();
-
 	return true;
 }
 
@@ -43,13 +57,16 @@ bool cOptimizePath::Optimize(graphic::cRenderer &renderer
 // to debugging
 // render QuadTree Graph, Quad
 bool cOptimizePath::RenderQTreeGraph(graphic::cRenderer &renderer
-	, cTerrainQuadTree &terrain)
+	, cTerrainQuadTree &terrain
+	, const bool showQuad, const bool showGraph)
 {
 	if (m_state != State::Finish)
 		return false; // not finish work
 
-	RenderQuad(renderer, terrain);
-	RenderGraph(renderer, terrain);
+	if (showQuad)
+		RenderQuad(renderer, terrain);
+	if (showGraph)
+		RenderGraph(renderer, terrain);
 	return true;
 }
 
@@ -265,15 +282,6 @@ int cOptimizePath::ThreadProc(cOptimizePath *optimizePath)
 		const StrPath binPathFileName = StrPath(fileName).GetFileNameExceptExt2()
 			+ ".3dpath";
 		if (!binPathFileName.IsFileExist())
-		{
-			// if not exist *.3dpath file, generate file
-			cPathFile pathFile(fileName);
-			if (!pathFile.IsLoad())
-				continue; // error occurred!!
-			pathFile.Write3DPathFile(*opt->m_renderer, *opt->m_terrain, binPathFileName);
-		}
-
-		if (!binPathFileName.IsFileExist())
 			continue; // error occurred!!
 
 		// read binary format path file (*.3dpath)
@@ -281,19 +289,20 @@ int cOptimizePath::ThreadProc(cOptimizePath *optimizePath)
 		if (!pathFile.IsLoad())
 			continue; // error occurred!!
 
+		const float NEAR_LEN = 0.2f;
 		qgid id0 = 0;
 		for (auto &row : pathFile.m_table)
 		{
 			if (opt->m_state == State::Stop)
 				break; // finish thread?
 
-			sEdge edge = qgraph.FindNearEdge(row.pos, 0.5f);
+			sEdge edge = qgraph.FindNearEdge(row.pos, NEAR_LEN);
 			if ((edge.from != 0) && (edge.to != 0))
 			{
 				if (qgraph.SmoothEdge(row.pos, edge))
 				{
 					// recalc near edge
-					edge = qgraph.FindNearEdge(row.pos, 0.5f);
+					edge = qgraph.FindNearEdge(row.pos, NEAR_LEN);
 
 					if (qgraph.m_isDivide)
 					{
@@ -307,10 +316,15 @@ int cOptimizePath::ThreadProc(cOptimizePath *optimizePath)
 				{
 					if (id0 > 0)
 					{
-						if (qgraph.AddTransition(id0, edge.to))
-							id0 = edge.to;
-						else
-							id0 = 0;
+						//if (qgraph.AddTransition(id0, edge.to))
+						//{
+						//	id0 = edge.to;
+						//}
+						//else
+						//{
+						//	id0 = 0;
+						//}
+						id0 = 0;
 					}
 				}
 				continue;
@@ -334,8 +348,8 @@ int cOptimizePath::ThreadProc(cOptimizePath *optimizePath)
 		history.AddHistory(fileName, true, 0);
 	}
 
-	qgraph.WriteFile();
-	history.Write("optimize_history.txt");
+	//qgraph.WriteFile();
+	//history.Write("optimize_history.txt");
 
 	qgraph.ReadFile();
 

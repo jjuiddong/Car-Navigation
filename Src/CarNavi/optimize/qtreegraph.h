@@ -21,8 +21,8 @@ namespace optimize
 			const int maxLv = cQuadTree<>::MAX_LEVEL; \
 			index = id >> (maxLv + maxLv + 2 + 4); \
 			level = (id >> (maxLv + maxLv + 2)) & 0xF; \
-			yloc = (id >> (maxLv + 1)) & 0xFFFF; \
-			xloc = id & 0xFFFF; \
+			yloc = (id >> (maxLv + 1)) & 0x1FFFF; \
+			xloc = id & 0x1FFFF; \
 		}
 
 	// parse cQTreeGraph id -> index

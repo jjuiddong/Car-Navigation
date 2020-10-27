@@ -147,8 +147,6 @@
     <ClCompile Include="lib\touch.cpp" />
     <ClCompile Include="optimize\historyfile.cpp" />
     <ClCompile Include="optimize\optimizepath.cpp" />
-    <ClCompile Include="optimize\pathgraph.cpp" />
-    <ClCompile Include="optimize\pointmapper.cpp" />
     <ClCompile Include="optimize\qtreegraph.cpp" />
     <ClCompile Include="path\landmark.cpp" />
     <ClCompile Include="path\pathcompare.cpp" />
@@ -175,8 +173,6 @@
     <ClInclude Include="lib\utility.h" />
     <ClInclude Include="optimize\historyfile.h" />
     <ClInclude Include="optimize\optimizepath.h" />
-    <ClInclude Include="optimize\pathgraph.h" />
-    <ClInclude Include="optimize\pointmapper.h" />
     <ClInclude Include="optimize\qtreegraph.h" />
     <ClInclude Include="path\landmark.h" />
     <ClInclude Include="path\pathcompare.h" />

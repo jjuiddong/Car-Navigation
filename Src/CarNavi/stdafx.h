@@ -18,7 +18,6 @@ using namespace common;
 #include "path/pathcompare.h"
 #include "path/landmark.h"
 #include "optimize/historyfile.h"
-#include "optimize/pointmapper.h"
 #include "optimize/qtreegraph.h"
 #include "optimize/optimizepath.h"
 #include "global.h"

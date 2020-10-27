@@ -2,7 +2,6 @@
 // 2020-10-22, jjuiddong
 // optimize path
 //		- multithreading
-//		- cPointMapper
 //		- cOptimizePath
 //
 //	- path-table
@@ -15,7 +14,6 @@
 namespace optimize
 {
 
-	class cPointMapper;
 	class cQTreeGraph;
 
 	// Quad Tree Traverse Stack Memory
@@ -34,7 +32,9 @@ namespace optimize
 		virtual ~cOptimizePath();
 
 		bool Optimize(graphic::cRenderer &renderer, cTerrainQuadTree &terrain);
-		bool RenderQTreeGraph(graphic::cRenderer &renderer, cTerrainQuadTree &terrain);
+		bool RenderQTreeGraph(graphic::cRenderer &renderer
+			, cTerrainQuadTree &terrain
+			, const bool showQuad, const bool showGraph);
 		bool Cancel();
 		void Clear();
 
@@ -62,8 +62,6 @@ namespace optimize
 		cOptimizeHistoryFile m_history;
 		cQTreeGraph *m_qtreeGraph;
 		sStackData *m_stack;
-		graphic::cRenderer *m_renderer; // reference
-		cTerrainQuadTree *m_terrain; // reference
 		std::thread m_thread;
 	};
 

@@ -2,8 +2,6 @@
 #include "stdafx.h"
 #include "mapview.h"
 #include "navigationview.h"
-#include "../optimize/pointmapper.h"
-#include "../optimize/qtreegraph.h"
 
 using namespace graphic;
 using namespace framework;
@@ -29,7 +27,7 @@ cMapView::cMapView(const string &name)
 	, m_obd2RcvT(0.f)
 	, m_obd2RcvFps(0)
 	, m_obd2Port(4)
-	, m_naviServerIp("220.77.25.119")
+	, m_naviServerIp("127.0.0.1")
 	, m_naviServerPort(10001)
 	, m_sendGpsInfo(0)
 {
@@ -98,7 +96,7 @@ bool cMapView::Init(cRenderer &renderer)
 	m_ledAniTailR = g_global->m_config.GetFloat("led_ani_tail", 0.7f);
 	m_ledAniR = g_global->m_config.GetFloat("led_ani", 0.1f);
 	m_obd2Port = g_global->m_config.GetInt("obd2_port", 4);
-	m_naviServerIp = g_global->m_config.GetString("naviserver_ip", "220.77.251.119");
+	m_naviServerIp = g_global->m_config.GetString("naviserver_ip", "127.0.0.1");
 	m_naviServerPort = g_global->m_config.GetInt("naviserver_port", 10001);
 	g_global->m_isDebugMode = g_global->m_config.GetBool("debug_mode", false);
 	m_quadTree.m_distanceLevelOffset = g_global->m_config.GetInt("distance_lv_offset", 20);
@@ -600,7 +598,7 @@ void cMapView::OnPreRender(const float deltaSeconds)
 		if (g_global->m_isShowTerrain)
 			m_quadTree.Render(renderer, deltaSeconds, frustum, ray1, ray2);
 
-		if (g_global->m_isShowPrevPath)
+		if (g_global->m_isShowPrevPath && g_global->m_isShowAllPrevPath)
 		{
 			for (auto &p : g_global->m_pathRenderers)
 				p->Render(renderer);
@@ -753,29 +751,11 @@ void cMapView::OnPreRender(const float deltaSeconds)
 			}
 		}
 
-		//if (g_global->m_optPath.m_pointMapper)
-		//{
-		//	renderer.m_dbgBox.SetColor(cColor::WHITE);
-		//	cPointMapper *pointMapper = g_global->m_optPath.m_pointMapper;
-		//	for (auto kv : pointMapper->m_qtrees)
-		//	{
-		//		cQuadTree<sMapping>* qtree = kv.second;
-		//		sQuadTreeNode<sMapping> *node = qtree->m_roots.empty() ?
-		//			nullptr : qtree->m_roots[0];
-		//		if (!node)
-		//			continue;
-		//		for (auto &mpos : node->data.table)
-		//		{
-		//			const Transform tfm(mpos.pos, Vector3(1, 1, 1)*0.03f);
-		//			renderer.m_dbgBox.SetBox(tfm);
-		//			renderer.m_dbgBox.Render(renderer);
-		//		}
-		//	}
-		//}
-
-		g_global->m_optPath.RenderQTreeGraph(renderer, m_quadTree);
-
-
+		if (g_global->m_isShowPrevPath && !g_global->m_isShowAllPrevPath)
+		{
+			g_global->m_optPath.RenderQTreeGraph(renderer, m_quadTree
+				, g_global->m_isShowQuadTree, g_global->m_isShowPrevPath);
+		}
 
 	}
 	m_renderTarget.End(renderer);

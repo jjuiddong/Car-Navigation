@@ -101,18 +101,17 @@ void cNavigationView::OnRender(const float deltaSeconds)
 	{
 		if (ImGui::Checkbox("Show Prev Path", &g_global->m_isShowPrevPath))
 		{
-			if (g_global->m_isShowPrevPath)
+			if (g_global->m_isShowPrevPath && g_global->m_isShowAllPrevPath)
+			{
 				g_global->ReadAndConvertPathFiles(g_global->m_mapView->GetRenderer()
 					, g_global->m_mapView->m_quadTree, "./path/");
-			//cPathCompare comp;
-			//comp.Compare("./path/");
+			}
 		}
 		//ImGui::SameLine();
 		//ImGui::Checkbox("DeepCopy Smooth", &g_global->m_mapView->m_quadTree.m_tileMgr->m_isDeepCopySmooth);
 		ImGui::End();
 	}
 	//
-
 
 	cTerrainQuadTree &terrain = g_global->m_mapView->m_quadTree;
 	cGpsClient &gpsClient = g_global->m_gpsClient;
@@ -261,6 +260,16 @@ void cNavigationView::OnRender(const float deltaSeconds)
 	{
 		ImGui::Checkbox("Trace GPS", &g_global->m_isTraceGPSPos);
 		ImGui::Checkbox("Trace Rotate", &g_global->m_isRotateTrace);
+		if (ImGui::Checkbox("Show All Prev Path", &g_global->m_isShowAllPrevPath))
+		{
+			if (g_global->m_isShowPrevPath && g_global->m_isShowAllPrevPath)
+			{
+				g_global->ReadAndConvertPathFiles(g_global->m_mapView->GetRenderer()
+					, g_global->m_mapView->m_quadTree, "./path/");
+			}
+		}
+		ImGui::SameLine();
+		ImGui::Checkbox("Show Quad", &g_global->m_isShowQuadTree);
 		ImGui::Checkbox("Show LandMark", &g_global->m_isShowLandMark);
 		ImGui::Checkbox("Show LandMark2", &g_global->m_isShowLandMark2);
 		ImGui::Checkbox("Black Mode", &g_global->m_isDarkMode);

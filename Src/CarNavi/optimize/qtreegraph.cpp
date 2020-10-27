@@ -706,6 +706,7 @@ qgid cQTreeGraph::AddPointInBestNode(cQuadTree<sNode> *qtree
 		bool isFind = false;
 		if (isAverage)
 		{
+			float minDist = FLT_MAX;
 			for (uint i=0; i < node->data.table.size(); ++i)
 			{
 				sAccPos &apos = node->data.table[i];
@@ -721,11 +722,21 @@ qgid cQTreeGraph::AddPointInBestNode(cQuadTree<sNode> *qtree
 					apos.cnt += 1;
 					retVal = apos.pos;
 
-					ret = MovePoint(node, i);
-					if (ret == 0) // no move?
-						MAKE_QGID(ret, (int)i, node->level, node->xLoc, node->yLoc);
+					//ret = MovePoint(node, i);
+					//if (ret == 0) // no move?
+					//	MAKE_QGID(ret, (int)i, node->level, node->xLoc, node->yLoc);
+					//isFind = true;
+					qgid id = MovePoint(node, i);
+					if (id == 0) // no move?
+						MAKE_QGID(id, (int)i, node->level, node->xLoc, node->yLoc);
 					isFind = true;
-					break;
+
+					if (minDist > dist)
+					{
+						minDist = dist;
+						ret = id;
+					}
+					//break;
 				}
 			}
 		}
@@ -790,6 +801,11 @@ bool cQTreeGraph::DivideNodeToChild(cQuadTree<sNode> *qtree
 		pn->data.table.push_back(apos);
 
 		const int newIdx = pn->data.table.size() - 1;
+
+		if (node->level == 12 && node->xLoc == 34910 && node->yLoc == 14520)
+		{
+			int a = 0;
+		}
 
 		// mapping current id, new id
 		qgid id0, id1;
@@ -1305,6 +1321,15 @@ bool cQTreeGraph::SmoothEdge(const Vector3 &pos, const sEdge &edge)
 	apos0.cnt++;
 	apos1.cnt++;
 
+	//const Line line(apos0.pos, apos1.pos);
+	//const Vector3 right = Vector3(0, 1, 0).CrossProduct(line.dir).Normal();
+	//const Vector3 dir = (pos - apos0.pos).Normal();
+	//const bool isRight = line.dir.CrossProduct(dir).y > 0;
+	//const float dist = line.GetDistance(pos);
+	//const float movLen = (dist / apos0.cnt) * (isRight? 1.0f : -1.0f);
+	//apos0.pos += right * movLen;
+	//apos1.pos += right * movLen;
+
 	const Vector3 p0 = (pos / (float)apos0.cnt) + 
 		((apos0.pos * (float)(apos0.cnt - 1)) / (float)apos0.cnt);
 	const Vector3 p1 = (pos / (float)apos1.cnt) +
@@ -1316,6 +1341,17 @@ bool cQTreeGraph::SmoothEdge(const Vector3 &pos, const sEdge &edge)
 	m_mappingIds.clear();
 	MovePoint(node0, idx0);
 	map<qgid, qgid> ids0 = m_mappingIds;
+
+	// update node1?
+	auto it = m_mappingIds.find(edge.to);
+	if (it != m_mappingIds.end())
+	{
+		const qgid newId = it->second;
+		node1 = FindNode(newId);
+		if (!node1)
+			return false; // error occurred!!
+		PARSE_QGID_INDEX(newId, idx1);
+	}
 	MovePoint(node1, idx1);
 
 	// copy mappingIds

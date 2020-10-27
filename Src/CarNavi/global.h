@@ -112,7 +112,9 @@ public:
 	float m_prevDistance; // check camera moving
 
 	// path
-	bool m_isShowPrevPath;
+	bool m_isShowAllPrevPath;
+	bool m_isShowPrevPath; // show quadtree-graph graph
+	bool m_isShowQuadTree; // show quadtree-graph quad node
 	StrPath m_pathFilename;
 	vector<cPathRenderer*> m_pathRenderers;
 
