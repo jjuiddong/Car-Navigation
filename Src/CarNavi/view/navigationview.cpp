@@ -116,24 +116,22 @@ void cNavigationView::OnRender(const float deltaSeconds)
 			ImGui::End();
 		}
 	}
-	else
+
+	// show preve path checkbox
+	ImGui::SetNextWindowPos(ImVec2(g_global->m_mapView->m_viewRect.left + 150.f
+		, g_global->m_mapView->m_viewRect.bottom - 55.f));
+	ImGui::SetNextWindowSize(ImVec2(300, 55));
+	if (ImGui::Begin("Prev Path Window", nullptr, flags))
 	{
-		// show preve path checkbox
-		ImGui::SetNextWindowPos(ImVec2(g_global->m_mapView->m_viewRect.left + 150.f
-			, g_global->m_mapView->m_viewRect.bottom - 55.f));
-		ImGui::SetNextWindowSize(ImVec2(300, 55));
-		if (ImGui::Begin("Prev Path Window", nullptr, flags))
+		if (ImGui::Checkbox("Show Prev Path", &g_global->m_isShowPrevPath))
 		{
-			if (ImGui::Checkbox("Show Prev Path", &g_global->m_isShowPrevPath))
+			if (g_global->m_isShowPrevPath && g_global->m_isShowAllPrevPath)
 			{
-				if (g_global->m_isShowPrevPath && g_global->m_isShowAllPrevPath)
-				{
-					g_global->ReadAndConvertPathFiles(g_global->m_mapView->GetRenderer()
-						, g_global->m_mapView->m_quadTree, "./path/");
-				}
+				g_global->ReadAndConvertPathFiles(g_global->m_mapView->GetRenderer()
+					, g_global->m_mapView->m_quadTree, "./path/");
 			}
-			ImGui::End();
 		}
+		ImGui::End();
 	}
 
 	cTerrainQuadTree &terrain = g_global->m_mapView->m_quadTree;

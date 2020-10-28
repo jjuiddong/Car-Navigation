@@ -28,7 +28,7 @@ bool cNaviServer::Init(network2::cNetController &netController)
 	if (!netController.StartTcpServer(&m_svr, port))
 		return false;
 
-	if (!m_db.Init(cDBMgr::Database::MongoDB))
+	if (!m_db.Init(cDBMgr::Database::MySql))
 		return false;
 
 	// connect db server

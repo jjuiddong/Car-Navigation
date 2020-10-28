@@ -312,7 +312,7 @@ int cOptimizePath::ThreadProc(cOptimizePath *optimizePath)
 
 			++opt->m_calcRowCount;
 
-			sEdge edge = qgraph.FindNearEdge(row.pos, NEAR_LEN);
+			sEdge edge = qgraph.FindNearEdge(row.pos, NEAR_LEN, id0);
 			if ((edge.from != 0) && (edge.to != 0))
 			{
 				if (qgraph.SmoothEdge(row.pos, edge))
@@ -322,25 +322,29 @@ int cOptimizePath::ThreadProc(cOptimizePath *optimizePath)
 
 					if (qgraph.m_isDivide)
 					{
+						//id0 = 0;
 						auto it = qgraph.m_mappingIds.find(id0);
 						if (it != qgraph.m_mappingIds.end())
 							id0 = it->second;
 					}
+					//edge.from = 0;
+					//edge.to = 0;
+					//id0 = 0;
 				}
 
 				if ((edge.from != 0) && (edge.to != 0))
 				{
 					if (id0 > 0)
 					{
-						//if (qgraph.AddTransition(id0, edge.to))
-						//{
-						//	id0 = edge.to;
-						//}
+						if (qgraph.AddTransition(id0, edge.to))
+						{
+							id0 = edge.to;
+						}
 						//else
 						//{
 						//	id0 = 0;
 						//}
-						id0 = 0;
+						//id0 = 0;
 					}
 				}
 				continue;
@@ -349,9 +353,10 @@ int cOptimizePath::ThreadProc(cOptimizePath *optimizePath)
 			const qgid id1 = qgraph.AddPoint(row.pos);
 			if (qgraph.m_isDivide)
 			{
-				auto it = qgraph.m_mappingIds.find(id0);
-				if (it != qgraph.m_mappingIds.end())
-					id0 = it->second;
+				//auto it = qgraph.m_mappingIds.find(id0);
+				//if (it != qgraph.m_mappingIds.end())
+				//	id0 = it->second;
+				id0 = 0;
 			}
 
 			if (id0 != 0)

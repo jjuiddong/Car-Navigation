@@ -19,32 +19,32 @@ namespace optimize
 	#define PARSE_QGID(id, index, level, xloc, yloc) \
 		{\
 			const int maxLv = cQuadTree<>::MAX_LEVEL; \
-			index = id >> (maxLv + maxLv + 2 + 4); \
-			level = (id >> (maxLv + maxLv + 2)) & 0xF; \
-			yloc = (id >> (maxLv + 1)) & 0x1FFFF; \
-			xloc = id & 0x1FFFF; \
+			index = id >> (maxLv + maxLv + 8 + 4); \
+			level = (id >> (maxLv + maxLv + 8)) & 0xF; \
+			yloc = (id >> (maxLv + 4)) & 0xFFFFF; \
+			xloc = id & 0xFFFFF; \
 		}
 
 	// parse cQTreeGraph id -> index
 	#define PARSE_QGID_INDEX(id, index) \
 		{\
 			const int maxLv = cQuadTree<>::MAX_LEVEL; \
-			index = id >> (maxLv + maxLv + 2 + 4); \
+			index = id >> (maxLv + maxLv + 8 + 4); \
 		}
 
 	// make cQTreeGraph id from table index, level, xloc, yloc
 	#define MAKE_QGID(id, index, level, xloc, yloc) \
 		{\
 			const int maxLv = cQuadTree<>::MAX_LEVEL; \
-			id = (((uint64)(index)) << (maxLv + maxLv + 2 + 4)) \
-			 + (((uint64)(level)) << (maxLv + maxLv + 2)) \
-			 + (((uint64)(yloc)) << (maxLv + 1)) \
+			id = (((uint64)(index)) << (maxLv + maxLv + 8 + 4)) \
+			 + (((uint64)(level)) << (maxLv + maxLv + 8)) \
+			 + (((uint64)(yloc)) << (maxLv + 4)) \
 			 + ((uint64)(xloc)); \
 		}
 
 	// compare quadtree id (lv + xLoc + yLoc)
 	#define COMPARE_QID(id0, id1) \
-		(((id0) & 0x3FFFFFFFFF) == ((id1) & 0x3FFFFFFFFF))
+		(((id0) & 0xFFFFFFFFFFF) == ((id1) & 0xFFFFFFFFFFF))
 
 
 	struct sEdge
@@ -62,24 +62,26 @@ namespace optimize
 
 	struct sVertex
 	{
-		qgid id;
+		//qgid id;
+		Vector3 pos;
+		uint accCnt; // accumlate count
 		uint trCnt; // transition count
 		uint trCapa; // trs capacity
 		sTransition *trs;
 		enum {DEFAULT_TRANSITION = 2};
-		sVertex() : trCnt(0), trCapa(0), trs(nullptr) {}
+		sVertex() : accCnt(0), trCnt(0), trCapa(0), trs(nullptr) {}
 	};
 
 	// 3D position info
-	struct sAccPos
-	{
-		int cnt; // accumulate count
-		Vector3 pos;
-	};
+	//struct sAccPos
+	//{
+	//	int cnt; // accumulate count
+	//	Vector3 pos;
+	//};
 
 	struct sNode
 	{
-		vector<sAccPos> table; // unique pos management
+		//vector<sAccPos> table; // unique pos management
 		vector<sVertex> vertices; // graph vertex
 		graphic::cDbgLineList *lineList;
 		sNode() : lineList(nullptr) {}
@@ -100,7 +102,8 @@ namespace optimize
 		
 		bool AddTransition(const qgid id0, const qgid id1);
 		
-		sEdge FindNearEdge(const Vector3 &pos, const float distance);
+		sEdge FindNearEdge(const Vector3 &pos, const float distance
+			, const qgid exceptId = 0);
 		bool SmoothEdge(const Vector3 &pos, const sEdge &edge);
 		
 		Vector3 GetVertexPos(const qgid id);
@@ -139,11 +142,11 @@ namespace optimize
 		bool DivideNodeToChild(cQuadTree<sNode> *qtree
 			, sQuadTreeNode<sNode> *node);
 
-		qgid MovePoint(sQuadTreeNode<sNode> *fromNode, const int index);
+		qgid MovePoint(sQuadTreeNode<sNode> *fromNode, const uint index);
 
-		void UpdateVertexId(sQuadTreeNode<sNode> *node
-			, sVertex &vtx, const qgid newId, const qgid toId
-			, const int index, const int flag);
+		//void UpdateVertexId(sQuadTreeNode<sNode> *node
+		//	, sVertex &vtx, const qgid oldId, const qgid newId
+		//	, const int index, const int flag);
 
 		bool ReadNode(sQuadTreeNode<sNode> *node);
 

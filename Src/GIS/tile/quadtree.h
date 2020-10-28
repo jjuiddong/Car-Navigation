@@ -102,8 +102,8 @@ inline uint64 cQuadTree<T>::MakeKey(const int level, const int xLoc, const int y
 {
 	uint64 lv = level;
 	uint64 y = yLoc;
-	y <<= (MAX_LEVEL + 1);
-	lv <<= (MAX_LEVEL + MAX_LEVEL + 2);
+	y <<= (MAX_LEVEL + 4);
+	lv <<= (MAX_LEVEL + MAX_LEVEL + 8);
 	return (uint64)(lv + y + xLoc);
 }
 
@@ -319,7 +319,7 @@ template<class T>
 inline sQuadTreeNode<T>* cQuadTree<T>::GetNode(const uint64 key)
 {
 	//const int level = (key & 0x3C00000000) >> (MAX_LEVEL + MAX_LEVEL + 2);
-	const int level = (key >> (MAX_LEVEL + MAX_LEVEL + 2)) & 0x0F;
+	const int level = (key >> (MAX_LEVEL + MAX_LEVEL + 8)) & 0x0F;
 	if ((u_int)level >= MAX_LEVEL)
 		return NULL;
 	auto it = m_nodeTable[level].find(key);
