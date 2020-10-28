@@ -62,6 +62,10 @@ namespace optimize
 		cOptimizeHistoryFile m_history;
 		cQTreeGraph *m_qtreeGraph;
 		sStackData *m_stack;
+		uint m_curCalcCount;
+		uint m_totalCalcCount; // process count
+		uint m_calcRowCount;
+		uint m_tableCount;
 		std::thread m_thread;
 	};
 

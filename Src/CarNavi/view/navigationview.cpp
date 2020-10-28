@@ -93,25 +93,48 @@ void cNavigationView::OnRender(const float deltaSeconds)
 	}
 	//
 
-	// Show Prev Path CheckBox
-	ImGui::SetNextWindowPos(ImVec2(g_global->m_mapView->m_viewRect.left + 150.f
-		, g_global->m_mapView->m_viewRect.bottom - 55.f));
-	ImGui::SetNextWindowSize(ImVec2(300, 55));
-	if (ImGui::Begin("Prev Path Window", nullptr, flags))
+	// show optimize path progressbar
+	if (g_global->m_optPath.m_state == optimize::cOptimizePath::State::Run)
 	{
-		if (ImGui::Checkbox("Show Prev Path", &g_global->m_isShowPrevPath))
+		ImGui::SetNextWindowPos(ImVec2(0, g_global->m_mapView->m_viewRect.bottom - 30.f));
+		ImGui::SetNextWindowSize(ImVec2(g_global->m_mapView->m_viewRect.Width()+30, 30));
+		if (ImGui::Begin("Optimize Progress", nullptr, flags))
 		{
-			if (g_global->m_isShowPrevPath && g_global->m_isShowAllPrevPath)
+			if (g_global->m_optPath.m_totalCalcCount > 0
+				&& g_global->m_optPath.m_tableCount > 0)
 			{
-				g_global->ReadAndConvertPathFiles(g_global->m_mapView->GetRenderer()
-					, g_global->m_mapView->m_quadTree, "./path/");
+				const float r = 1.0f / (float)g_global->m_optPath.m_totalCalcCount;
+
+				const float ratio0 = ((float)g_global->m_optPath.m_calcRowCount 
+					/ (float)g_global->m_optPath.m_tableCount) * r;
+
+				const float ratio1 = (float)g_global->m_optPath.m_curCalcCount 
+					/ (float)g_global->m_optPath.m_totalCalcCount;
+
+				ImGui::ProgressBar(ratio0 + ratio1);
 			}
+			ImGui::End();
 		}
-		//ImGui::SameLine();
-		//ImGui::Checkbox("DeepCopy Smooth", &g_global->m_mapView->m_quadTree.m_tileMgr->m_isDeepCopySmooth);
-		ImGui::End();
 	}
-	//
+	else
+	{
+		// show preve path checkbox
+		ImGui::SetNextWindowPos(ImVec2(g_global->m_mapView->m_viewRect.left + 150.f
+			, g_global->m_mapView->m_viewRect.bottom - 55.f));
+		ImGui::SetNextWindowSize(ImVec2(300, 55));
+		if (ImGui::Begin("Prev Path Window", nullptr, flags))
+		{
+			if (ImGui::Checkbox("Show Prev Path", &g_global->m_isShowPrevPath))
+			{
+				if (g_global->m_isShowPrevPath && g_global->m_isShowAllPrevPath)
+				{
+					g_global->ReadAndConvertPathFiles(g_global->m_mapView->GetRenderer()
+						, g_global->m_mapView->m_quadTree, "./path/");
+				}
+			}
+			ImGui::End();
+		}
+	}
 
 	cTerrainQuadTree &terrain = g_global->m_mapView->m_quadTree;
 	cGpsClient &gpsClient = g_global->m_gpsClient;

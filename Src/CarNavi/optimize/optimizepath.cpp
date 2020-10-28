@@ -8,6 +8,10 @@ using namespace optimize;
 
 cOptimizePath::cOptimizePath()
 	: m_state(State::Wait)
+	, m_curCalcCount(0)
+	, m_totalCalcCount(0)
+	, m_calcRowCount(0)
+	, m_tableCount(0)
 {
 	m_stack = new sStackData[512];
 }
@@ -270,6 +274,14 @@ int cOptimizePath::ThreadProc(cOptimizePath *optimizePath)
 	exts.push_back(".txt");
 	common::CollectFiles(exts, "path", files);
 
+	// get total calc count
+	opt->m_totalCalcCount = 0;
+	for (auto &fileName : files)
+		if (!history.IsComplete(fileName))
+			opt->m_totalCalcCount++;
+	//
+
+	opt->m_curCalcCount = 0;
 	for (auto &fileName : files)
 	{
 		if (opt->m_state == State::Stop)
@@ -291,10 +303,14 @@ int cOptimizePath::ThreadProc(cOptimizePath *optimizePath)
 
 		const float NEAR_LEN = 0.2f;
 		qgid id0 = 0;
+		opt->m_tableCount = pathFile.m_table.size();
+		opt->m_calcRowCount = 0;
 		for (auto &row : pathFile.m_table)
 		{
 			if (opt->m_state == State::Stop)
 				break; // finish thread?
+
+			++opt->m_calcRowCount;
 
 			sEdge edge = qgraph.FindNearEdge(row.pos, NEAR_LEN);
 			if ((edge.from != 0) && (edge.to != 0))
@@ -345,6 +361,7 @@ int cOptimizePath::ThreadProc(cOptimizePath *optimizePath)
 			id0 = id1;
 		}
 
+		++opt->m_curCalcCount;
 		history.AddHistory(fileName, true, 0);
 	}
 

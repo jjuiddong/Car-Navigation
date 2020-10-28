@@ -144,5 +144,6 @@ public:
 
 	cTimer m_timer;
 
+	// optimize path process
 	optimize::cOptimizePath m_optPath;
 };
