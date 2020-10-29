@@ -113,6 +113,8 @@ void cNavigationView::OnRender(const float deltaSeconds)
 
 				ImGui::ProgressBar(ratio0 + ratio1);
 			}
+
+			ImGui::ProgressBar(g_global->m_optPath.m_progress);
 			ImGui::End();
 		}
 	}

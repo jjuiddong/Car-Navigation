@@ -12,6 +12,7 @@ cOptimizePath::cOptimizePath()
 	, m_totalCalcCount(0)
 	, m_calcRowCount(0)
 	, m_tableCount(0)
+	, m_progress(0)
 {
 	m_stack = new sStackData[512];
 }
@@ -283,99 +284,15 @@ int cOptimizePath::ThreadProc(cOptimizePath *optimizePath)
 
 	cPathList pathList(history, files);
 
+	const float NEAR_LEN = 0.4f;
 	while (!pathList.IsEnd())
 	{
 		if (opt->m_state == State::Stop)
 			break; // finish thread?
 
-
-
+		qgraph.MergePath(pathList, NEAR_LEN);
+		opt->m_progress = pathList.m_progress;
 	}
-
-
-	//opt->m_curCalcCount = 0;
-	//for (auto &fileName : files)
-	//{
-	//	if (opt->m_state == State::Stop)
-	//		break; // finish thread?
-
-	//	if (history.IsComplete(fileName))
-	//		continue;
-
-	//	// if exist *.3dpath file, read this file. (binary format)
-	//	const StrPath binPathFileName = StrPath(fileName).GetFileNameExceptExt2()
-	//		+ ".3dpath";
-	//	if (!binPathFileName.IsFileExist())
-	//		continue; // error occurred!!
-
-	//	// read binary format path file (*.3dpath)
-	//	cBinPathFile pathFile(binPathFileName);
-	//	if (!pathFile.IsLoad())
-	//		continue; // error occurred!!
-
-	//	const float NEAR_LEN = 0.2f;
-	//	qgid id0 = 0;
-	//	opt->m_tableCount = pathFile.m_table.size();
-	//	opt->m_calcRowCount = 0;
-	//	for (auto &row : pathFile.m_table)
-	//	{
-	//		if (opt->m_state == State::Stop)
-	//			break; // finish thread?
-
-	//		++opt->m_calcRowCount;
-
-	//		sEdge edge = qgraph.FindNearEdge(row.pos, NEAR_LEN, id0);
-	//		if ((edge.from != 0) && (edge.to != 0))
-	//		{
-	//			if (qgraph.SmoothEdge(row.pos, edge))
-	//			{
-	//				// recalc near edge
-	//				edge = qgraph.FindNearEdge(row.pos, NEAR_LEN);
-
-	//				if (qgraph.m_isDivide)
-	//				{
-	//					auto it = qgraph.m_mappingIds.find(id0);
-	//					if (it != qgraph.m_mappingIds.end())
-	//						id0 = it->second;
-	//				}
-	//			}
-
-	//			if ((edge.from != 0) && (edge.to != 0))
-	//			{
-	//				if (id0 > 0)
-	//				{
-	//					if (qgraph.AddTransition(id0, edge.to))
-	//					{
-	//						id0 = edge.to;
-	//					}
-	//					//else
-	//					//{
-	//					//	id0 = 0;
-	//					//}
-	//					//id0 = 0;
-	//				}
-	//			}
-	//			continue;
-	//		}
-
-	//		const qgid id1 = qgraph.AddPoint(row.pos);
-	//		if (qgraph.m_isDivide)
-	//		{
-	//			auto it = qgraph.m_mappingIds.find(id0);
-	//			if (it != qgraph.m_mappingIds.end())
-	//				id0 = it->second;
-	//		}
-
-	//		if (id0 != 0)
-	//		{
-	//			qgraph.AddTransition(id0, id1);
-	//		}
-	//		id0 = id1;
-	//	}
-
-	//	++opt->m_curCalcCount;
-	//	history.AddHistory(fileName, true, 0);
-	//}
 
 	//qgraph.WriteFile();
 	//history.Write("optimize_history.txt");

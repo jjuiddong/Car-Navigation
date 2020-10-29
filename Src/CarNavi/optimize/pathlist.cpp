@@ -50,6 +50,7 @@ Vector3 cPathList::GetNextPos()
 				continue; // error occurred!!
 			if (!m_pathFile.Read(binPathFileName))
 				continue; // error occurred!!
+			break; // read success
 		}
 
 		if (!m_pathFile.IsLoad())
@@ -66,7 +67,25 @@ Vector3 cPathList::GetNextPos()
 
 	CalcProgress();
 
+	m_prevPos = m_curPos;
+	m_curPos = pos;
 	return pos;
+}
+
+
+// return p0-p1 path
+std::pair<Vector3, Vector3> cPathList::GetNextPath()
+{
+	if (IsEnd())
+		return { Vector3(), Vector3() };
+	Vector3 pos = GetNextPos();
+	if (m_prevPos == Vector3::Zeroes)
+	{
+		if (IsEnd())
+			return { Vector3(), Vector3() };
+		pos = GetNextPos();
+	}
+	return { m_prevPos, pos };
 }
 
 

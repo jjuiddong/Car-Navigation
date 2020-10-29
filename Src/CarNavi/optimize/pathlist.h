@@ -17,6 +17,7 @@ namespace optimize
 
 		bool IsEnd();
 		Vector3 GetNextPos();
+		std::pair<Vector3, Vector3> GetNextPath();
 		void Clear();
 
 
@@ -31,6 +32,8 @@ namespace optimize
 		uint m_fileIdx;
 		uint m_line;
 		float m_progress; // ratio 0 ~ 1
+		Vector3 m_prevPos; // previous pos
+		Vector3 m_curPos; // current pos
 	};
 
 }

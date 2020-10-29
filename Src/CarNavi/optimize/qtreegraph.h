@@ -16,7 +16,7 @@ namespace optimize
 	typedef unsigned __int64 qgid;
 
 	// parse cQTreeGraph id -> index, level, xloc, yloc
-	#define PARSE_QGID(id, index, level, xloc, yloc) \
+#define PARSE_QGID(id, index, level, xloc, yloc) \
 		{\
 			const int maxLv = cQuadTree<>::MAX_LEVEL; \
 			index = id >> (maxLv + maxLv + 8 + 4); \
@@ -26,14 +26,14 @@ namespace optimize
 		}
 
 	// parse cQTreeGraph id -> index
-	#define PARSE_QGID_INDEX(id, index) \
+#define PARSE_QGID_INDEX(id, index) \
 		{\
 			const int maxLv = cQuadTree<>::MAX_LEVEL; \
 			index = id >> (maxLv + maxLv + 8 + 4); \
 		}
 
 	// make cQTreeGraph id from table index, level, xloc, yloc
-	#define MAKE_QGID(id, index, level, xloc, yloc) \
+#define MAKE_QGID(id, index, level, xloc, yloc) \
 		{\
 			const int maxLv = cQuadTree<>::MAX_LEVEL; \
 			id = (((uint64)(index)) << (maxLv + maxLv + 8 + 4)) \
@@ -43,7 +43,7 @@ namespace optimize
 		}
 
 	// compare quadtree id (lv + xLoc + yLoc)
-	#define COMPARE_QID(id0, id1) \
+#define COMPARE_QID(id0, id1) \
 		(((id0) & 0xFFFFFFFFFFF) == ((id1) & 0xFFFFFFFFFFF))
 
 
@@ -54,6 +54,19 @@ namespace optimize
 		sEdge() :from(0), to(0) {}
 		sEdge(qgid _from, qgid _to) :from(_from), to(_to) {}
 	};
+	// to store container set<sEdge> 
+	static bool operator == (const sEdge &lhs, const sEdge &rhs) {
+		return ((lhs.from == rhs.from) && (lhs.to == rhs.to))
+			|| ((lhs.to == rhs.from) && (lhs.from == rhs.to));
+	}
+	static bool operator != (const sEdge &lhs, const sEdge &rhs) {
+		return !operator==(lhs, rhs);
+	}
+	static bool operator < (const sEdge &lhs, const sEdge &rhs) {
+		if (lhs.from == rhs.from)
+			return lhs.to < rhs.to;
+		return lhs.from < rhs.from;
+	}
 
 	struct sTransition
 	{
@@ -62,7 +75,6 @@ namespace optimize
 
 	struct sVertex
 	{
-		//qgid id;
 		Vector3 pos;
 		uint accCnt; // accumlate count
 		uint trCnt; // transition count
@@ -72,16 +84,8 @@ namespace optimize
 		sVertex() : accCnt(0), trCnt(0), trCapa(0), trs(nullptr) {}
 	};
 
-	// 3D position info
-	//struct sAccPos
-	//{
-	//	int cnt; // accumulate count
-	//	Vector3 pos;
-	//};
-
 	struct sNode
 	{
-		//vector<sAccPos> table; // unique pos management
 		vector<sVertex> vertices; // graph vertex
 		graphic::cDbgLineList *lineList;
 		sNode() : lineList(nullptr) {}
@@ -98,7 +102,8 @@ namespace optimize
 		bool ReadFile();
 		bool WriteFile();
 
-		qgid AddPoint(const Vector3 &pos, const bool isAverage = true);
+		qgid AddPoint(const Vector3 &pos, map<qgid, qgid> &mapping
+			, const bool isAverage = true);
 		
 		bool AddTransition(const qgid id0, const qgid id1);
 		
@@ -140,25 +145,24 @@ namespace optimize
 
 		qgid AddPointInBestNode(cQuadTree<sNode> *qtree
 			, const sRectf &rect, const Vector3 &pos
+			, map<qgid, qgid> &mapping
 			, const bool isAverage = true);
 
 		bool DivideNodeToChild(cQuadTree<sNode> *qtree
-			, sQuadTreeNode<sNode> *node);
+			, sQuadTreeNode<sNode> *node
+			, map<qgid, qgid> &mapping);
 
-		qgid MovePoint(sQuadTreeNode<sNode> *fromNode, const uint index);
+		qgid MovePoint(sQuadTreeNode<sNode> *fromNode, const uint index
+			, map<qgid, qgid> &mapping
+			, const bool isCalcAverage = false);
 
-		//void UpdateVertexId(sQuadTreeNode<sNode> *node
-		//	, sVertex &vtx, const qgid oldId, const qgid newId
-		//	, const int index, const int flag);
+		bool CalcVertexLayout(sQuadTreeNode<sNode> *node
+			, map<qgid, qgid> &mapping);
 
 		bool ReadNode(sQuadTreeNode<sNode> *node);
 
 		bool WriteNode(sQuadTreeNode<sNode> *node);
 
-		//qgid MakeQgid(const int index
-		//	, const int level, const int xLoc, const int yLoc);
-		//std::tuple<int,int,int,int> ParseQgid(const qgid id);
-		//uint64 GetQTreeIdFromQgid(const qgid id);
 		StrPath GetNodeFilePath(const int level, const int xLoc, const int yLoc);
 		void InitVertex(sVertex &vtx, const Vector3 &pos, const uint accCnt);
 
@@ -169,7 +173,7 @@ namespace optimize
 
 		map<uint64, cQuadTree<sNode>*> m_roots; //key: lv + xLoc + yLoc
 		bool m_isDivide; // divided?
-		map<qgid, qgid> m_mappingIds; // key: old id, value: new id
+		//map<qgid, qgid> m_mappingIds; // key: old id, value: new id
 	};
 
 }

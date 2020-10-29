@@ -66,6 +66,7 @@ namespace optimize
 		uint m_totalCalcCount; // process count
 		uint m_calcRowCount;
 		uint m_tableCount;
+		float m_progress;
 		std::thread m_thread;
 	};
 
