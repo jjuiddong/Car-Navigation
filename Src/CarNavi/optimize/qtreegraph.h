@@ -51,7 +51,7 @@ namespace optimize
 	{
 		qgid from;
 		qgid to;
-		sEdge() :from(0), to(0) {}
+		sEdge() : from(0), to(0) {}
 		sEdge(qgid _from, qgid _to) :from(_from), to(_to) {}
 	};
 	// to store container set<sEdge> 
@@ -109,8 +109,6 @@ namespace optimize
 		
 		sEdge FindNearEdge(const Vector3 &pos, const float distance
 			, const qgid exceptId = 0);
-
-		bool SmoothEdge(const Vector3 &pos, const sEdge &edge);
 
 		bool MergePath(cPathList &pathList, const float distance);
 		
@@ -173,7 +171,6 @@ namespace optimize
 
 		map<uint64, cQuadTree<sNode>*> m_roots; //key: lv + xLoc + yLoc
 		bool m_isDivide; // divided?
-		//map<qgid, qgid> m_mappingIds; // key: old id, value: new id
 	};
 
 }

@@ -284,7 +284,7 @@ int cOptimizePath::ThreadProc(cOptimizePath *optimizePath)
 
 	cPathList pathList(history, files);
 
-	const float NEAR_LEN = 0.4f;
+	const float NEAR_LEN = 0.5f;
 	while (!pathList.IsEnd())
 	{
 		if (opt->m_state == State::Stop)
@@ -294,8 +294,8 @@ int cOptimizePath::ThreadProc(cOptimizePath *optimizePath)
 		opt->m_progress = pathList.m_progress;
 	}
 
-	//qgraph.WriteFile();
-	//history.Write("optimize_history.txt");
+	qgraph.WriteFile();
+	history.Write("optimize_history.txt");
 
 	qgraph.ReadFile();
 
