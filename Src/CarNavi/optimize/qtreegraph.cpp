@@ -758,12 +758,7 @@ qgid cQTreeGraph::AddPointInBestNode(cQuadTree<sNode> *qtree
 		if (!isFind)
 		{
 			sVertex vtx;
-			vtx.pos = pos;
-			vtx.accCnt = 1;
-			vtx.trCnt = 0;
-			vtx.trCapa = sVertex::DEFAULT_TRANSITION;
-			vtx.trs = new sTransition[sVertex::DEFAULT_TRANSITION];
-			ZeroMemory(vtx.trs, sizeof(sTransition) * sVertex::DEFAULT_TRANSITION);
+			InitVertex(vtx, pos, 1);
 			node->data.vertices.push_back(vtx);
 
 			//node->data.table.push_back({ 1, pos });
@@ -798,55 +793,14 @@ bool cQTreeGraph::DivideNodeToChild(cQuadTree<sNode> *qtree
 
 	const int nextLv = node->level + 1;
 
-	if (node->level == 6 && node->xLoc == 547 && node->yLoc == 227 )
-	{
-		int a = 0;
-	}
-
-	if (node->level == 9 && node->xLoc == 4375 && node->yLoc == 1822)
-	{
-		int a = 0;
-	}
-
-	// table divide
-	//for (uint i=0; i < node->data.table.size(); ++i)
+	//if (node->level == 6 && node->xLoc == 547 && node->yLoc == 227 )
 	//{
-	//	auto &apos = node->data.table[i];
-	//	const Vector3 gp = cQuadTree<>::GetGlobalPos(apos.pos);
-	//	const sRectf r = sRectf::Rect(gp.x, gp.z, 0, 0);
-	//	const auto result = cQuadTree<>::GetNodeLocation(r, nextLv);
-	//	const int xLoc = std::get<0>(result);
-	//	const int yLoc = std::get<1>(result);
+	//	int a = 0;
+	//}
 
-	//	sQuadTreeNode<sNode> *pn = qtree->GetNode(nextLv, xLoc, yLoc);
-	//	if (!pn)
-	//	{
-	//		dbg::ErrLogp("DivideNodeToChild, not found nextLv node");
-	//		return false; // error occurred!!
-	//	}
-
-	//	pn->data.table.push_back(apos);
-
-	//	const int newIdx = pn->data.table.size() - 1;
-
-	//	if (node->level == 12 && node->xLoc == 34910 && node->yLoc == 14520)
-	//	{
-	//		int a = 0;
-	//	}
-
-	//	// mapping current id, new id
-	//	qgid id0, id1;
-	//	MAKE_QGID(id0, i, node->level, node->xLoc, node->yLoc);
-	//	MAKE_QGID(id1, newIdx, nextLv, xLoc, yLoc);
-
-	//	int idx00, lv00, x00, y00;
-	//	PARSE_QGID(id1, idx00, lv00, x00, y00);
-	//	if (idx00 != newIdx || lv00 != nextLv || x00 != xLoc || y00 != yLoc)
-	//	{
-	//		int a = 0;
-	//	}
-
-	//	ids[id0] = id1;
+	//if (node->level == 9 && node->xLoc == 4375 && node->yLoc == 1822)
+	//{
+	//	int a = 0;
 	//}
 
 	// divide graph
@@ -870,18 +824,7 @@ bool cQTreeGraph::DivideNodeToChild(cQuadTree<sNode> *qtree
 
 		const int newIdx = pn->data.vertices.size() - 1;
 
-		if (nextLv == 10 && xLoc == 8751 && yLoc == 3644)
-		{
-			int a = 0;
-		}
-
-		// mapping current id, new id
-		//qgid id0, id1;
-		//MAKE_QGID(id0, i, node->level, node->xLoc, node->yLoc);
-		//MAKE_QGID(id1, newIdx, nextLv, xLoc, yLoc);
-		//int idx00, lv00, x00, y00;
-		//PARSE_QGID(id1, idx00, lv00, x00, y00);
-		//if (idx00 != newIdx || lv00 != nextLv || x00 != xLoc || y00 != yLoc)
+		//if (nextLv == 10 && xLoc == 8751 && yLoc == 3644)
 		//{
 		//	int a = 0;
 		//}
@@ -899,17 +842,12 @@ bool cQTreeGraph::DivideNodeToChild(cQuadTree<sNode> *qtree
 	set<qgid> toIds;
 	for (uint i = 0; i < node->data.vertices.size(); ++i)
 	{
-		auto &vtx = node->data.vertices[i];
-
 		qgid oldId;
 		MAKE_QGID(oldId, i, node->level, node->xLoc, node->yLoc);
 
 		auto it = ids.find(oldId);
 		if (ids.end() == it)
 			continue; // error occurred!!
-
-		//int idx0, lv0, x0, y0;
-		//PARSE_QGID(vtx.id, idx0, lv0, x0, y0);
 
 		const qgid newId = it->second;
 		int index, level, xLoc, yLoc;
@@ -919,7 +857,6 @@ bool cQTreeGraph::DivideNodeToChild(cQuadTree<sNode> *qtree
 			return false; // error occurred!!
 
 		sVertex &newVtx = pn->data.vertices[index];
-		//newVtx.id = newId;
 		
 		for (uint k = 0; k < newVtx.trCnt; ++k)
 		{
@@ -942,6 +879,7 @@ bool cQTreeGraph::DivideNodeToChild(cQuadTree<sNode> *qtree
 			}
 		}
 
+		auto &vtx = node->data.vertices[i];
 		vtx.trCnt = 0;
 		vtx.trs = nullptr; // memory move, so null
 		//pn->data.vertices.push_back(newVtx);
@@ -980,20 +918,28 @@ bool cQTreeGraph::DivideNodeToChild(cQuadTree<sNode> *qtree
 	}
 
 	// clear current node data
-	//node->data.table.clear();
-	//node->data.table.shrink_to_fit(); // clear memory
 	node->data.vertices.clear();
 	node->data.vertices.shrink_to_fit(); // clear memory
 
 	if (m_mappingIds.empty())
 	{
-		m_mappingIds = ids; // store mapping ids
+		m_mappingIds = ids;
 	}
 	else
 	{
 		// multiple link
 		for (auto &kv : m_mappingIds)
-			kv.second = ids[kv.second];
+		{
+			auto it = ids.find(kv.second);
+			if (ids.end() != it)
+				kv.second = it->second;
+		}
+		for (auto &kv : ids)
+		{
+			auto it = m_mappingIds.find(kv.first);
+			if (m_mappingIds.end() == it)
+				m_mappingIds[kv.first] = kv.second;				
+		}
 	}
 	return true;
 }
@@ -1119,8 +1065,6 @@ qgid cQTreeGraph::MovePoint(sQuadTreeNode<sNode> *fromNode, const uint index)
 	}
 
 	// copy transition to new vertex
-	//int idx1, lv1, x1, y1;
-	//PARSE_QGID(newId, idx1, lv1, x1, y1);
 	sVertex *newVtx = FindVertex(newId);
 	if (newVtx)
 	{
@@ -1148,219 +1092,65 @@ qgid cQTreeGraph::MovePoint(sQuadTreeNode<sNode> *fromNode, const uint index)
 
 	common::rotatepopvector(fromNode->data.vertices, index);
 
-
-
-	//{
-	//	int idx1, lv1, x1, y1;
-	//	PARSE_QGID(newId, idx1, lv1, x1, y1);
-	//	int a = 0;
-	//}
-
-	// remove table
-	//common::rotatepopvector(fromNode->data.table, index);
-
-	// move vertex
-	//int rmVtxIdx = -1; // remove vertex index
-	//for (uint i=0; i < fromNode->data.vertices.size(); ++i)
-	//{
-	//	sVertex &vtx = fromNode->data.vertices[i];
-
-	//	//int idx0 = (int)i;
-	//	//PARSE_QGID_INDEX(vtx.id, idx0);
-	//	qgid oldId;
-	//	MAKE_QGID(oldId, i, fromNode->level, fromNode->xLoc, fromNode->yLoc);
-
-	//	if (i == index)
-	//	{
-	//		rmVtxIdx = (int)i;
-	//		ids[oldId] = newId;
-
-	//		// move vertex to another node
-	//		sQuadTreeNode<sNode> *toNode = FindBestNode(pos);
-	//		if (!toNode)
-	//		{
-	//			dbg::ErrLogp("MovePoint, not found toNode \n");
-	//			break; // error occurred!!
-	//		}
-
-	//		//int cntt = 0;
-	//		//for (uint mm = 0; mm < toNode->data.vertices.size(); ++mm)
-	//		//{
-	//		//	sVertex &vv = toNode->data.vertices[mm];
-	//		//	if (vv.id == newId)
-	//		//	{
-	//		//		int a = 0;
-	//		//	}
-	//		//}
-	//		//sVertex *srcVtx = FindVertex(newId);
-	//		//if (srcVtx)
-	//		//{ // already exist vertex
-	//		//	// add two vertex transition
-	//		//	for (uint k = 0; k < srcVtx->trCnt; ++k)
-	//		//	{
-	//		//		sTransition &tr = srcVtx->trs[k];
-	//		//		if (tr.to == vtx.id)
-	//		//		{
-	//		//			//tr.to = 0;
-	//		//		}
-	//		//	}
-	//		//	for (uint k = 0; k < vtx.trCnt; ++k)
-	//		//	{
-	//		//		sTransition &tr = vtx.trs[k];
-	//		//		if (tr.to == srcVtx->id)
-	//		//		{
-	//		//			//tr.to = 0;
-	//		//		}
-	//		//	}
-	//		//}
-	//		//else
-	//		//{
-	//		//	sVertex newVtx = vtx; // memory move
-	//		//	UpdateVertexId(fromNode, newVtx, newId, index, 1);
-
-	//		//	vtx.trCnt = 0;
-	//		//	vtx.trs = nullptr; // memory move
-	//		//	toNode->data.vertices.push_back(newVtx);
-	//		//}
-	//	}
-	//	else if (i < index)
-	//	{
-	//		UpdateVertexId(fromNode, vtx, oldId, newId, index, 0);
-	//	}
-	//	else if (i > index)
-	//	{
-	//		// change id (change index)
-	//		qgid chId;
-	//		MAKE_QGID(chId, i - 1,
-	//			fromNode->level, fromNode->xLoc, fromNode->yLoc);
-	//		ids[vtx.id] = chId;
-	//		UpdateVertexId(fromNode, vtx, oldId, newId, index, 1);
-	//	}
-	//}
-
-	// remove vertex
-	//if (rmVtxIdx >= 0)
-	//	common::rotatepopvector(fromNode->data.vertices, rmVtxIdx);
-
 	if (m_mappingIds.empty())
 	{
-		m_mappingIds = ids; // store mapping ids
+		m_mappingIds = ids;
 	}
 	else
 	{
 		// multiple link
 		for (auto &kv : m_mappingIds)
-			kv.second = ids[kv.second];
+		{
+			auto it = ids.find(kv.second);
+			if (ids.end() != it)
+				kv.second = it->second;
+		}
+		for (auto &kv : ids)
+		{
+			auto it = m_mappingIds.find(kv.first);
+			if (m_mappingIds.end() == it)
+				m_mappingIds[kv.first] = kv.second;
+		}
 	}
 
 	return newId;
 }
 
 
-// update vertex id to newId
-// transition to index - 1 if  idx > index
-// newId: update vertex id
-// toId: update to id if idx == index
-// flag = 0: nothing
-//		  1: update vertex id
-//void cQTreeGraph::UpdateVertexId(sQuadTreeNode<sNode> *node
-//	, sVertex &vtx, const qgid oldId, const qgid newId
-//	, const int index, const int flag)
+//// make id
+//// index + level + xLoc + yLoc
+//qgid cQTreeGraph::MakeQgid(const int index
+//	, const int level, const int xLoc, const int yLoc)
 //{
-//	for (uint k = 0; k < vtx.trCnt; ++k)
-//	{
-//		sTransition &tr = vtx.trs[k];
-//
-//		int idx1, lv1, x1, y1;
-//		PARSE_QGID(tr.to, idx1, lv1, x1, y1);
-//
-//		if (node->level == lv1 && node->xLoc == x1 && node->yLoc == y1)
-//		{
-//			// same node
-//			if (tr.to == oldId)
-//				tr.to = newId;
-//			else if (idx1 > index)
-//				MAKE_QGID(tr.to, idx1 - 1, lv1, x1, y1);
-//
-//			//if (vtx.id == tr.to)
-//			//{
-//			//	int a = 0;
-//			//}
-//		}
-//		else
-//		{
-//			// update connected vertex transition
-//			if (flag == 1)
-//			{
-//				sVertex *toVtx = FindVertex(tr.to);
-//				if (!toVtx)
-//				{
-//					FindAndCreateFromFile(lv1, x1, y1);
-//					toVtx = FindVertex(tr.to);
-//					if (!toVtx)
-//					{
-//						dbg::ErrLogp("UpdateVertexId, not found2 tr.to \n");
-//						continue; // error occurred!!
-//					}
-//				}
-//
-//				for (uint m = 0; m < toVtx->trCnt; ++m)
-//				{
-//					if (toVtx->trs[m].to == oldId)
-//					{
-//						toVtx->trs[m].to = newId;
-//
-//						//if (toVtx->id == newId)
-//						//{
-//						//	int a = 0;
-//						//}
-//
-//						break;
-//					}
-//				}
-//			}
-//		}
-//	}
-//
-//	//if (flag == 1)
-//	//	vtx.id = newId;
+//	const int maxLv = cQuadTree<>::MAX_LEVEL;
+//	const uint64 idx = (uint64)index << (maxLv + maxLv + 2 + 4);
+//	const uint64 lv= (uint64)level << (maxLv + maxLv + 2);
+//	const uint64 y = (uint64)yLoc << (maxLv + 1);
+//	return idx + lv + y + xLoc;
 //}
-
-
-// make id
-// index + level + xLoc + yLoc
-qgid cQTreeGraph::MakeQgid(const int index
-	, const int level, const int xLoc, const int yLoc)
-{
-	const int maxLv = cQuadTree<>::MAX_LEVEL;
-	const uint64 idx = (uint64)index << (maxLv + maxLv + 2 + 4);
-	const uint64 lv= (uint64)level << (maxLv + maxLv + 2);
-	const uint64 y = (uint64)yLoc << (maxLv + 1);
-	return idx + lv + y + xLoc;
-}
-
-
-// parse id
-// id -> index + level + xloc + yloc
-// return : index, level, xloc, yloc
-std::tuple<int, int, int, int> cQTreeGraph::ParseQgid(const qgid id)
-{
-	const int maxLv = cQuadTree<>::MAX_LEVEL;
-	const uint64 idx = id >> (maxLv + maxLv + 2 + 4);
-	const uint64 lv = (id >> (maxLv + maxLv + 2)) & 0xF;
-	const uint64 yloc = (id >> (maxLv + 1)) & 0xFFFF;
-	const uint64 xloc = id & 0xFFFF;
-	return std::make_tuple((int)idx, (int)lv, (int)xloc, (int)yloc);
-}
-
-
-// return quadtree id (lv + xloc + yloc) from qaudtree graph id
-uint64 cQTreeGraph::GetQTreeIdFromQgid(const qgid id)
-{
-	// lv:4bit, xloc:17bit, yloc:17bit => 0x3FFFFFFFFF
-	uint64 qid = id & (uint64)(0x3FFFFFFFFF);
-	return qid;
-}
+//
+//
+//// parse id
+//// id -> index + level + xloc + yloc
+//// return : index, level, xloc, yloc
+//std::tuple<int, int, int, int> cQTreeGraph::ParseQgid(const qgid id)
+//{
+//	const int maxLv = cQuadTree<>::MAX_LEVEL;
+//	const uint64 idx = id >> (maxLv + maxLv + 2 + 4);
+//	const uint64 lv = (id >> (maxLv + maxLv + 2)) & 0xF;
+//	const uint64 yloc = (id >> (maxLv + 1)) & 0xFFFF;
+//	const uint64 xloc = id & 0xFFFF;
+//	return std::make_tuple((int)idx, (int)lv, (int)xloc, (int)yloc);
+//}
+//
+//
+//// return quadtree id (lv + xloc + yloc) from qaudtree graph id
+//uint64 cQTreeGraph::GetQTreeIdFromQgid(const qgid id)
+//{
+//	// lv:4bit, xloc:17bit, yloc:17bit => 0x3FFFFFFFFF
+//	uint64 qid = id & (uint64)(0x3FFFFFFFFF);
+//	return qid;
+//}
 
 
 // add transition
@@ -1419,64 +1209,53 @@ bool cQTreeGraph::AddTransition(const qgid id0, const qgid id1)
 	// add bidirection
 	sTransition tr0;
 	tr0.to = id1;
-	if (!vtx0->trs)
-	{
-		vtx0->trCnt = 0;
-		vtx0->trCapa = sVertex::DEFAULT_TRANSITION;
-		vtx0->trs = new sTransition[sVertex::DEFAULT_TRANSITION];
-		ZeroMemory(vtx0->trs, sizeof(sTransition) * sVertex::DEFAULT_TRANSITION);		
-	}
+	//if (!vtx0->trs)
+	//{
+	//	vtx0->trCnt = 0;
+	//	vtx0->trCapa = sVertex::DEFAULT_TRANSITION;
+	//	vtx0->trs = new sTransition[sVertex::DEFAULT_TRANSITION];
+	//	ZeroMemory(vtx0->trs, sizeof(sTransition) * sVertex::DEFAULT_TRANSITION);		
+	//}
 	sTransition *ptr0 = FindTransition(vtx0, id1);
 	if (!ptr0)
 		AddVertexTransition(vtx0, tr0);
 
 	sTransition tr1;
 	tr1.to = id0;
-	if (!vtx1->trs)
-	{
-		vtx1->trCnt = 0;
-		vtx1->trCapa = sVertex::DEFAULT_TRANSITION;
-		vtx1->trs = new sTransition[sVertex::DEFAULT_TRANSITION];
-		ZeroMemory(vtx1->trs, sizeof(sTransition) * sVertex::DEFAULT_TRANSITION);
-	}
+	//if (!vtx1->trs)
+	//{
+	//	vtx1->trCnt = 0;
+	//	vtx1->trCapa = sVertex::DEFAULT_TRANSITION;
+	//	vtx1->trs = new sTransition[sVertex::DEFAULT_TRANSITION];
+	//	ZeroMemory(vtx1->trs, sizeof(sTransition) * sVertex::DEFAULT_TRANSITION);
+	//}
 	sTransition *ptr1 = FindTransition(vtx1, id0);
 	if (!ptr1)
 		AddVertexTransition(vtx1, tr1);
 
 
-	int idx0, lv0, x0, y0;
-	PARSE_QGID(id0, idx0, lv0, x0, y0);
-	if (idx0 == 1 && lv0 == 6 && x0 == 547 && y0 == 227)
-	{
-		int idx1, lv1, x1, y1;
-		PARSE_QGID(id1, idx1, lv1, x1, y1);
-		if (idx1 == 111 && lv1 == 10 && x1 == 8751 && y1 == 3644)
-		{
-			int a = 0;
-		}
-	}
-
-	int idx1, lv1, x1, y1;
-	PARSE_QGID(id0, idx1, lv1, x1, y1);
-	if (idx1 == 111 && lv1 == 10 && x1 == 8751 && y1 == 3644)
-	{
-		int idx0, lv0, x0, y0;
-		PARSE_QGID(id1, idx0, lv0, x0, y0);
-		if (idx0 == 1 && lv0 == 6 && x0 == 547 && y0 == 227)
-		{
-			int a = 0;
-		}
-	}
-
-
-
-	//if (node0->data.table.size() != node0->data.vertices.size())
+	//int idx0, lv0, x0, y0;
+	//PARSE_QGID(id0, idx0, lv0, x0, y0);
+	//if (idx0 == 1 && lv0 == 6 && x0 == 547 && y0 == 227)
 	//{
-	//	int a = 0;
+	//	int idx1, lv1, x1, y1;
+	//	PARSE_QGID(id1, idx1, lv1, x1, y1);
+	//	if (idx1 == 111 && lv1 == 10 && x1 == 8751 && y1 == 3644)
+	//	{
+	//		int a = 0;
+	//	}
 	//}
-	//if (node1->data.table.size() != node1->data.vertices.size())
+
+	//int idx1, lv1, x1, y1;
+	//PARSE_QGID(id0, idx1, lv1, x1, y1);
+	//if (idx1 == 111 && lv1 == 10 && x1 == 8751 && y1 == 3644)
 	//{
-	//	int a = 0;
+	//	int idx0, lv0, x0, y0;
+	//	PARSE_QGID(id1, idx0, lv0, x0, y0);
+	//	if (idx0 == 1 && lv0 == 6 && x0 == 547 && y0 == 227)
+	//	{
+	//		int a = 0;
+	//	}
 	//}
 
 	return true;
@@ -1640,6 +1419,16 @@ bool cQTreeGraph::SmoothEdge(const Vector3 &pos, const sEdge &edge)
 }
 
 
+// merge path
+bool cQTreeGraph::MergePath(cPathList &pathList, const float distance)
+{
+
+
+
+	return true;
+}
+
+
 // find vertex from qgid
 sVertex* cQTreeGraph::FindVertex(const qgid id)
 {
@@ -1716,6 +1505,18 @@ bool cQTreeGraph::AddVertexTransition(sVertex *vtx, const sTransition &tr)
 }
 
 
+// initialize vertex, transition
+void cQTreeGraph::InitVertex(sVertex &vtx, const Vector3 &pos, const uint accCnt)
+{
+	vtx.pos = pos;
+	vtx.accCnt = accCnt;
+	vtx.trCnt = 0;
+	vtx.trCapa = sVertex::DEFAULT_TRANSITION;
+	vtx.trs = new sTransition[sVertex::DEFAULT_TRANSITION];
+	ZeroMemory(vtx.trs, sizeof(sTransition) * sVertex::DEFAULT_TRANSITION);
+}
+
+
 // generate graph vertex, transition line
 bool cQTreeGraph::CreateGraphLines(graphic::cRenderer &renderer
 	, sQuadTreeNode<sNode> *node)
@@ -1725,13 +1526,14 @@ bool cQTreeGraph::CreateGraphLines(graphic::cRenderer &renderer
 	if (node->data.lineList)
 		return true; // already exist
 
+	node->data.lineList = new cDbgLineList();
+
 	int maxLine = 0;
 	for (auto &vtx : node->data.vertices)
 		maxLine += vtx.trCnt;
 	if (maxLine == 0)
 		return true;
 
-	node->data.lineList = new cDbgLineList();
 	node->data.lineList->Create(renderer, maxLine, cColor::WHITE);
 
 	qgid nodeId;

@@ -104,7 +104,10 @@ namespace optimize
 		
 		sEdge FindNearEdge(const Vector3 &pos, const float distance
 			, const qgid exceptId = 0);
+
 		bool SmoothEdge(const Vector3 &pos, const sEdge &edge);
+
+		bool MergePath(cPathList &pathList, const float distance);
 		
 		Vector3 GetVertexPos(const qgid id);
 		
@@ -152,11 +155,12 @@ namespace optimize
 
 		bool WriteNode(sQuadTreeNode<sNode> *node);
 
-		qgid MakeQgid(const int index
-			, const int level, const int xLoc, const int yLoc);
-		std::tuple<int,int,int,int> ParseQgid(const qgid id);
-		uint64 GetQTreeIdFromQgid(const qgid id);
+		//qgid MakeQgid(const int index
+		//	, const int level, const int xLoc, const int yLoc);
+		//std::tuple<int,int,int,int> ParseQgid(const qgid id);
+		//uint64 GetQTreeIdFromQgid(const qgid id);
 		StrPath GetNodeFilePath(const int level, const int xLoc, const int yLoc);
+		void InitVertex(sVertex &vtx, const Vector3 &pos, const uint accCnt);
 
 
 	public:
