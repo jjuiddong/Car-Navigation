@@ -87,8 +87,15 @@ namespace optimize
 	struct sNode
 	{
 		vector<sVertex> vertices; // graph vertex
-		graphic::cDbgLineList *lineList;
+		graphic::cDbgLineList *lineList; // render path buffer
 		sNode() : lineList(nullptr) {}
+	};
+
+	// QuadTree Graph Node Traverse Stack
+	struct sQTreeGraphStack
+	{
+		cQuadTree<sNode> *qtree;
+		sQuadTreeNode<sNode> *node;
 	};
 
 
@@ -125,8 +132,11 @@ namespace optimize
 
 		bool AddVertexTransition(sVertex *vtx, const sTransition &tr);
 
+		bool CreateGraphLineAll(graphic::cRenderer &renderer
+			, const int finalLevel);
+
 		bool CreateGraphLines(graphic::cRenderer &renderer
-			, sQuadTreeNode<sNode> *node);
+			, sQuadTreeNode<sNode> *root, const int stackPoint);
 
 		void Clear();
 
@@ -163,14 +173,16 @@ namespace optimize
 
 		StrPath GetNodeFilePath(const int level, const int xLoc, const int yLoc);
 		void InitVertex(sVertex &vtx, const Vector3 &pos, const uint accCnt);
+		int GetNodeVertexCount(sQuadTreeNode<sNode> *node, const int stackPoint);
 
 
 	public:
-		enum { DEFAULT_TREE_LEVEL = 6, MAX_TABLESIZE = 200, };
+		enum { DEFAULT_TREE_LEVEL = 6, MAX_TABLESIZE = 200, MAX_STACK = 512};
 		const StrPath s_dir = ".\\path\\optimize";
 
 		map<uint64, cQuadTree<sNode>*> m_roots; //key: lv + xLoc + yLoc
 		bool m_isDivide; // divided?
+		sQTreeGraphStack *m_stack;
 	};
 
 }

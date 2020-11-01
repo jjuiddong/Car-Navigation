@@ -57,10 +57,12 @@ namespace optimize
 
 	public:
 		enum class State {Wait, Run, Finish, Stop};
+		enum {ROOT_LINE_LEVEL = 6};
 
 		State m_state;
 		cOptimizeHistoryFile m_history;
 		cQTreeGraph *m_qtreeGraph;
+		graphic::cRenderer *m_renderer; // reference
 		sStackData *m_stack;
 		uint m_curCalcCount;
 		uint m_totalCalcCount; // process count

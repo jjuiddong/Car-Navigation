@@ -13,6 +13,7 @@ cOptimizePath::cOptimizePath()
 	, m_calcRowCount(0)
 	, m_tableCount(0)
 	, m_progress(0)
+	, m_renderer(nullptr)
 {
 	m_stack = new sStackData[512];
 }
@@ -53,6 +54,7 @@ bool cOptimizePath::Optimize(graphic::cRenderer &renderer
 	}
 	//
 
+	m_renderer = &renderer;
 	m_state = State::Run;
 	m_thread = std::thread(cOptimizePath::ThreadProc, this);
 	return true;
@@ -147,6 +149,9 @@ bool cOptimizePath::RenderGraph(graphic::cRenderer &renderer
 {
 	using namespace graphic;
 
+	cFrustum frustum;
+	frustum.SetFrustum(GetMainCamera().GetViewProjectionMatrix());
+
 	cShader11 *shader = renderer.m_shaderMgr.FindShader(eVertexType::POSITION);
 	assert(shader);
 	shader->SetTechnique("Light");
@@ -174,21 +179,23 @@ bool cOptimizePath::RenderGraph(graphic::cRenderer &renderer
 		sQuadTreeNode<sNode> *node = m_stack[sp - 1].node;
 		--sp;
 
-		//const float maxH = node ? terrain.m_tileMgr->GetMaximumHeight(node->level
-		//	, node->xLoc, node->yLoc) : cHeightmap2::DEFAULT_H;
+		const float maxH = node ? terrain.m_tileMgr->GetMaximumHeight(node->level
+			, node->xLoc, node->yLoc) : cHeightmap2::DEFAULT_H;
 		const sRectf rect = qtree->GetNodeRect(node);
-		//const bool isShow = IsContain(frustum, rect, maxH);
-		//if (!isShow)
-		//	continue;
+		if (!terrain.IsContain(frustum, rect, maxH))
+			continue;
 
 		// leaf node?
-		if (!node->children[0])
+		if (!node->children[0] || (node->level <= ROOT_LINE_LEVEL))
 		{
-			if (node->data.vertices.empty())
-				continue;
-
 			if (!node->data.lineList)
-				m_qtreeGraph->CreateGraphLines(renderer, node);
+				continue; // no lines
+
+			if (!node->data.lineList->m_lines.empty())
+			{
+				node->data.lineList->UpdateBuffer(renderer);
+				node->data.lineList->ClearLines();
+			}
 			node->data.lineList->Render(renderer);
 		}
 		else
@@ -298,6 +305,7 @@ int cOptimizePath::ThreadProc(cOptimizePath *optimizePath)
 	history.Write("optimize_history.txt");
 
 	qgraph.ReadFile();
+	qgraph.CreateGraphLineAll(*opt->m_renderer, ROOT_LINE_LEVEL);
 
 	if (opt->m_state != State::Stop)
 		opt->m_state = State::Finish;

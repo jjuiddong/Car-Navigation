@@ -8,7 +8,9 @@ using namespace optimize;
 
 cQTreeGraph::cQTreeGraph()
 	: m_isDivide(false)
+	, m_stack(nullptr)
 {
+	m_stack = new sQTreeGraphStack[MAX_STACK];
 }
 
 cQTreeGraph::~cQTreeGraph()
@@ -102,27 +104,18 @@ bool cQTreeGraph::WriteFile()
 	if (!s_dir.IsFileExist())
 		_mkdir(s_dir.c_str());
 
-	// Quad Tree Traverse Stack Memory
-	struct sData
-	{
-		cQuadTree<sNode> *qtree;
-		sQuadTreeNode<sNode> *node;
-	};
-	const int STACK_SIZE = 512;
-	sData *stack = new sData[STACK_SIZE];
-
 	int sp = 0;
 	for (auto &kv : m_roots)
 	{
 		cQuadTree<sNode> *qtree = kv.second;
 		for (auto &node : qtree->m_roots)
-			stack[sp++] = { qtree, node };
+			m_stack[sp++] = { qtree, node };
 	}
 
 	while (sp > 0)
 	{
-		cQuadTree<sNode> *qtree = stack[sp - 1].qtree;
-		sQuadTreeNode<sNode> *node = stack[sp - 1].node;
+		cQuadTree<sNode> *qtree = m_stack[sp - 1].qtree;
+		sQuadTreeNode<sNode> *node = m_stack[sp - 1].node;
 		--sp;
 
 		// leaf node or root?
@@ -148,15 +141,14 @@ bool cQTreeGraph::WriteFile()
 			{
 				if (node->children[i])
 				{
-					stack[sp].qtree = qtree;
-					stack[sp].node = node->children[i];
+					m_stack[sp].qtree = qtree;
+					m_stack[sp].node = node->children[i];
 					++sp;
 				}
 			}
 		}
 	}
 
-	SAFE_DELETEA(stack);
 	return true;
 }
 
@@ -1417,62 +1409,152 @@ void cQTreeGraph::InitVertex(sVertex &vtx, const Vector3 &pos, const uint accCnt
 }
 
 
+// create graph line
+// finalLevel: root graph line buffer level
+bool cQTreeGraph::CreateGraphLineAll(graphic::cRenderer &renderer
+	, const int finalLevel)
+{
+	int sp = 0;
+	for (auto &kv : m_roots)
+	{
+		cQuadTree<sNode> *qtree = kv.second;
+		for (auto &node : qtree->m_roots)
+			m_stack[sp++] = { qtree, node };
+	}
+
+	while (sp > 0)
+	{
+		cQuadTree<sNode> *qtree = m_stack[sp - 1].qtree;
+		sQuadTreeNode<sNode> *node = m_stack[sp - 1].node;
+		--sp;
+
+		// leaf node or root?
+		if (!node->children[0] || (node->level == finalLevel))
+		{
+			CreateGraphLines(renderer, node, sp);
+		} 
+		else if (node->children[0])
+		{
+			for (int i = 0; i < 4; ++i)
+			{
+				if (node->children[i])
+				{
+					m_stack[sp].qtree = qtree;
+					m_stack[sp].node = node->children[i];
+					++sp;
+				}
+			}
+		}
+	}
+
+	return true;
+}
+
+
+// return node vertex count with children node
+int cQTreeGraph::GetNodeVertexCount(sQuadTreeNode<sNode> *node, const int stackPoint)
+{
+	int sp = stackPoint;
+	m_stack[sp++] = { nullptr, node };
+
+	int count = 0;
+	while (sp > stackPoint)
+	{
+		sQuadTreeNode<sNode> *node = m_stack[--sp].node;
+		// leaf node?
+		if (!node->children[0])
+		{
+			for (auto &vtx : node->data.vertices)
+				count += vtx.trCnt;
+		}
+		else
+		{
+			for (int i = 0; i < 4; ++i)
+				if (node->children[i])
+					m_stack[sp++].node = node->children[i];
+		}
+	}
+
+	return count;
+}
+
+
 // generate graph vertex, transition line
 bool cQTreeGraph::CreateGraphLines(graphic::cRenderer &renderer
-	, sQuadTreeNode<sNode> *node)
+	, sQuadTreeNode<sNode> *root, const int stackPoint)
 {
 	using namespace graphic;
 
-	if (node->data.lineList)
+	if (root->data.lineList)
 		return true; // already exist
 
-	node->data.lineList = new cDbgLineList();
-
-	int maxLine = 0;
-	for (auto &vtx : node->data.vertices)
-		maxLine += vtx.trCnt;
+	const int maxLine = GetNodeVertexCount(root, stackPoint);
 	if (maxLine == 0)
 		return true;
 
-	node->data.lineList->Create(renderer, maxLine, cColor::WHITE);
+	root->data.lineList = new cDbgLineList();
+	root->data.lineList->Create(renderer, maxLine, cColor::WHITE);
 
-	qgid nodeId;
-	MAKE_QGID(nodeId, 0, node->level, node->xLoc, node->yLoc);
+	int sp = stackPoint;
+	m_stack[sp++] = { nullptr, root };
 
-	set<qgid> checks; // duplicate check
-	for (uint k=0; k < node->data.vertices.size(); ++k)
+	int count = 0;
+	while (sp > stackPoint)
 	{
-		auto &vtx = node->data.vertices[k];
-		const Vector3 &p0 = vtx.pos;
-		qgid id0;
-		MAKE_QGID(id0, k, node->level, node->xLoc, node->yLoc);
-
-		checks.insert(id0);
-
-		for (uint i = 0; i < vtx.trCnt; ++i)
+		sQuadTreeNode<sNode> *node = m_stack[--sp].node;
+		// leaf node?
+		if (!node->children[0])
 		{
-			Vector3 p1;
-			const sTransition &tr = vtx.trs[i];
-			if (checks.end() != checks.find(tr.to))
-				continue; // already connect
+			qgid nodeId;
+			MAKE_QGID(nodeId, 0, node->level, node->xLoc, node->yLoc);
 
-			if (COMPARE_QID(nodeId, tr.to))
+			set<qgid> checks; // duplicate check
+			for (uint k = 0; k < node->data.vertices.size(); ++k)
 			{
-				int idx11, lv1, x1, y1;
-				PARSE_QGID(tr.to, idx11, lv1, x1, y1);
+				auto &vtx = node->data.vertices[k];
+				const Vector3 &p0 = vtx.pos;
+				qgid id0;
+				MAKE_QGID(id0, k, node->level, node->xLoc, node->yLoc);
 
-				int idx1;
-				PARSE_QGID_INDEX(tr.to, idx1);
-				p1 = node->data.vertices[idx1].pos;
+				checks.insert(id0);
+
+				for (uint i = 0; i < vtx.trCnt; ++i)
+				{
+					Vector3 p1;
+					const sTransition &tr = vtx.trs[i];
+					if (checks.end() != checks.find(tr.to))
+						continue; // already connect
+
+					if (COMPARE_QID(nodeId, tr.to))
+					{
+						int idx11, lv1, x1, y1;
+						PARSE_QGID(tr.to, idx11, lv1, x1, y1);
+
+						int idx1;
+						PARSE_QGID_INDEX(tr.to, idx1);
+						p1 = node->data.vertices[idx1].pos;
+					}
+					else
+					{
+						p1 = GetVertexPos(tr.to);
+					}
+					root->data.lineList->AddLine(renderer, p0, p1, false);
+				}
 			}
-			else
-			{
-				p1 = GetVertexPos(tr.to);
-			}
-			node->data.lineList->AddLine(renderer, p0, p1, false);
+
+		}
+		else
+		{
+			for (int i = 0; i < 4; ++i)
+				if (node->children[i])
+					m_stack[sp++].node = node->children[i];
 		}
 	}
-	node->data.lineList->UpdateBuffer(renderer);
+
+	// multithread crack bug
+	// lock vertex buffer sync with main thread
+	//root->data.lineList->UpdateBuffer(renderer);
+	//root->data.lineList->ClearLines();
 	return true;
 }
 
@@ -1500,4 +1582,6 @@ void cQTreeGraph::Clear()
 		delete kv.second;
 	}
 	m_roots.clear();
+
+	SAFE_DELETEA(m_stack);
 }

@@ -40,6 +40,7 @@ public:
 	float GetHeight(const Vector2 &relPos);
 	inline int GetLevel(const float distance);
 	std::pair<bool,Vector3> Pick(const Ray &ray);
+	inline bool IsContain(const graphic::cFrustum &frustum, const sRectf &rect, const float maxH);
 	void Clear();
 
 
@@ -54,7 +55,6 @@ protected:
 	void RenderQuad(graphic::cRenderer &renderer, const float deltaSeconds, const graphic::cFrustum &frustum, const Ray &ray);
 	void RenderResDistribution(graphic::cRenderer &renderer, const float deltaSeconds, const graphic::cFrustum &frustum, const int resType);
 	void RenderRect3D(graphic::cRenderer &renderer, const float deltaSeconds, const sRectf &rect, const graphic::cColor &color);
-	inline bool IsContain(const graphic::cFrustum &frustum, const sRectf &rect, const float maxH);
 	bool ReadResourceTDistribution(const char *fileName);
 	bool ReadResourceHDistribution(const char *fileName);
 	//float GetMaximumHeight(const sQuadTreeNode<sQuadData> *node);
