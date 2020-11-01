@@ -25,6 +25,9 @@ cViewer::cViewer()
 {
 	m_windowName = L"Navigation";
 	m_isLazyMode = true;
+	m_isWindowTitleBar = false;
+	m_isTitleBarOverriding = true;
+	m_titleBarHeight2 = 0.f;
 	const RECT r = { 0, 0, 1024, 768 };
 	//const RECT r = { 0, 0, 1280, 960 };
 	m_windowRect = r;
@@ -69,6 +72,7 @@ bool cViewer::OnInit()
 	m_mapView->Create(eDockState::DOCKWINDOW, eDockSlot::TAB, this, NULL);
 	bool result = m_mapView->Init(m_renderer);
 	assert(result);
+	m_mapView->m_showTabButton = false;
 
 	m_naviView = new cNavigationView("Navigation View");
 	m_naviView->m_owner = this;
@@ -110,6 +114,8 @@ void cViewer::OnUpdate(const float deltaSeconds)
 
 void cViewer::OnRender(const float deltaSeconds)
 {
+	//m_mapView->PreRender(deltaSeconds);
+	//m_mapView->OnRender(deltaSeconds);
 }
 
 

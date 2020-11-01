@@ -30,6 +30,7 @@ cMapView::cMapView(const string &name)
 	, m_naviServerIp("127.0.0.1")
 	, m_naviServerPort(10001)
 	, m_sendGpsInfo(0)
+	, m_viewSize(0, 0)
 {
 	ZeroMemory(m_renderOverhead, sizeof(m_renderOverhead));
 }
@@ -53,7 +54,9 @@ bool cMapView::Init(cRenderer &renderer)
 	m_camera.m_kp = g_global->m_config.GetFloat("camera_kp", 1.5f);
 	m_camera.m_kd = g_global->m_config.GetFloat("camera_kd", 0.f);
 
-	sf::Vector2u size((u_int)m_rect.Width() - 15, (u_int)m_rect.Height() - 50);
+	m_viewSize = Vector2(m_rect.Width() - 15.f
+		, m_showTabButton? m_rect.Height() - 50 : m_rect.Height());
+	sf::Vector2u size((u_int)m_viewSize.x, (u_int)m_viewSize.y);
 	cViewport vp = renderer.m_viewPort;
 	vp.m_vp.Width = (float)size.x;
 	vp.m_vp.Height = (float)size.y;
@@ -771,8 +774,14 @@ void cMapView::OnRender(const float deltaSeconds)
 	const double t0 = g_global->m_timer.GetSeconds();
 
 	ImVec2 pos = ImGui::GetCursorScreenPos();
+	const float padding = ImGui::GetStyle().WindowPadding.y * 2.f;
+	m_viewSize = Vector2(m_rect.Width() - 15.f
+		, m_showTabButton ? m_rect.Height() - 50 : m_rect.Height() - padding);
 	m_viewPos = { (int)(pos.x), (int)(pos.y) };
-	m_viewRect = { pos.x + 5, pos.y, pos.x + m_rect.Width() - 30, pos.y + m_rect.Height() - 42 };
+	//m_viewRect = { pos.x + 5, pos.y, pos.x + m_rect.Width() - 30, 
+	//	pos.y + m_rect.Height() - 42 };
+	m_viewRect = { pos.x + 5, pos.y, pos.x + m_viewSize.x,
+		pos.y + m_viewSize.y };
 
 	// HUD
 	bool isOpen = true;
@@ -786,14 +795,16 @@ void cMapView::OnRender(const float deltaSeconds)
 	ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 1));
 	if (g_global->m_isShowMapView)
 	{
-		ImGui::Image(m_renderTarget.m_resolvedSRV, ImVec2(m_rect.Width() - 15, m_rect.Height() - 42)
+		ImGui::Image(m_renderTarget.m_resolvedSRV
+			//, ImVec2(m_rect.Width() - 15, m_rect.Height() - 42)
+			, ImVec2(m_viewSize.x, m_viewSize.y)
 			, ImVec2(0,0), ImVec2(1,1)
 			, g_global->m_isDarkMode? *(ImVec4*)&g_global->m_darkColor : ImVec4(1,1,1,1));
 
 		RenderRPMGuage(pos, guageH, deltaSeconds);
 
 		ImGui::SetNextWindowPos(ImVec2(pos.x, pos.y));
-		ImGui::SetNextWindowSize(ImVec2(m_viewRect.Width(), dateH + guageH));
+		ImGui::SetNextWindowSize(ImVec2(m_viewRect.Width() - 100.f, dateH + guageH));
 		if (ImGui::Begin("Car Information", &isOpen, flags))
 		{
 			// render datetime
@@ -852,7 +863,8 @@ void cMapView::OnRender(const float deltaSeconds)
 			, m_obd2RcvFps, m_obd2RcvCnt, g_global->m_obd.m_queryCnt
 			, g_global->m_obd.m_rcvStr.c_str());
 
-		g_global->m_naviView->OnRender(deltaSeconds);
+		if (g_global->m_naviView)
+			g_global->m_naviView->OnRender(deltaSeconds);
 
 		ImGui::PopStyleColor();
 		ImGui::End();
@@ -969,6 +981,19 @@ void cMapView::RenderRPMGuage(const ImVec2 &pos, const float guageH, const float
 					}
 				}
 			}
+		}
+
+		// Minimize Button
+		ImGui::SetCursorPos(ImVec2(m_viewRect.Width() - 100.f, 0));
+		if (ImGui::Button("_", ImVec2(30.f, 30.f)))
+		{
+			ShowWindow(m_owner->getSystemHandle(), SW_MINIMIZE);
+		}
+		ImGui::SameLine();
+		// Close Button
+		if (ImGui::Button("X", ImVec2(60.f, 30.f)))
+		{
+			m_owner->close();
 		}
 
 		ImGui::End();
@@ -1481,12 +1506,15 @@ void cMapView::OnResetDevice()
 	cRenderer &renderer = GetRenderer();
 
 	// update viewport
-	sRectf viewRect = { 0, 0, m_rect.Width() - 15, m_rect.Height() - 50 };
-	m_camera.SetViewPort(viewRect.Width(), viewRect.Height());
+	const float padding = ImGui::GetStyle().WindowPadding.y * 2.f;
+	m_viewSize = Vector2(m_rect.Width() - 15.f
+		, m_showTabButton ? m_rect.Height() - 50 : m_rect.Height() - padding);
+	//sRectf viewRect = { 0, 0, m_rect.Width() - 15, m_rect.Height() - 50 };
+	m_camera.SetViewPort(m_viewSize.x, m_viewSize.y);
 
 	cViewport vp = GetRenderer().m_viewPort;
-	vp.m_vp.Width = viewRect.Width();
-	vp.m_vp.Height = viewRect.Height();
+	vp.m_vp.Width = m_viewSize.x;
+	vp.m_vp.Height = m_viewSize.y;
 	m_renderTarget.Create(renderer, vp, DXGI_FORMAT_R8G8B8A8_UNORM, true, true, DXGI_FORMAT_D24_UNORM_S8_UINT);
 }
 

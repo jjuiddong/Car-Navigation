@@ -666,7 +666,7 @@ qgid cQTreeGraph::AddPointInBestNode(cQuadTree<sNode> *qtree
 						+ (pos / (float)(vtx.accCnt + 1));
 					vtx.accCnt += 1;
 
-					qgid id = MovePoint(node, i, mapping);
+					qgid id = MovePoint(node, i, mapping, true);
 					if (id == 0) // no move?
 						MAKE_QGID(id, (int)i, node->level, node->xLoc, node->yLoc);
 					isFind = true;

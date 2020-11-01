@@ -606,6 +606,9 @@ bool cQuadTileManager::LoadResource(graphic::cRenderer &renderer
 				{
 				case cXdoReader::READ_MODEL:
 				{
+					if (xdo->m_xdos.empty())
+						break;
+
 					xdo->m_loadState = cXdoReader::READ_TEXTURE;
 
 					// Loading Texture

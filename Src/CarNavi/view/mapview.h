@@ -92,7 +92,8 @@ public:
 
 	// MouseMove Variable
 	POINT m_viewPos;
-	sRectf m_viewRect; // detect mouse event area
+	sRectf m_viewRect; // detect mouse event area, render position
+	Vector2 m_viewSize; // view width, height
 	POINT m_mousePos; // window 2d mouse pos
 	Vector3 m_mousePickPos; // mouse cursor pos in ground picking
 	bool m_mouseDown[3]; // Left, Right, Middle
