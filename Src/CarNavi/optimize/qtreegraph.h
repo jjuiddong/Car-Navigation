@@ -111,8 +111,13 @@ namespace optimize
 
 		qgid AddPoint(const Vector3 &pos, map<qgid, qgid> &mapping
 			, const bool isAverage = true);
+
+		void RemoveVertex(sQuadTreeNode<sNode> *node, const uint index
+			, map<qgid, qgid> &mapping);
 		
 		bool AddTransition(const qgid id0, const qgid id1);
+
+		bool RemoveTransition(sVertex &vtx, const uint index);
 		
 		sEdge FindNearEdge(const Vector3 &pos, const float distance
 			, const qgid exceptId = 0);
@@ -163,6 +168,11 @@ namespace optimize
 		qgid MovePoint(sQuadTreeNode<sNode> *fromNode, const uint index
 			, map<qgid, qgid> &mapping
 			, const bool isCalcAverage = false);
+
+		void MergeVertex(sQuadTreeNode<sNode> *node
+			, const qgid id0, sVertex &out
+			, const qgid id1, sVertex &vtx
+			, const bool isUpdateOppositeTransitionId);
 
 		bool CalcVertexLayout(sQuadTreeNode<sNode> *node
 			, map<qgid, qgid> &mapping);
