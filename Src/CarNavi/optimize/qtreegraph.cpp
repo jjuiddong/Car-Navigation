@@ -316,9 +316,11 @@ bool cQTreeGraph::WriteNode(sQuadTreeNode<sNode> *node)
 
 // add point
 // pos: relation pos
+// mergeVertex: merge vertex with added vertex
 qgid cQTreeGraph::AddPoint(const Vector3 &pos
 	, map<qgid, qgid> &mapping
 	, const bool isAverage //= true
+	, const qgid mergeId //= 0
 )
 {
 	const Vector3 gpos = cQuadTree<>::GetGlobalPos(pos);
@@ -334,7 +336,238 @@ qgid cQTreeGraph::AddPoint(const Vector3 &pos
 		return 0; // error occurred!!
 
 	m_isDivide = false;
-	return AddPointInBestNode(qtree, rect, pos, mapping, isAverage);
+	return AddPointInBestNode(qtree, rect, pos, mapping, isAverage, mergeId);
+}
+
+
+// add point in best quadtree node
+// pos: relation pos
+// mergeVertex: merge vertex with added vertex
+// return: pair<qgid, flag>
+//		   flag: 0 = add
+//				 1 = merge
+qgid cQTreeGraph::AddPointInBestNode(cQuadTree<sNode> *qtree
+	, const sRectf &rect, const Vector3 &pos
+	, map<qgid, qgid> &mapping
+	, const bool isAverage //= true
+	, const qgid mergeId //= 0
+)
+{
+	const float NEAR_DISTANCE = 0.1f;
+
+	// find best tree node
+	sQuadTreeNode<sNode> *node = qtree->m_roots[0];
+	int level = node->level;
+	int xLoc = node->xLoc;
+	int yLoc = node->yLoc;
+
+	while (1)
+	{
+		const bool hasChild = node->children[0] != nullptr;
+		if ((hasChild || (node->data.vertices.size() > MAX_TABLESIZE))
+			&& (level < (cQuadTree<>::MAX_LEVEL - 1)))
+		{
+			++level;
+			const auto res = cQuadTree<>::GetNodeLocation(rect, level);
+			int x = std::get<0>(res);
+			int y = std::get<1>(res);
+			sQuadTreeNode<sNode> *child = qtree->GetNode(level, x, y);
+			if (child)
+			{
+				node = child;
+				if (child->data.vertices.size() > MAX_TABLESIZE)
+					continue; // goto children
+				if (child->children[0] != nullptr)
+					continue; // goto children
+			}
+			else
+			{
+				// make child node and table
+				DivideNodeToChild(qtree, node, mapping);
+
+				node = qtree->GetNode(level, x, y);
+				continue; // goto children
+			}
+		}
+		break;
+	}
+
+	if (!node)
+		return 0; // error occurred!!
+
+	// find duplicate pos
+	vector<uint> mergeIndices;
+	if (isAverage)
+	{
+		float minDist = FLT_MAX;
+		for (uint i = 0; i < node->data.vertices.size(); ++i)
+		{
+			sVertex &vtx = node->data.vertices[i];
+			const float dist = pos.Distance(vtx.pos);
+
+			// same position?
+			if (dist < NEAR_DISTANCE)
+				mergeIndices.push_back(i);
+		}
+	}
+
+	// no near position, add new pos
+	if (mergeIndices.empty())
+	{
+		sVertex vtx;
+		InitVertex(vtx, pos, 1);
+		node->data.vertices.push_back(vtx);
+
+		qgid id;
+		MAKE_QGID(id, (int)node->data.vertices.size() - 1
+			, node->level, node->xLoc, node->yLoc);
+
+		sVertex &newVtx = node->data.vertices[node->data.vertices.size() - 1];
+
+		if (mergeId > 0)
+		{
+			sVertex *mergeVtx = FindVertex(mergeId);
+			if (mergeVtx)
+			{
+				if (MergeVertex(node, id, newVtx, mergeId, *mergeVtx, true))
+					RemoveVertex(mergeId, mapping);
+			}
+		}
+		return id;
+	}
+
+	qgid ret = 0;
+
+	if (mergeIndices.size() == 1)
+	{
+		map<qgid, qgid> ids; // key: old id, value: new id
+
+		int idx = *mergeIndices.begin();
+		sVertex &vtx = node->data.vertices[idx];
+
+		// average position, update
+		vtx.pos = ((vtx.pos * (float)vtx.accCnt) / (float)(vtx.accCnt + 1))
+			+ (pos / (float)(vtx.accCnt + 1));
+		vtx.accCnt += 1;
+
+		qgid id;
+		MAKE_QGID(id, idx, node->level, node->xLoc, node->yLoc);
+
+		if (mergeId > 0)
+		{
+			sVertex *mergeVtx = FindVertex(mergeId);
+			if (mergeVtx)
+			{
+				if (MergeVertex(node, id, vtx, mergeId, *mergeVtx, true))
+					RemoveVertex(mergeId, ids);
+			}
+
+			// check change index
+			if (ids.end() != ids.find(id))
+			{
+				id = ids[id];
+				PARSE_QGID_INDEX(id, idx);
+			}
+		}
+
+		const qgid newId = MoveVertex(node, idx, ids, true);
+		if (newId == 0) // no move?
+			ret = id;
+		else
+			ret = newId;
+
+		CopyMappingIds(mapping, ids);
+	}
+	else if (mergeIndices.size() > 1)
+	{
+		map<qgid, qgid> ids; // key: old id, value: new id
+
+		// merge point
+		sVertex tmp;
+		InitVertex(tmp, pos, 1);
+		node->data.vertices.push_back(tmp);
+
+		uint index = node->data.vertices.size() - 1;
+		qgid id0;
+		MAKE_QGID(id0, index, node->level, node->xLoc, node->yLoc);
+
+		if (mergeId > 0)
+		{
+			sVertex &vtx = node->data.vertices[index];
+			sVertex *mergeVtx = FindVertex(mergeId);
+			if (mergeVtx)
+			{
+				if (MergeVertex(node, id0, vtx, mergeId, *mergeVtx, true))
+					RemoveVertex(mergeId, ids);
+			}
+
+			// check change index
+			if (ids.end() != ids.find(id0))
+			{
+				id0 = ids[id0];
+				PARSE_QGID_INDEX(id0, index);
+			}
+
+			// recalc merge indices
+			float minDist = FLT_MAX;
+			mergeIndices.clear();
+			for (uint i = 0; i < node->data.vertices.size(); ++i)
+			{
+				if (index == i)
+					continue; // center vtx ignore
+
+				sVertex &vtx = node->data.vertices[i];
+				const float dist = pos.Distance(vtx.pos);
+
+				// same position?
+				if (dist < NEAR_DISTANCE)
+					mergeIndices.push_back(i);
+			}
+		}
+
+		sVertex &vtx0 = node->data.vertices[index];
+
+		for (auto idx : mergeIndices)
+		{
+			qgid id1;
+			MAKE_QGID(id1, idx, node->level, node->xLoc, node->yLoc);
+			sVertex &vtx1 = node->data.vertices[idx];
+
+			const int totalCnt = vtx0.accCnt + vtx1.accCnt;
+			vtx0.pos = (vtx0.pos * ((float)vtx0.accCnt / (float)totalCnt))
+				+ (vtx1.pos * ((float)vtx1.accCnt / (float)totalCnt));
+
+			MergeVertex(node, id0, vtx0, id1, vtx1, true);
+		}
+
+		// remove high index to low index (to preserve index)
+		for (int i = (int)mergeIndices.size() - 1; i >= 0; --i)
+		{
+			const uint idx = mergeIndices[i];
+			RemoveVertex(node, idx, mapping);
+		}
+
+		// mapping merge vertex id
+		index -= mergeIndices.size(); // remove vertex
+		qgid centerId; // merged id
+		MAKE_QGID(centerId, index, node->level, node->xLoc, node->yLoc);
+		for (auto idx : mergeIndices)
+		{
+			qgid id1;
+			MAKE_QGID(id1, idx, node->level, node->xLoc, node->yLoc);
+			ids[id1] = centerId;
+		}
+
+		const qgid id = MoveVertex(node, index, ids, true);
+		if (id == 0) // no move?
+			ret = centerId;
+		else
+			ret = id;
+
+		CopyMappingIds(mapping, ids);
+	}
+
+	return ret;
 }
 
 
@@ -591,143 +824,6 @@ Vector3 cQTreeGraph::GetVertexPos(const qgid id)
 }
 
 
-// add point in best quadtree node
-// pos: relation pos
-qgid cQTreeGraph::AddPointInBestNode(cQuadTree<sNode> *qtree
-	, const sRectf &rect, const Vector3 &pos
-	, map<qgid, qgid> &mapping
-	, const bool isAverage //= true
-)
-{
-	sQuadTreeNode<sNode> *rootNode = qtree->m_roots[0];
-	int level = rootNode->level;
-	int xLoc = rootNode->xLoc;
-	int yLoc = rootNode->yLoc;
-	qgid ret = 0;
-
-	// find best tree node
-	sQuadTreeNode<sNode> *node = qtree->m_roots[0];
-	while (1)
-	{
-		const bool hasChild = node->children[0] != nullptr;
-		if ((hasChild || (node->data.vertices.size() > MAX_TABLESIZE))
-			&& (level < (cQuadTree<>::MAX_LEVEL - 1)))
-		{
-			++level;
-			const auto res = cQuadTree<>::GetNodeLocation(rect, level);
-			int x = std::get<0>(res);
-			int y = std::get<1>(res);
-			sQuadTreeNode<sNode> *child = qtree->GetNode(level, x, y);
-			if (child)
-			{
-				node = child;
-				if (child->data.vertices.size() > MAX_TABLESIZE)
-					continue; // goto children
-				if (child->children[0] != nullptr)
-					continue; // goto children
-			}
-			else
-			{
-				// make child node and table
-				DivideNodeToChild(qtree, node, mapping);
-
-				node = qtree->GetNode(level, x, y);
-				continue; // goto children
-			}
-		}
-		if (!node)
-			break; // error occurred!!
-
-		// find duplicate pos
-		vector<uint> mergeIndices;
-		if (isAverage)
-		{
-			float minDist = FLT_MAX;
-			for (uint i=0; i < node->data.vertices.size(); ++i)
-			{
-				sVertex &vtx = node->data.vertices[i];
-				const float dist = pos.Distance(vtx.pos);
-
-				// same position?
-				if (dist < 0.1f)
-					mergeIndices.push_back(i);
-			}
-		}
-
-		// no near position, add new pos
-		if (mergeIndices.empty())
-		{
-			sVertex vtx;
-			InitVertex(vtx, pos, 1);
-			node->data.vertices.push_back(vtx);
-
-			MAKE_QGID(ret, (int)node->data.vertices.size() - 1
-				, node->level, node->xLoc, node->yLoc);
-		}
-		else
-		{
-			if (mergeIndices.size() == 1)
-			{
-				const int idx = *mergeIndices.begin();
-				sVertex &vtx = node->data.vertices[idx];
-
-				// average position, update
-				vtx.pos = ((vtx.pos * (float)vtx.accCnt) / (float)(vtx.accCnt + 1))
-					+ (pos / (float)(vtx.accCnt + 1));
-				vtx.accCnt += 1;
-
-				qgid id = MovePoint(node, idx, mapping, true);
-				if (id == 0) // no move?
-					MAKE_QGID(id, idx, node->level, node->xLoc, node->yLoc);
-				ret = id;
-			}
-			else
-			{
-				// merge point
-				sVertex tmp;
-				InitVertex(tmp, pos, 1);
-				node->data.vertices.push_back(tmp);
-
-				uint index = node->data.vertices.size() - 1;
-				sVertex &vtx0 = node->data.vertices[index];
-				qgid id0;
-				MAKE_QGID(id0, index, node->level, node->xLoc, node->yLoc);
-
-				for (auto idx : mergeIndices)
-				{
-					qgid id1;
-					MAKE_QGID(id1, idx, node->level, node->xLoc, node->yLoc);
-					sVertex &vtx1 = node->data.vertices[idx];
-
-					const int totalCnt = vtx0.accCnt + vtx1.accCnt;
-					vtx0.pos = (vtx0.pos * ((float)vtx0.accCnt / (float)totalCnt))
-						+ (vtx1.pos * ((float)vtx1.accCnt / (float)totalCnt));
-
-					MergeVertex(node, id0, vtx0, id1, vtx1, true);
-				}
-
-				// remove high index to low index (to preserve index)
-				for (int i = (int)mergeIndices.size() - 1; i >= 0; --i)
-				{
-					const uint idx = mergeIndices[i];
-					RemoveVertex(node, idx, mapping);
-				}
-
-				index -= mergeIndices.size(); // remove vertex
-				qgid id = MovePoint(node, index, mapping, true);
-				if (id == 0) // no move?
-					MAKE_QGID(id, index, node->level, node->xLoc, node->yLoc);
-				ret = id;
-			}
-		}
-
-		break; // complete
-	}
-
-	return ret;
-}
-
-
 // dived quadtree node to child node
 // table, graph divided to child node
 // and remove current node table, graph info
@@ -881,7 +977,7 @@ bool cQTreeGraph::DivideNodeToChild(cQuadTree<sNode> *qtree
 // move fromNode table point to another node
 // check table[index] poition move another node
 // return moving point qgid, no move return 0
-qgid cQTreeGraph::MovePoint(sQuadTreeNode<sNode> *fromNode, const uint index
+qgid cQTreeGraph::MoveVertex(sQuadTreeNode<sNode> *fromNode, const uint index
 	, map<qgid, qgid> &mapping
 	, const bool isCalcAverage //= false
 )
@@ -895,120 +991,35 @@ qgid cQTreeGraph::MovePoint(sQuadTreeNode<sNode> *fromNode, const uint index
 	if (fromNode->xLoc == xLoc && fromNode->yLoc == yLoc)
 		return 0; // same node? finish
 
+	map<qgid, qgid> ids;
+
 	qgid oldId;
 	MAKE_QGID(oldId, index, fromNode->level, fromNode->xLoc, fromNode->yLoc);
 
-	// no average: continue divide problem
-	const qgid newId = AddPoint(pos, mapping, isCalcAverage);
+	const qgid newId = AddPoint(pos, ids, isCalcAverage, oldId);
 
-	map<qgid, qgid> ids;
 	ids[oldId] = newId;
-
-	set<qgid> toIds;
-	for (uint i = 0; i < fromNode->data.vertices.size(); ++i)
-	{
-		sVertex &vtx = fromNode->data.vertices[i];
-		for (uint k = 0; k < vtx.trCnt; ++k)
-		{
-			sTransition &tr = vtx.trs[k];
-			int idx1, lv1, x1, y1;
-			PARSE_QGID(tr.to, idx1, lv1, x1, y1);
-
-			if (COMPARE_QID(tr.to, oldId))
-			{
-				// same node
-				if (tr.to == oldId)
-					tr.to = newId;
-				else if ((uint)idx1 > index)
-					MAKE_QGID(tr.to, idx1 - 1, lv1, x1, y1);
-			}
-			else
-			{
-				toIds.insert(tr.to);
-			}
-		}
-
-		if (i > index)
-		{
-			qgid id0, id1;
-			MAKE_QGID(id0, i, fromNode->level, fromNode->xLoc, fromNode->yLoc);
-			MAKE_QGID(id1, i - 1, fromNode->level, fromNode->xLoc, fromNode->yLoc);
-			ids[id0] = id1;
-		}
-	}
-
-	// external connection vertex
-	for (qgid to : toIds)
-	{
-		int idx1, lv1, x1, y1;
-		PARSE_QGID(to, idx1, lv1, x1, y1);
-
-		sVertex *toVtx = FindVertex(to);
-		if (!toVtx)
-		{
-			FindAndCreateFromFile(lv1, x1, y1);
-			toVtx = FindVertex(to);
-			if (!toVtx)
-			{
-				dbg::ErrLogp("MovePoint, not found2 tr.to \n");
-				continue; // error occurred!!
-			}
-		}
-
-		for (uint m = 0; m < toVtx->trCnt; ++m)
-		{
-			const qgid toto = toVtx->trs[m].to;
-			if (COMPARE_QID(toto, oldId))
-			{
-				int idx2, lv2, x2, y2;
-				PARSE_QGID(toto, idx2, lv2, x2, y2);
-
-				if (toto == oldId)
-					toVtx->trs[m].to = newId;
-				else if ((uint)idx2 > index)
-					MAKE_QGID(toVtx->trs[m].to, idx2 - 1, lv2, x2, y2);
-			}
-		}
-	}
-
-	// copy transition to new vertex
-	sQuadTreeNode<sNode> *moveNode = FindNode(newId);
-	sVertex *newVtx = FindVertex(newId);
-	if (moveNode && newVtx)
-	{
-		sVertex &curVtx = fromNode->data.vertices[index];
-		MergeVertex(moveNode, newId, *newVtx, oldId, curVtx, false);
-	}
-
-	common::rotatepopvector(fromNode->data.vertices, index);
-
-	if (mapping.empty())
-	{
-		mapping = ids;
-	}
-	else
-	{
-		// multiple link
-		for (auto &kv : mapping)
-		{
-			auto it = ids.find(kv.second);
-			if (ids.end() != it)
-				kv.second = it->second;
-		}
-		for (auto &kv : ids)
-		{
-			auto it = mapping.find(kv.first);
-			if (mapping.end() == it)
-				mapping[kv.first] = kv.second;
-		}
-	}
+	CopyMappingIds(mapping, ids);
 
 	return newId;
 }
 
 
 // remove vertex
-void cQTreeGraph::RemoveVertex(sQuadTreeNode<sNode> *node, const uint index
+bool cQTreeGraph::RemoveVertex(const qgid id, map<qgid, qgid> &mapping)
+{
+	sQuadTreeNode<sNode> *node = FindNode(id);
+	if (!node)
+		return false;
+
+	uint index;
+	PARSE_QGID_INDEX(id, index);
+	return RemoveVertex(node, index, mapping);
+}
+
+
+// remove vertex
+bool cQTreeGraph::RemoveVertex(sQuadTreeNode<sNode> *node, const uint index
 	, map<qgid, qgid> &mapping)
 {
 	map<qgid, qgid> ids;
@@ -1093,26 +1104,8 @@ void cQTreeGraph::RemoveVertex(sQuadTreeNode<sNode> *node, const uint index
 
 	common::rotatepopvector(node->data.vertices, index);
 
-	if (mapping.empty())
-	{
-		mapping = ids;
-	}
-	else
-	{
-		// multiple link
-		for (auto &kv : mapping)
-		{
-			auto it = ids.find(kv.second);
-			if (ids.end() != it)
-				kv.second = it->second;
-		}
-		for (auto &kv : ids)
-		{
-			auto it = mapping.find(kv.first);
-			if (mapping.end() == it)
-				mapping[kv.first] = kv.second;
-		}
-	}
+	CopyMappingIds(mapping, ids);
+	return true;
 }
 
 
@@ -1125,11 +1118,14 @@ void cQTreeGraph::RemoveVertex(sQuadTreeNode<sNode> *node, const uint index
 // isUpdateOppositeTransitionId: warning, 순서를 맞추지 않으면 버그가 생길수 있다.
 //		transition.to 가 이미 업데이트가 되어있다면, 다시 같은 작업을 반복하게 되면,
 //		잘 못된 id를 가르킬수도 있다.
-void cQTreeGraph::MergeVertex( sQuadTreeNode<sNode> *node
+bool cQTreeGraph::MergeVertex( sQuadTreeNode<sNode> *node
 	, const qgid id0, sVertex &out
 	, const qgid id1, sVertex &vtx
 	, const bool isUpdateOppositeTransitionId)
 {
+	if (id0 == id1)
+		return false; // same vertex
+
 	// increase capacity if needed
 	if (vtx.trCnt + out.trCnt > out.trCapa)
 	{
@@ -1150,10 +1146,9 @@ void cQTreeGraph::MergeVertex( sQuadTreeNode<sNode> *node
 	for (uint i = 0; i < vtx.trCnt; ++i)
 	{
 		sTransition &tr = vtx.trs[i];
-		if (FindTransition(&out, tr.to))
-			continue; // already exist
-
-		out.trs[out.trCnt++] = tr;
+		const bool isExist = FindTransition(&out, tr.to);
+		if (!isExist) // already exist?
+			out.trs[out.trCnt++] = tr;
 
 		if (isUpdateOppositeTransitionId)
 		{
@@ -1180,11 +1175,28 @@ void cQTreeGraph::MergeVertex( sQuadTreeNode<sNode> *node
 				}
 			}
 
-			for (uint k = 0; k < vtx1->trCnt; ++k)
+			if (isExist)
 			{
-				sTransition &tr1 = vtx1->trs[k];
-				if (tr1.to == id1)
-					tr1.to = id0; // change id1 -> id0 (out vertex)
+				// already exist transition? remove transition
+				for (uint k = 0; k < vtx1->trCnt; ++k)
+				{
+					sTransition &tr1 = vtx1->trs[k];
+					if (tr1.to == id1)
+					{
+						RemoveTransition(*vtx1, k);
+						--k; // back index
+					}
+				}
+			}
+			else
+			{
+				// update transition
+				for (uint k = 0; k < vtx1->trCnt; ++k)
+				{
+					sTransition &tr1 = vtx1->trs[k];
+					if (tr1.to == id1)
+						tr1.to = id0; // change id1 -> id0 (out vertex)
+				}
 			}
 		}
 	}
@@ -1192,6 +1204,7 @@ void cQTreeGraph::MergeVertex( sQuadTreeNode<sNode> *node
 	vtx.trCnt = 0;
 	vtx.trCapa = 0;
 	SAFE_DELETEA(vtx.trs);
+	return true;
 }
 
 
@@ -1201,7 +1214,7 @@ bool cQTreeGraph::CalcVertexLayout(sQuadTreeNode<sNode> *node
 {
 	for (uint i = 0; i < node->data.vertices.size();)
 	{
-		const qgid id = MovePoint(node, i, mapping, true);
+		const qgid id = MoveVertex(node, i, mapping, true);
 		if (id == 0)
 			++i;
 	}
@@ -1666,8 +1679,10 @@ void cQTreeGraph::InitVertex(sVertex &vtx, const Vector3 &pos, const uint accCnt
 
 // create graph line
 // finalLevel: root graph line buffer level
+// isRemoveData: if true, remove node vertices
 bool cQTreeGraph::CreateGraphLineAll(graphic::cRenderer &renderer
-	, const int finalLevel)
+	, const int finalLevel
+)
 {
 	int sp = 0;
 	for (auto &kv : m_roots)
@@ -1734,9 +1749,36 @@ int cQTreeGraph::GetNodeVertexCount(sQuadTreeNode<sNode> *node, const int stackP
 }
 
 
+// copy mapping id
+// out: return copy mapping id
+void cQTreeGraph::CopyMappingIds(map<qgid, qgid> &out, map<qgid, qgid> &ids)
+{
+	if (out.empty())
+	{
+		out = ids;
+	}
+	else
+	{
+		// multiple link
+		for (auto &kv : out)
+		{
+			auto it = ids.find(kv.second);
+			if (ids.end() != it)
+				kv.second = it->second;
+		}
+		for (auto &kv : ids)
+		{
+			auto it = out.find(kv.first);
+			if (out.end() == it)
+				out[kv.first] = kv.second;
+		}
+	}
+}
+
+
 // generate graph vertex, transition line
 bool cQTreeGraph::CreateGraphLines(graphic::cRenderer &renderer
-	, sQuadTreeNode<sNode> *root, const int stackPoint)
+	, sQuadTreeNode<sNode> *root, const int stackPoint )
 {
 	using namespace graphic;
 
@@ -1796,7 +1838,6 @@ bool cQTreeGraph::CreateGraphLines(graphic::cRenderer &renderer
 					root->data.lineList->AddLine(renderer, p0, p1, false);
 				}
 			}
-
 		}
 		else
 		{
@@ -1811,6 +1852,35 @@ bool cQTreeGraph::CreateGraphLines(graphic::cRenderer &renderer
 	//root->data.lineList->UpdateBuffer(renderer);
 	//root->data.lineList->ClearLines();
 	return true;
+}
+
+
+// clear all vertex data in QuadTreeNoe<>
+void cQTreeGraph::ClearVerticesData()
+{
+	int sp = 0;
+	for (auto &kv : m_roots)
+	{
+		cQuadTree<sNode> *qtree = kv.second;
+		for (auto &node : qtree->m_roots)
+			m_stack[sp++] = { qtree, node };
+	}
+
+	while (sp > 0)
+	{
+		sQuadTreeNode<sNode> *node = m_stack[--sp].node;
+		if (!node->children[0])
+		{
+			node->data.vertices.clear();
+			node->data.vertices.shrink_to_fit();
+		}
+		else
+		{
+			for (int i = 0; i < 4; ++i)
+				if (node->children[i])
+					m_stack[sp++].node = node->children[i];
+		}
+	}
 }
 
 

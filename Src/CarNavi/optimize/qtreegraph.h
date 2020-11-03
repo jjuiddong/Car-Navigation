@@ -12,7 +12,7 @@ namespace optimize
 {
 	// quadtree graph id
 	// idx + lv + xLoc + yLoc
-	// idx(26bit) + lv(4bit) + xLoc(17bit) + yLoc(17bit)
+	// idx(20bit) + lv(4bit) + xLoc(20bit) + yLoc(20bit)
 	typedef unsigned __int64 qgid;
 
 	// parse cQTreeGraph id -> index, level, xloc, yloc
@@ -110,14 +110,19 @@ namespace optimize
 		bool WriteFile();
 
 		qgid AddPoint(const Vector3 &pos, map<qgid, qgid> &mapping
-			, const bool isAverage = true);
+			, const bool isAverage = true
+			, const qgid mergeId = 0);
 
-		void RemoveVertex(sQuadTreeNode<sNode> *node, const uint index
+		bool RemoveVertex(sQuadTreeNode<sNode> *node, const uint index
 			, map<qgid, qgid> &mapping);
+
+		bool RemoveVertex(const qgid id, map<qgid, qgid> &mapping);
 		
 		bool AddTransition(const qgid id0, const qgid id1);
 
 		bool RemoveTransition(sVertex &vtx, const uint index);
+
+		bool RemoveTransition(sVertex &vtx, const qgid toId);
 		
 		sEdge FindNearEdge(const Vector3 &pos, const float distance
 			, const qgid exceptId = 0);
@@ -143,6 +148,7 @@ namespace optimize
 		bool CreateGraphLines(graphic::cRenderer &renderer
 			, sQuadTreeNode<sNode> *root, const int stackPoint);
 
+		void ClearVerticesData();
 		void Clear();
 
 
@@ -159,17 +165,18 @@ namespace optimize
 		qgid AddPointInBestNode(cQuadTree<sNode> *qtree
 			, const sRectf &rect, const Vector3 &pos
 			, map<qgid, qgid> &mapping
-			, const bool isAverage = true);
+			, const bool isAverage = true
+			, const qgid mergeId = 0);
 
 		bool DivideNodeToChild(cQuadTree<sNode> *qtree
 			, sQuadTreeNode<sNode> *node
 			, map<qgid, qgid> &mapping);
 
-		qgid MovePoint(sQuadTreeNode<sNode> *fromNode, const uint index
+		qgid MoveVertex(sQuadTreeNode<sNode> *fromNode, const uint index
 			, map<qgid, qgid> &mapping
 			, const bool isCalcAverage = false);
 
-		void MergeVertex(sQuadTreeNode<sNode> *node
+		bool MergeVertex(sQuadTreeNode<sNode> *node
 			, const qgid id0, sVertex &out
 			, const qgid id1, sVertex &vtx
 			, const bool isUpdateOppositeTransitionId);
@@ -184,6 +191,7 @@ namespace optimize
 		StrPath GetNodeFilePath(const int level, const int xLoc, const int yLoc);
 		void InitVertex(sVertex &vtx, const Vector3 &pos, const uint accCnt);
 		int GetNodeVertexCount(sQuadTreeNode<sNode> *node, const int stackPoint);
+		void CopyMappingIds(map<qgid, qgid> &out, map<qgid, qgid> &ids);
 
 
 	public:

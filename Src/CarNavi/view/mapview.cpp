@@ -196,7 +196,7 @@ void cMapView::UpdateGPS(const float deltaSeconds)
 		oldGpsPos2 = m_curGpsPos;
 
 	if (m_lookAtDistance == 0)
-		m_lookAtDistance = min(200.f, m_camera.GetEyePos().Distance(m_camera.GetLookAt()));
+		m_lookAtDistance = min(400.f, m_camera.GetEyePos().Distance(m_camera.GetLookAt()));
 
 	// write path log file
 	if (g_global->m_gpsClient.IsConnect()
@@ -1221,7 +1221,7 @@ void cMapView::UpdateCameraTraceLookat(
 	{
 		const Vector3 p0 = m_quadTree.Get3DPos(track.back().lonLat);
 		if (isUpdateDistance)
-			m_lookAtDistance = min(200.f, m_camera.GetEyePos().Distance(p0));
+			m_lookAtDistance = min(400.f, m_camera.GetEyePos().Distance(p0));
 		//m_lookAtYVector = m_camera.GetDirection().y;
 	}
 }

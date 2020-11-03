@@ -194,6 +194,7 @@ bool cOptimizePath::RenderGraph(graphic::cRenderer &renderer
 			if (!node->data.lineList->m_lines.empty())
 			{
 				node->data.lineList->UpdateBuffer(renderer);
+				// no need line data, remove
 				node->data.lineList->ClearLines();
 			}
 			node->data.lineList->Render(renderer);
@@ -306,6 +307,7 @@ int cOptimizePath::ThreadProc(cOptimizePath *optimizePath)
 
 	qgraph.ReadFile();
 	qgraph.CreateGraphLineAll(*opt->m_renderer, ROOT_LINE_LEVEL);
+	qgraph.ClearVerticesData();
 
 	if (opt->m_state != State::Stop)
 		opt->m_state = State::Finish;

@@ -39,7 +39,7 @@ cGlobal::cGlobal()
 	, m_isDebugMode(false)
 	, m_isDarkMode(false)
 	, m_darkColor(0.1f, 0.1f, 0.1f, 1.f)
-	, m_camType(eCameraType::Custom)
+	, m_camType(eCameraType::Camera4)
 {
 }
 
