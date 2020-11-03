@@ -26,9 +26,11 @@ sData g_stack[1024];
 //
 
 cTerrainQuadTree::cTerrainQuadTree()
-	: m_isShowQuadTree(false)
-	, m_isShowTexture(true)
-	, m_isShowFacility(true)
+	: m_showQuadTree(false)
+	, m_showTexture(true)
+	, m_showTile(true)
+	, m_showFacility(true)
+	, m_showWireframe(false)
 	, m_isLight(true)
 	, m_isCalcResDistribution(false)
 	, m_showQuadCount(0)
@@ -55,6 +57,7 @@ cTerrainQuadTree::cTerrainQuadTree()
 	m_techName[2] = "Heightmap";
 	m_techName[3] = "Light_Heightmap";
 	m_techName[4] = "Unlit";
+	m_techName[5] = "Wireframe";
 	m_txtColor = Vector3(1, 0, 0);
 	if (!m_tileMgr)
 		m_tileMgr = new cQuadTileManager();
@@ -150,20 +153,19 @@ void cTerrainQuadTree::Render(graphic::cRenderer &renderer
 	const double t1 = m_timer.GetSeconds();
 	m_t0 = t1 - t0;
 
-	if (m_isShowTexture)
-	{
-		//CalcSeamlessLevel();
-		//CalcSeamlessLevel();
+	if (m_showTexture)
 		RenderTessellation(renderer, deltaSeconds, frustum);
-	}
 
 	const double t2 = m_timer.GetSeconds();
 	m_t1 = t2 - t1;
 
-	if (m_isShowFacility)
+	if (m_showWireframe)
+		RenderWireframe(renderer, deltaSeconds, frustum);
+
+	if (m_showFacility)
 		RenderFacility(renderer, deltaSeconds, frustum);
 
-	if (m_isShowQuadTree)
+	if (m_showQuadTree)
 		RenderQuad(renderer, deltaSeconds, frustum, mouseRay);
 
 	if (m_isShowDistribute)
@@ -319,15 +321,15 @@ void cTerrainQuadTree::RenderTessellation(graphic::cRenderer &renderer
 			continue;
 
 		// leaf node?
-		if (!node->children[0])
+		if (!node->children[0] || (m_showWireframe && (node->level > 8)))
 		{
 			cQuadTile *tile = m_tileMgr->GetTile(renderer, node->level, node->xLoc, node->yLoc, rect);
 			tile->m_renderFlag = m_tileRenderFlag;
 			node->data.tile = tile;
 			m_tileMgr->LoadResource(renderer, *this, *tile, node->level, node->xLoc, node->yLoc, rect);
-			//m_tileMgr->Smooth(renderer, *this, node);
 
-			tile->Render(renderer, deltaSeconds, node->data.level);
+			if (m_showTile)
+				tile->Render(renderer, deltaSeconds, node->data.level);
 
 			if (m_isShowPoi1 || m_isShowPoi2)
 				tile->RenderPoi(renderer, deltaSeconds, m_isShowPoi1, m_isShowPoi2);
@@ -343,6 +345,64 @@ void cTerrainQuadTree::RenderTessellation(graphic::cRenderer &renderer
 			if (m_isShowPoi1 || m_isShowPoi2)
 				tile->RenderPoi(renderer, deltaSeconds, m_isShowPoi1, m_isShowPoi2);
 
+			for (int i = 0; i < 4; ++i)
+				if (node->children[i])
+					g_stack[sp++].node = node->children[i];
+		}
+	}
+
+	renderer.UnbindShaderAll();
+}
+
+
+// 지형 출력
+void cTerrainQuadTree::RenderWireframe(graphic::cRenderer &renderer
+	, const float deltaSeconds
+	, const graphic::cFrustum &frustum)
+{
+	CommonStates states(renderer.GetDevice());
+	renderer.GetDevContext()->RSSetState(states.Wireframe2());
+
+	m_shader.SetTechnique(m_techName[5]);
+	m_shader.Begin();
+	m_shader.BeginPass(renderer, 0);
+
+	renderer.m_cbLight.Update(renderer, 1);
+	// wire color
+	renderer.m_cbMaterial = m_mtrl.GetMaterial();
+	const Vector4 diffuse = m_showTile ? Vector4(0, 0, 0, 1) : Vector4(1, 1, 1, 1);
+	renderer.m_cbMaterial.m_v->diffuse = XMVectorSet(diffuse.x, diffuse.y, diffuse.z, diffuse.w);
+	renderer.m_cbMaterial.Update(renderer, 2);
+
+	int sp = 0;
+	for (auto &node : m_qtree.m_roots)
+	{
+		sRectf rect = m_qtree.GetNodeRect(node);
+		g_stack[sp++] = { rect, node->level, node };
+	}
+
+	while (sp > 0)
+	{
+		sQuadTreeNode<sQuadData> *node = g_stack[sp - 1].node;
+		--sp;
+
+		const float maxH = node ? m_tileMgr->GetMaximumHeight(node->level
+			, node->xLoc, node->yLoc) : cHeightmap2::DEFAULT_H;
+		const sRectf rect = m_qtree.GetNodeRect(node);
+		if (!IsContain(frustum, rect, maxH))
+			continue;
+
+		// leaf node?
+		if (!node->children[0] || (node->level > 8))
+		{
+			if ((node->level > 6) || !m_showTile)
+			{
+				cQuadTile *tile = m_tileMgr->GetTile(renderer, node->level, node->xLoc, node->yLoc, rect);
+				tile->Render(renderer, deltaSeconds, node->data.level);
+			}
+		}
+		else
+		{
 			for (int i = 0; i < 4; ++i)
 				if (node->children[i])
 					g_stack[sp++].node = node->children[i];

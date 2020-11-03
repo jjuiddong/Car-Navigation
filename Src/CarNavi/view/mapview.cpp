@@ -69,8 +69,8 @@ bool cMapView::Init(cRenderer &renderer)
 		return false;
 
 	m_quadTree.m_isShowDistribute = false;
-	m_quadTree.m_isShowQuadTree = false;
-	m_quadTree.m_isShowFacility = false;
+	m_quadTree.m_showQuadTree = false;
+	m_quadTree.m_showFacility = false;
 	m_quadTree.m_isShowPoi1 = true;
 	m_quadTree.m_isShowPoi2 = false;
 	if (m_quadTree.m_tileMgr)
@@ -589,7 +589,7 @@ void cMapView::OnPreRender(const float deltaSeconds)
 		else
 		{
 			renderer.GetDevContext()->RSSetState(states.CullCounterClockwise());
-			if (g_global->m_isShowTerrain)
+			if (g_global->m_isShowTerrain && m_quadTree.m_showTile)
 				m_skybox.Render(renderer);
 		}
 

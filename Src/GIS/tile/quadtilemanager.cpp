@@ -674,7 +674,7 @@ bool cQuadTileManager::LoadResource(graphic::cRenderer &renderer
 		LoadHeightMap(renderer, tile, terrain, level, xLoc, yLoc, rect);
 		LoadPoiFile(renderer, tile, terrain, level, xLoc, yLoc, rect);
 
-		if (terrain.m_isShowFacility)
+		if (terrain.m_showFacility)
 			LoadFacilityIndex(renderer, tile, terrain, level, xLoc, yLoc, rect);
 	}
 

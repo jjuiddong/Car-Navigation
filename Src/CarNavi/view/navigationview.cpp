@@ -263,7 +263,7 @@ void cNavigationView::OnRender(const float deltaSeconds)
 		ImGui::Text("GPS Count = %d", g_global->m_gpsClient.m_recvCount);	
 		ImGui::Text("la d = %.3f", g_global->m_mapView->m_lookAtDistance);
 		ImGui::Text("la y = %.3f", g_global->m_mapView->m_lookAtYVector);
-		ImGui::Checkbox("Quadtree", &terrain.m_isShowQuadTree);
+		ImGui::Checkbox("Quadtree", &terrain.m_showQuadTree);
 		ImGui::SameLine();
 		ImGui::Checkbox("Lv", &terrain.m_isShowLevel);
 		ImGui::SameLine();
@@ -293,6 +293,17 @@ void cNavigationView::OnRender(const float deltaSeconds)
 		}
 		ImGui::SameLine();
 		ImGui::Checkbox("Show Quad", &g_global->m_isShowQuadTree);
+		if (ImGui::Checkbox("Show Wireframe", &terrain.m_showWireframe))
+		{ 
+			if (!terrain.m_showWireframe && !terrain.m_showTile)
+				terrain.m_showTile = true;
+		}
+		ImGui::SameLine();
+		if (ImGui::Checkbox("Show Texture", &terrain.m_showTile))
+		{
+			if (!terrain.m_showTile && !terrain.m_showWireframe)
+				terrain.m_showWireframe = true;
+		}
 		ImGui::Checkbox("Show LandMark", &g_global->m_isShowLandMark);
 		ImGui::Checkbox("Show LandMark2", &g_global->m_isShowLandMark2);
 		ImGui::Checkbox("Black Mode", &g_global->m_isDarkMode);
