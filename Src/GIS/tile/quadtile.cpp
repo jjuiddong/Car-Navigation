@@ -237,7 +237,7 @@ void cQuadTile::RenderFacility(graphic::cRenderer &renderer
 	, const XMMATRIX &tm //= graphic::XMIdentity
 )
 {
-	for (u_int i = 0; i < m_facilities.size(); ++i)
+	for (uint i = 0; i < m_facilities.size(); ++i)
 	{
 		cXdoReader *xdo = m_facilities[i];
 		if (!xdo)

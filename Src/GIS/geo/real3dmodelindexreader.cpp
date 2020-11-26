@@ -35,7 +35,7 @@ bool cReal3DModelIndexReader::Read(const char *fileName)
 	ifs.read((char*)&m_yLoc, sizeof(m_yLoc));
 	ifs.read((char*)&m_objectCount, sizeof(m_objectCount));
 
-	if ((u_int)m_level >= cQuadTree<sQuadTreeNode<sQuadData>>::MAX_LEVEL)
+	if ((uint)m_level >= cQuadTree<sQuadTreeNode<sQuadData>>::MAX_LEVEL)
 		return false;
 
 	for (int i = 0; i < m_objectCount; ++i)

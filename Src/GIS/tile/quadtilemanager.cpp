@@ -86,7 +86,7 @@ bool cQuadTileManager::Update(graphic::cRenderer &renderer, cTerrainQuadTree &te
 
 			if (tile->m_facilityIndex)
 			{
-				for (u_int i = 0; i < tile->m_facilityIndex->m_objs.size(); ++i)
+				for (uint i = 0; i < tile->m_facilityIndex->m_objs.size(); ++i)
 				{
 					if (tile->m_facilities.size() > i)
 					{
@@ -271,8 +271,8 @@ void cQuadTileManager::UpdateDownloadFile(graphic::cRenderer &renderer)
 			cQuadTile *tile = FindTile(file.level, file.xLoc, file.yLoc);
 			if (tile
 				&& tile->m_facilityIndex
-				&& (tile->m_facilityIndex->m_objs.size() > (u_int)file.idx)
-				&& (tile->m_facilities.size() > (u_int)file.idx)
+				&& (tile->m_facilityIndex->m_objs.size() > (uint)file.idx)
+				&& (tile->m_facilities.size() > (uint)file.idx)
 				&& !tile->m_facilities[file.idx]
 				)
 			{
@@ -285,7 +285,7 @@ void cQuadTileManager::UpdateDownloadFile(graphic::cRenderer &renderer)
 			}
 			else
 			{
-				if (tile && (tile->m_facilities.size() > (u_int)file.idx))
+				if (tile && (tile->m_facilities.size() > (uint)file.idx))
 					tile->m_facilities[file.idx]->m_loadState = cXdoReader::FINISH;
 			}
 		}
@@ -296,7 +296,7 @@ void cQuadTileManager::UpdateDownloadFile(graphic::cRenderer &renderer)
 			// complete download *.jpg file
 			cQuadTile *tile = FindTile(file.level, file.xLoc, file.yLoc);
 			if (tile 
-				&& (tile->m_facilitiesTex.size() > (u_int)file.idx) 
+				&& (tile->m_facilitiesTex.size() > (uint)file.idx)
 				&& !tile->m_facilitiesTex[file.idx])
 			{
 				StrPath fileName = cTileTexture::GetFileName(g_mediaDir, file.level, file.xLoc, file.yLoc
@@ -306,7 +306,7 @@ void cQuadTileManager::UpdateDownloadFile(graphic::cRenderer &renderer)
 			}
 			else
 			{
-				if (tile && (tile->m_facilities.size() > (u_int)file.idx))
+				if (tile && (tile->m_facilities.size() > (uint)file.idx))
 					tile->m_facilities[file.idx]->m_loadState = cXdoReader::FINISH;
 			}
 		}
@@ -392,7 +392,7 @@ bool cQuadTileManager::CreateFacility(graphic::cRenderer &renderer
 	if (!tile)
 		return false;
 
-	const u_int i = modInfo.facilityIdx;
+	const uint i = modInfo.facilityIdx;
 	if (tile->m_facilities.size() <= i)
 		return false;
 
@@ -590,7 +590,7 @@ bool cQuadTileManager::LoadResource(graphic::cRenderer &renderer
 		else if (3 == tile.m_modelLoadState)
 		{
 			int readyCnt = 0;
-			for (u_int i = 0; i < tile.m_facilities.size(); ++i)
+			for (uint i = 0; i < tile.m_facilities.size(); ++i)
 			{
 				cXdoReader *xdo = tile.m_facilities[i];
 				if (!xdo)
@@ -702,7 +702,7 @@ bool cQuadTileManager::LoadFacilities(graphic::cRenderer &renderer
 	tile.m_facilitiesTex.resize(tile.m_facilityIndex->m_objs.size(), NULL);
 	tile.m_mods.resize(tile.m_facilityIndex->m_objs.size());
 
-	for (u_int i=0; i < tile.m_facilityIndex->m_objs.size(); ++i)
+	for (uint i=0; i < tile.m_facilityIndex->m_objs.size(); ++i)
 	{
 		auto &obj = tile.m_facilityIndex->m_objs[i];
 

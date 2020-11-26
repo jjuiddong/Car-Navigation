@@ -29,6 +29,8 @@
 
 -----------------------------------------------------------
 - worklist
+	- frustum collision bug
+	- path file upload
 	- 그 전 위치 저장, 프로그램이 시작되면, 그위치로 이동
 	- path information upload
 		- raspberry pi server
@@ -63,7 +65,6 @@
 	- 지역명 폰트 크게
 	- UI투명
 	- 산윤곽
-	- 와이어 프레임
 	- 줌업 빠르게 제스처
 	- 미니맵
 	- 나침반
@@ -134,3 +135,4 @@
 		-★ 가까이
 	-★ 라인 바닥에
 	-★ media directory multi
+	-★ 와이어 프레임

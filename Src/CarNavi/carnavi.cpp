@@ -27,6 +27,7 @@ cViewer::cViewer()
 	m_isLazyMode = true;
 	m_isWindowTitleBar = false;
 	m_isTitleBarOverriding = true;
+	m_isResizable = false;
 	m_titleBarHeight2 = 0.f;
 	const RECT r = { 0, 0, 1024, 768 };
 	//const RECT r = { 0, 0, 1280, 960 };
@@ -91,6 +92,10 @@ bool cViewer::OnInit()
 
 	if (g_global->m_isShowPrevPath)
 		g_global->ReadAndConvertPathFiles(m_renderer, m_mapView->m_quadTree, "./path/");
+
+	// initialize camera type
+	if (m_mapView)
+		m_mapView->ChangeViewCamera(g_global->m_camType);
 
 	m_gui.SetContext();
 	m_gui.SetStyleColorsDark();

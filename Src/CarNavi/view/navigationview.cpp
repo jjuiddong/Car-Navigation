@@ -34,7 +34,6 @@ cNavigationView::cNavigationView(const StrId &name)
 			if (c == '^')
 				c = '\0';
 	}
-
 }
 
 cNavigationView::~cNavigationView()

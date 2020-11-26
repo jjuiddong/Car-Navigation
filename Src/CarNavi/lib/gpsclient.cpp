@@ -6,7 +6,7 @@
 
 
 cGpsClient::cGpsClient()
-	: m_client(new network2::cPacketHeaderNoFormat())
+	: m_client()
 	, m_ip("192.168.1.102")
 	, m_port(60660)
 	, m_recvTime(0)
@@ -49,6 +49,7 @@ bool cGpsClient::ConnectGpsServer(const Str16 &ip, const int port)
 
 	m_ip = ip;
 	m_port = port;
+	m_client.CreatePacketHeader(network2::ePacketFormat::FREE); // no format packet, no packet header
 	m_client.Init(ip, port);
 
 	g_global->m_config.SetValue("gps_server_ip", ip.c_str());
