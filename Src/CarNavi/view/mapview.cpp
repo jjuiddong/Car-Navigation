@@ -45,8 +45,11 @@ cMapView::~cMapView()
 
 bool cMapView::Init(cRenderer &renderer) 
 {
-	const Vector3 eyePos(3040.59766f, 10149.6260f, -4347.90381f);
-	const Vector3 lookAt(2825.30078f, 0.000000000f, 2250.73193f);
+	//const Vector3 eyePos(3040.59766f, 10149.6260f, -4347.90381f);
+	//const Vector3 lookAt(2825.30078f, 0.000000000f, 2250.73193f);
+	const Vector3 eyePos(2887.55542f, 10676.3408f, 594.097351f);
+	const Vector3 lookAt(2674.30518f, 0.000000000f, 2766.95801f);
+
 	const float fov = g_global->m_config.GetFloat("fov", MATH_PI / 4.f);
 	m_camera.SetCamera(eyePos, lookAt, Vector3(0, 1, 0));
 	m_camera.SetProjection(fov, m_rect.Width() / m_rect.Height(), 0.1f, 100000.f);
@@ -1354,6 +1357,7 @@ void cMapView::OnMouseDown(const sf::Mouse::Button &button, const POINT mousePt)
 		{
 			g_global->m_landMarkSelectState = 0;
 			g_global->m_landMark.AddLandMark("LandMark", lonLat);
+			g_global->m_landMark.Write("landmark.txt");
 			if (m_naviClient.IsConnect())
 				m_gpsProtocol.AddLandMark(network2::SERVER_NETID, lonLat.x, lonLat.y);
 		}
