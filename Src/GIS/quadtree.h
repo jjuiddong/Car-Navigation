@@ -271,7 +271,7 @@ std::tuple<int, int, int> cQuadTree<T>::GetNodeLevel(const sRectf &rect)
 template<class T>
 inline sQuadTreeNode<T>* cQuadTree<T>::GetNode(const int level, const int xLoc, const int yLoc)
 {
-	if ((u_int)level >= MAX_LEVEL)
+	if ((uint)level >= MAX_LEVEL)
 		return NULL;
 
 	const __int64 key = MakeKey(level, xLoc, yLoc);

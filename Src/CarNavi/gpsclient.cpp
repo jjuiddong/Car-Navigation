@@ -6,7 +6,7 @@
 
 
 cGpsClient::cGpsClient()
-	: m_client(new network2::cPacketHeaderNoFormat())
+	: m_client(false, "gpsclinet") //new network2::cPacketHeaderNoFormat())
 	, m_ip("192.168.1.102")
 	, m_port(60660)
 	, m_recvTime(0)

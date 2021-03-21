@@ -150,7 +150,7 @@ bool cXdoReader::LoadMesh(graphic::cRenderer &renderer)
 
 		//cResourceManager::Get()->LoadTexture(renderer, mesh.mtrl.texture);
 
-		for (u_int i = 0; i < xdo.vertexCount; ++i)
+		for (uint i = 0; i < xdo.vertexCount; ++i)
 		{
 			const Vector3 p = xdo.vertices[i].p;
 			const Vector3 np = rotate3d(p.x, p.y, p.z, m_lonLat.x, m_lonLat.y);
@@ -172,7 +172,7 @@ bool cXdoReader::LoadMesh(graphic::cRenderer &renderer)
 		//for (u_int i = 0; i < xdo.indexCount; ++i)
 		//	mesh.indices.push_back(xdo.indices[i]);
 
-		for (u_int i = 0; i < xdo.indexCount; i+=3)
+		for (uint i = 0; i < xdo.indexCount; i+=3)
 		{
 			mesh.indices.push_back(xdo.indices[i]);
 			mesh.indices.push_back(xdo.indices[i+1]);
@@ -181,7 +181,7 @@ bool cXdoReader::LoadMesh(graphic::cRenderer &renderer)
 
 		//for (u_int i = 0; i < xdo.vertexCount; ++i)
 		//	mesh.normals.push_back(xdo.vertices[i].n);
-		for (u_int i = 0; i < xdo.vertexCount; ++i)
+		for (uint i = 0; i < xdo.vertexCount; ++i)
 			mesh.tex.push_back(Vector3(xdo.vertices[i].u, xdo.vertices[i].v, 0));
 
 		meshGrp->nodes.push_back({});

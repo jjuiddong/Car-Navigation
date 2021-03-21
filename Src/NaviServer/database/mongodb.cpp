@@ -67,8 +67,6 @@ bool cMongoDB::UpdateJourney(const int userId, const uint64 timeId, const float 
 	bsoncxx::builder::stream::document document{};
 	document << "$set" << bsoncxx::builder::stream::open_document;
 
-	document << "distance" << str.Format("%f", totalDistance).utf8().c_str();
-	document << "journey_time" << str.Format("%I64u", journeyTime.m_t).utf8().c_str();
 	document << bsoncxx::builder::stream::close_document;
 
 	collection.update_one(filter.view(), document.view());

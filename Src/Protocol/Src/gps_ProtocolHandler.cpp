@@ -5,7 +5,7 @@ using namespace gps;
 
 
 gps::c2s_Dispatcher::c2s_Dispatcher()
-	: cProtocolDispatcher(gps::c2s_Dispatcher_ID)
+	: cProtocolDispatcher(gps::c2s_Dispatcher_ID, ePacketFormat::BINARY)
 {
 	cProtocolDispatcher::GetDispatcherMap()->insert({c2s_Dispatcher_ID, this });
 }
@@ -19,7 +19,7 @@ bool gps::c2s_Dispatcher::Dispatch(cPacket &packet, const ProtocolHandlers &hand
 	const int packetId = packet.GetPacketId();
 	switch (packetId)
 	{
-	case 1288261456:
+	case 1288261456: // GPSInfo
 		{
 			ProtocolHandlers prtHandler;
 			if (!HandlerMatching<c2s_ProtocolHandler>(handlers, prtHandler))
@@ -38,7 +38,7 @@ bool gps::c2s_Dispatcher::Dispatch(cPacket &packet, const ProtocolHandlers &hand
 		}
 		break;
 
-	case 4019554964:
+	case 4019554964: // AddLandMark
 		{
 			ProtocolHandlers prtHandler;
 			if (!HandlerMatching<c2s_ProtocolHandler>(handlers, prtHandler))

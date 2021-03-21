@@ -589,7 +589,7 @@ void cTerrainQuadTree::RenderResDistribution(graphic::cRenderer &renderer
 	int cnt = 0;
 	XMMATRIX tms[256];
 	vector<Vector3> &distrib = (0 == resType) ? m_resTDistribute : m_resHDistribute;
-	for (u_int i=0; i < distrib.size(); ++i)
+	for (uint i=0; i < distrib.size(); ++i)
 	{
 		auto &vtx = distrib[i];
 		if (!frustum.IsIn(vtx))
