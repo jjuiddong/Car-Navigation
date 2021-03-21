@@ -29,27 +29,18 @@
 
 -----------------------------------------------------------
 - worklist
-
-	-★ ip port, default
-	-★ ip port, serial config default
-	-★ ip port config write
-	-★ gps path write, 그전 위치와 같다면 저장 안함.
-	-★ 속도값은 gprmc를 참조한다.
-	-★ camera 이동 smooth
+	- frustum collision bug
+	- path file upload
 	- 그 전 위치 저장, 프로그램이 시작되면, 그위치로 이동
-	- path informatio upload
-		- rasberry pi server
-	- terrain file chache 
+	- path information upload
+		- raspberry pi server
+	- terrain file cache
 
 	- rendering 분석
-		-★ render quadtree 시간 체크
-		-★ maximum height 최적화
 		- analysis
 		- build quadtree
 		- quadtree render 동적할당 제거
 
-	- 광원 normal
-	- path line 최적화
 	- ghost drive 모드
 	- drive mode 부드럽게 출력
 	- path pump
@@ -62,25 +53,18 @@
 		- gps
 		- camera
 		- global, root
-	-★ ip save
-
-	- 카메라 모드
-		- 넓게
-		- 가까이
 
 	- 디테일 설정
 		- lv15
 		- lv14
 		- lv13
 
-	- media directory multi
+	- 멈춰있을 때 주변 회전
 	- 터치 현재위치 따로 출력
 	- 도로 경계 출력
 	- 지역명 폰트 크게
 	- UI투명
-	-★ 라인 바닥에
 	- 산윤곽
-	- 와이어 프레임
 	- 줌업 빠르게 제스처
 	- 미니맵
 	- 나침반
@@ -136,3 +120,19 @@
 	-★ touch, gesture, notebook 하드웨어 검사
 	-★ gps 파싱 최적화
 	-★ 시간, 속도 백그라운드
+	-★ ip port, default
+	-★ ip port, serial config default
+	-★ ip port config write
+	-★ gps path write, 그전 위치와 같다면 저장 안함.
+	-★ 속도값은 gprmc를 참조한다.
+	-★ camera 이동 smooth
+	-★ rendering 분석
+		-★ render quadtree 시간 체크
+		-★ maximum height 최적화
+	-★ ip save
+	-★ 카메라 모드
+		-★ 넓게
+		-★ 가까이
+	-★ 라인 바닥에
+	-★ media directory multi
+	-★ 와이어 프레임

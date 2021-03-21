@@ -27,9 +27,10 @@ cMapView::cMapView(const string &name)
 	, m_obd2RcvT(0.f)
 	, m_obd2RcvFps(0)
 	, m_obd2Port(4)
-	, m_naviServerIp("220.77.25.119")
+	, m_naviServerIp("127.0.0.1")
 	, m_naviServerPort(10001)
 	, m_sendGpsInfo(0)
+	, m_viewSize(0, 0)
 {
 	ZeroMemory(m_renderOverhead, sizeof(m_renderOverhead));
 }
@@ -44,8 +45,11 @@ cMapView::~cMapView()
 
 bool cMapView::Init(cRenderer &renderer) 
 {
-	const Vector3 eyePos(3040.59766f, 10149.6260f, -4347.90381f);
-	const Vector3 lookAt(2825.30078f, 0.000000000f, 2250.73193f);
+	//const Vector3 eyePos(3040.59766f, 10149.6260f, -4347.90381f);
+	//const Vector3 lookAt(2825.30078f, 0.000000000f, 2250.73193f);
+	const Vector3 eyePos(2887.55542f, 10676.3408f, 594.097351f);
+	const Vector3 lookAt(2674.30518f, 0.000000000f, 2766.95801f);
+
 	const float fov = g_global->m_config.GetFloat("fov", MATH_PI / 4.f);
 	m_camera.SetCamera(eyePos, lookAt, Vector3(0, 1, 0));
 	m_camera.SetProjection(fov, m_rect.Width() / m_rect.Height(), 0.1f, 100000.f);
@@ -53,7 +57,9 @@ bool cMapView::Init(cRenderer &renderer)
 	m_camera.m_kp = g_global->m_config.GetFloat("camera_kp", 1.5f);
 	m_camera.m_kd = g_global->m_config.GetFloat("camera_kd", 0.f);
 
-	sf::Vector2u size((u_int)m_rect.Width() - 15, (u_int)m_rect.Height() - 50);
+	m_viewSize = Vector2(m_rect.Width() - 15.f
+		, m_showTabButton? m_rect.Height() - 50 : m_rect.Height());
+	sf::Vector2u size((u_int)m_viewSize.x, (u_int)m_viewSize.y);
 	cViewport vp = renderer.m_viewPort;
 	vp.m_vp.Width = (float)size.x;
 	vp.m_vp.Height = (float)size.y;
@@ -66,8 +72,8 @@ bool cMapView::Init(cRenderer &renderer)
 		return false;
 
 	m_quadTree.m_isShowDistribute = false;
-	m_quadTree.m_isShowQuadTree = false;
-	m_quadTree.m_isShowFacility = false;
+	m_quadTree.m_showQuadTree = false;
+	m_quadTree.m_showFacility = false;
 	m_quadTree.m_isShowPoi1 = true;
 	m_quadTree.m_isShowPoi2 = false;
 	if (m_quadTree.m_tileMgr)
@@ -96,7 +102,7 @@ bool cMapView::Init(cRenderer &renderer)
 	m_ledAniTailR = g_global->m_config.GetFloat("led_ani_tail", 0.7f);
 	m_ledAniR = g_global->m_config.GetFloat("led_ani", 0.1f);
 	m_obd2Port = g_global->m_config.GetInt("obd2_port", 4);
-	m_naviServerIp = g_global->m_config.GetString("naviserver_ip", "220.77.251.119");
+	m_naviServerIp = g_global->m_config.GetString("naviserver_ip", "127.0.0.1");
 	m_naviServerPort = g_global->m_config.GetInt("naviserver_port", 10001);
 	g_global->m_isDebugMode = g_global->m_config.GetBool("debug_mode", false);
 	m_quadTree.m_distanceLevelOffset = g_global->m_config.GetInt("distance_lv_offset", 20);
@@ -193,7 +199,7 @@ void cMapView::UpdateGPS(const float deltaSeconds)
 		oldGpsPos2 = m_curGpsPos;
 
 	if (m_lookAtDistance == 0)
-		m_lookAtDistance = min(200.f, m_camera.GetEyePos().Distance(m_camera.GetLookAt()));
+		m_lookAtDistance = min(400.f, m_camera.GetEyePos().Distance(m_camera.GetLookAt()));
 
 	// write path log file
 	if (g_global->m_gpsClient.IsConnect()
@@ -220,7 +226,7 @@ void cMapView::UpdateGPS(const float deltaSeconds)
 
 	// 현재 위치를 향해 카메라 looAt을 조정한다.
 	// lookAt이 바뀜에 따라 카메라 위치도 기존 거리를 유지하며 이동한다.
-	g_root.m_lonLat = Vector2((float)gpsInfo.lonLat.x, (float)gpsInfo.lonLat.y);
+	g_global->m_lonLat = Vector2((float)gpsInfo.lonLat.x, (float)gpsInfo.lonLat.y);
 	const Vector3 pos = m_quadTree.Get3DPos(m_curGpsPos);
 	MoveCamera(pos, 0.f);
 
@@ -586,7 +592,7 @@ void cMapView::OnPreRender(const float deltaSeconds)
 		else
 		{
 			renderer.GetDevContext()->RSSetState(states.CullCounterClockwise());
-			if (g_global->m_isShowTerrain)
+			if (g_global->m_isShowTerrain && m_quadTree.m_showTile)
 				m_skybox.Render(renderer);
 		}
 
@@ -598,7 +604,7 @@ void cMapView::OnPreRender(const float deltaSeconds)
 		if (g_global->m_isShowTerrain)
 			m_quadTree.Render(renderer, deltaSeconds, frustum, ray1, ray2);
 
-		if (g_global->m_isShowPrevPath)
+		if (g_global->m_isShowPrevPath && g_global->m_isShowAllPrevPath)
 		{
 			for (auto &p : g_global->m_pathRenderers)
 				p->Render(renderer);
@@ -657,7 +663,7 @@ void cMapView::OnPreRender(const float deltaSeconds)
 			|| (g_global->m_touch.m_type != eTouchType::Touch))
 		{
 			const Vector3 p0 = m_quadTree.Get3DPos(
-				{ (double)g_root.m_lonLat.x, (double)g_root.m_lonLat.y });
+				{ (double)g_global->m_lonLat.x, (double)g_global->m_lonLat.y });
 			renderer.m_dbgLine.m_isSolid = true;
 			renderer.m_dbgLine.SetColor(Vector4(1,1,1,0.5f));
 			renderer.m_dbgLine.SetLine(p0, p0 + Vector3(0, 0.1f, 0), 0.01f);
@@ -680,20 +686,20 @@ void cMapView::OnPreRender(const float deltaSeconds)
 		}
 
 		// render autopilot route
-		if (!g_root.m_route.empty())
-		{
-			renderer.m_dbgLine.SetColor(cColor::WHITE);
-			for (int i = 0; i < (int)g_root.m_route.size() - 1; ++i)
-			{
-				auto &lonLat0 = g_root.m_route[i];
-				auto &lonLat1 = g_root.m_route[i + 1];
+		//if (!g_root.m_route.empty())
+		//{
+		//	renderer.m_dbgLine.SetColor(cColor::WHITE);
+		//	for (int i = 0; i < (int)g_root.m_route.size() - 1; ++i)
+		//	{
+		//		auto &lonLat0 = g_root.m_route[i];
+		//		auto &lonLat1 = g_root.m_route[i + 1];
 
-				const Vector3 p0 = gis::GetRelationPos(gis::WGS842Pos(lonLat0));
-				const Vector3 p1 = gis::GetRelationPos(gis::WGS842Pos(lonLat1));
-				renderer.m_dbgLine.SetLine(p0 + Vector3(0, 20, 0), p1 + Vector3(0, 20, 0), 0.03f);
-				renderer.m_dbgLine.Render(renderer);
-			}
-		}
+		//		const Vector3 p0 = gis::GetRelationPos(gis::WGS842Pos(lonLat0));
+		//		const Vector3 p1 = gis::GetRelationPos(gis::WGS842Pos(lonLat1));
+		//		renderer.m_dbgLine.SetLine(p0 + Vector3(0, 20, 0), p1 + Vector3(0, 20, 0), 0.03f);
+		//		renderer.m_dbgLine.Render(renderer);
+		//	}
+		//}
 
 		if (g_global->m_isShowLandMark)
 		{
@@ -750,6 +756,13 @@ void cMapView::OnPreRender(const float deltaSeconds)
 				renderer.m_dbgLine.Render(renderer);
 			}
 		}
+
+		if (g_global->m_isShowPrevPath && !g_global->m_isShowAllPrevPath)
+		{
+			g_global->m_optPath.RenderQTreeGraph(renderer, m_quadTree
+				, g_global->m_isShowQuadTree, g_global->m_isShowPrevPath);
+		}
+
 	}
 	m_renderTarget.End(renderer);
 
@@ -764,8 +777,14 @@ void cMapView::OnRender(const float deltaSeconds)
 	const double t0 = g_global->m_timer.GetSeconds();
 
 	ImVec2 pos = ImGui::GetCursorScreenPos();
+	const float padding = ImGui::GetStyle().WindowPadding.y * 2.f;
+	m_viewSize = Vector2(m_rect.Width() - 15.f
+		, m_showTabButton ? m_rect.Height() - 50 : m_rect.Height() - padding);
 	m_viewPos = { (int)(pos.x), (int)(pos.y) };
-	m_viewRect = { pos.x + 5, pos.y, pos.x + m_rect.Width() - 30, pos.y + m_rect.Height() - 42 };
+	//m_viewRect = { pos.x + 5, pos.y, pos.x + m_rect.Width() - 30, 
+	//	pos.y + m_rect.Height() - 42 };
+	m_viewRect = { pos.x + 5, pos.y, pos.x + m_viewSize.x,
+		pos.y + m_viewSize.y };
 
 	// HUD
 	bool isOpen = true;
@@ -779,14 +798,16 @@ void cMapView::OnRender(const float deltaSeconds)
 	ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 1));
 	if (g_global->m_isShowMapView)
 	{
-		ImGui::Image(m_renderTarget.m_resolvedSRV, ImVec2(m_rect.Width() - 15, m_rect.Height() - 42)
+		ImGui::Image(m_renderTarget.m_resolvedSRV
+			//, ImVec2(m_rect.Width() - 15, m_rect.Height() - 42)
+			, ImVec2(m_viewSize.x, m_viewSize.y)
 			, ImVec2(0,0), ImVec2(1,1)
 			, g_global->m_isDarkMode? *(ImVec4*)&g_global->m_darkColor : ImVec4(1,1,1,1));
 
 		RenderRPMGuage(pos, guageH, deltaSeconds);
 
 		ImGui::SetNextWindowPos(ImVec2(pos.x, pos.y));
-		ImGui::SetNextWindowSize(ImVec2(m_viewRect.Width(), dateH + guageH));
+		ImGui::SetNextWindowSize(ImVec2(m_viewRect.Width() - 100.f, dateH + guageH));
 		if (ImGui::Begin("Car Information", &isOpen, flags))
 		{
 			// render datetime
@@ -845,7 +866,8 @@ void cMapView::OnRender(const float deltaSeconds)
 			, m_obd2RcvFps, m_obd2RcvCnt, g_global->m_obd.m_queryCnt
 			, g_global->m_obd.m_rcvStr.c_str());
 
-		g_global->m_naviView->OnRender(deltaSeconds);
+		if (g_global->m_naviView)
+			g_global->m_naviView->OnRender(deltaSeconds);
 
 		ImGui::PopStyleColor();
 		ImGui::End();
@@ -962,6 +984,19 @@ void cMapView::RenderRPMGuage(const ImVec2 &pos, const float guageH, const float
 					}
 				}
 			}
+		}
+
+		// Minimize Button
+		ImGui::SetCursorPos(ImVec2(m_viewRect.Width() - 100.f, 0));
+		if (ImGui::Button("_", ImVec2(30.f, 30.f)))
+		{
+			ShowWindow(m_owner->getSystemHandle(), SW_MINIMIZE);
+		}
+		ImGui::SameLine();
+		// Close Button
+		if (ImGui::Button("X", ImVec2(60.f, 30.f)))
+		{
+			m_owner->close();
 		}
 
 		ImGui::End();
@@ -1189,7 +1224,7 @@ void cMapView::UpdateCameraTraceLookat(
 	{
 		const Vector3 p0 = m_quadTree.Get3DPos(track.back().lonLat);
 		if (isUpdateDistance)
-			m_lookAtDistance = min(200.f, m_camera.GetEyePos().Distance(p0));
+			m_lookAtDistance = min(400.f, m_camera.GetEyePos().Distance(p0));
 		//m_lookAtYVector = m_camera.GetDirection().y;
 	}
 }
@@ -1302,8 +1337,8 @@ void cMapView::OnMouseDown(const sf::Mouse::Button &button, const POINT mousePt)
 
 		cAutoCam cam(&m_camera);
 		const Vector2d lonLat = m_quadTree.GetWGS84(p1);
-		gis::LatLonToUTMXY(lonLat.y, lonLat.x, 52, g_root.m_utmLoc.x, g_root.m_utmLoc.y);
-		g_root.m_lonLat = Vector2((float)lonLat.x, (float)lonLat.y);
+		gis::LatLonToUTMXY(lonLat.y, lonLat.x, 52, g_global->m_utmLoc.x, g_global->m_utmLoc.y);
+		g_global->m_lonLat = Vector2((float)lonLat.x, (float)lonLat.y);
 
 		if (g_global->m_isSelectMapScanningCenter)
 		{
@@ -1322,6 +1357,7 @@ void cMapView::OnMouseDown(const sf::Mouse::Button &button, const POINT mousePt)
 		{
 			g_global->m_landMarkSelectState = 0;
 			g_global->m_landMark.AddLandMark("LandMark", lonLat);
+			g_global->m_landMark.Write("landmark.txt");
 			if (m_naviClient.IsConnect())
 				m_gpsProtocol.AddLandMark(network2::SERVER_NETID, lonLat.x, lonLat.y);
 		}
@@ -1474,12 +1510,15 @@ void cMapView::OnResetDevice()
 	cRenderer &renderer = GetRenderer();
 
 	// update viewport
-	sRectf viewRect = { 0, 0, m_rect.Width() - 15, m_rect.Height() - 50 };
-	m_camera.SetViewPort(viewRect.Width(), viewRect.Height());
+	const float padding = ImGui::GetStyle().WindowPadding.y * 2.f;
+	m_viewSize = Vector2(m_rect.Width() - 15.f
+		, m_showTabButton ? m_rect.Height() - 50 : m_rect.Height() - padding);
+	//sRectf viewRect = { 0, 0, m_rect.Width() - 15, m_rect.Height() - 50 };
+	m_camera.SetViewPort(m_viewSize.x, m_viewSize.y);
 
 	cViewport vp = GetRenderer().m_viewPort;
-	vp.m_vp.Width = viewRect.Width();
-	vp.m_vp.Height = viewRect.Height();
+	vp.m_vp.Width = m_viewSize.x;
+	vp.m_vp.Height = m_viewSize.y;
 	m_renderTarget.Create(renderer, vp, DXGI_FORMAT_R8G8B8A8_UNORM, true, true, DXGI_FORMAT_D24_UNORM_S8_UINT);
 }
 

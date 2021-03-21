@@ -13,82 +13,70 @@
     <Filter Include="protocol_src">
       <UniqueIdentifier>{65549a51-80e2-4d95-a748-04103de5ead6}</UniqueIdentifier>
     </Filter>
+    <Filter Include="optimize">
+      <UniqueIdentifier>{2f877bb5-9843-40c0-9e3f-532bfd4f0085}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="carnavi.cpp" />
     <ClCompile Include="global.cpp" />
     <ClCompile Include="stdafx.cpp" />
-    <ClCompile Include="informationview.cpp">
-      <Filter>view</Filter>
-    </ClCompile>
-    <ClCompile Include="navigationview.cpp">
-      <Filter>view</Filter>
-    </ClCompile>
-    <ClCompile Include="mapview.cpp">
-      <Filter>view</Filter>
-    </ClCompile>
-    <ClCompile Include="landmark.cpp">
-      <Filter>path</Filter>
-    </ClCompile>
-    <ClCompile Include="path.cpp">
-      <Filter>path</Filter>
-    </ClCompile>
-    <ClCompile Include="pathrenderer.cpp">
-      <Filter>path</Filter>
-    </ClCompile>
-    <ClCompile Include="gpsclient.cpp">
-      <Filter>lib</Filter>
-    </ClCompile>
-    <ClCompile Include="obd2.cpp">
-      <Filter>lib</Filter>
-    </ClCompile>
-    <ClCompile Include="touch.cpp">
-      <Filter>lib</Filter>
-    </ClCompile>
     <ClCompile Include="..\Protocol\Src\gps_Protocol.cpp">
       <Filter>protocol_src</Filter>
     </ClCompile>
     <ClCompile Include="..\Protocol\Src\gps_ProtocolHandler.cpp">
       <Filter>protocol_src</Filter>
     </ClCompile>
-    <ClCompile Include="pathcompare.cpp">
+    <ClCompile Include="lib\gpsclient.cpp">
+      <Filter>lib</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\obd2.cpp">
+      <Filter>lib</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\touch.cpp">
+      <Filter>lib</Filter>
+    </ClCompile>
+    <ClCompile Include="path\landmark.cpp">
       <Filter>path</Filter>
+    </ClCompile>
+    <ClCompile Include="path\pathcompare.cpp">
+      <Filter>path</Filter>
+    </ClCompile>
+    <ClCompile Include="path\pathfile.cpp">
+      <Filter>path</Filter>
+    </ClCompile>
+    <ClCompile Include="path\pathrenderer.cpp">
+      <Filter>path</Filter>
+    </ClCompile>
+    <ClCompile Include="view\informationview.cpp">
+      <Filter>view</Filter>
+    </ClCompile>
+    <ClCompile Include="view\mapview.cpp">
+      <Filter>view</Filter>
+    </ClCompile>
+    <ClCompile Include="view\navigationview.cpp">
+      <Filter>view</Filter>
+    </ClCompile>
+    <ClCompile Include="path\binpathfile.cpp">
+      <Filter>path</Filter>
+    </ClCompile>
+    <ClCompile Include="optimize\optimizepath.cpp">
+      <Filter>optimize</Filter>
+    </ClCompile>
+    <ClCompile Include="optimize\historyfile.cpp">
+      <Filter>optimize</Filter>
+    </ClCompile>
+    <ClCompile Include="optimize\qtreegraph.cpp">
+      <Filter>optimize</Filter>
+    </ClCompile>
+    <ClCompile Include="optimize\pathlist.cpp">
+      <Filter>optimize</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="carnavi.h" />
     <ClInclude Include="global.h" />
     <ClInclude Include="stdafx.h" />
-    <ClInclude Include="informationview.h">
-      <Filter>view</Filter>
-    </ClInclude>
-    <ClInclude Include="navigationview.h">
-      <Filter>view</Filter>
-    </ClInclude>
-    <ClInclude Include="mapview.h">
-      <Filter>view</Filter>
-    </ClInclude>
-    <ClInclude Include="landmark.h">
-      <Filter>path</Filter>
-    </ClInclude>
-    <ClInclude Include="path.h">
-      <Filter>path</Filter>
-    </ClInclude>
-    <ClInclude Include="pathrenderer.h">
-      <Filter>path</Filter>
-    </ClInclude>
-    <ClInclude Include="gpsclient.h">
-      <Filter>lib</Filter>
-    </ClInclude>
-    <ClInclude Include="obd2.h">
-      <Filter>lib</Filter>
-    </ClInclude>
-    <ClInclude Include="touch.h">
-      <Filter>lib</Filter>
-    </ClInclude>
-    <ClInclude Include="utility.h">
-      <Filter>lib</Filter>
-    </ClInclude>
     <ClInclude Include="..\Protocol\Src\gps_Protocol.h">
       <Filter>protocol_src</Filter>
     </ClInclude>
@@ -98,8 +86,53 @@
     <ClInclude Include="..\Protocol\Src\gps_ProtocolHandler.h">
       <Filter>protocol_src</Filter>
     </ClInclude>
-    <ClInclude Include="pathcompare.h">
+    <ClInclude Include="lib\gpsclient.h">
+      <Filter>lib</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\obd2.h">
+      <Filter>lib</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\touch.h">
+      <Filter>lib</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\utility.h">
+      <Filter>lib</Filter>
+    </ClInclude>
+    <ClInclude Include="path\landmark.h">
       <Filter>path</Filter>
+    </ClInclude>
+    <ClInclude Include="path\pathcompare.h">
+      <Filter>path</Filter>
+    </ClInclude>
+    <ClInclude Include="path\pathfile.h">
+      <Filter>path</Filter>
+    </ClInclude>
+    <ClInclude Include="path\pathrenderer.h">
+      <Filter>path</Filter>
+    </ClInclude>
+    <ClInclude Include="view\informationview.h">
+      <Filter>view</Filter>
+    </ClInclude>
+    <ClInclude Include="view\mapview.h">
+      <Filter>view</Filter>
+    </ClInclude>
+    <ClInclude Include="view\navigationview.h">
+      <Filter>view</Filter>
+    </ClInclude>
+    <ClInclude Include="path\binpathfile.h">
+      <Filter>path</Filter>
+    </ClInclude>
+    <ClInclude Include="optimize\optimizepath.h">
+      <Filter>optimize</Filter>
+    </ClInclude>
+    <ClInclude Include="optimize\historyfile.h">
+      <Filter>optimize</Filter>
+    </ClInclude>
+    <ClInclude Include="optimize\qtreegraph.h">
+      <Filter>optimize</Filter>
+    </ClInclude>
+    <ClInclude Include="optimize\pathlist.h">
+      <Filter>optimize</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -28,13 +28,13 @@ struct sQuadTreeNode : public common::cMemoryPool<sQuadTreeNode<T>>
 		xLoc = 0;
 		yLoc = 0;
 		level = 0;
-		parent = NULL;
-		children[0] = children[1] = children[2] = children[3] = NULL;
+		parent = nullptr;
+		children[0] = children[1] = children[2] = children[3] = nullptr;
 	}
 };
 
 
-template<class T>
+template<class T = int> // int : dummy
 class cQuadTree
 {
 public:
@@ -48,18 +48,20 @@ public:
 	bool RemoveChildren(sQuadTreeNode<T> *node, const bool isRmTree = true);
 	sQuadTreeNode<T>* GetNode(const sRectf &rect);
 	sQuadTreeNode<T>* GetNode(const int level, const int xLoc, const int yLoc);
-	std::tuple<int,int,int> GetNodeLevel(const sRectf &rect);
+	sQuadTreeNode<T>* GetNode(const uint64 key);
 	sQuadTreeNode<T>* GetNorthNeighbor(const sQuadTreeNode<T> *node);
 	sQuadTreeNode<T>* GetSouthNeighbor(const sQuadTreeNode<T> *node);
 	sQuadTreeNode<T>* GetWestNeighbor(const sQuadTreeNode<T> *node);
 	sQuadTreeNode<T>* GetEastNeighbor(const sQuadTreeNode<T> *node);
 
+	static std::tuple<int,int,int> GetNodeLevel(const sRectf &rect);
+	static std::pair<int, int> GetNodeLocation(const sRectf &rect, const int level);
 	static sRectf GetNodeRect(const int level, const int xLoc, const int yLoc);
 	static sRectf GetNodeRect(const sQuadTreeNode<T> *node);
 	static sRectf GetNodeGlobalRect(const sQuadTreeNode<T> *node);
 	static Vector3 GetGlobalPos(const Vector3 &relPos);
 	static Vector3 GetRelationPos(const Vector3 &globalPos);
-	static __int64 MakeKey(const int level, const int xLoc, const int yLoc);
+	static uint64 MakeKey(const int level, const int xLoc, const int yLoc);
 	void Clear(const bool isRmTree = true);
 
 
@@ -69,7 +71,7 @@ public:
 	vector<sQuadTreeNode<T>*> m_roots; // root nodes (multiple root node)
 	sRectf m_rootRect;
 	static const float m_quadScale;
-	std::map<__int64, sQuadTreeNode<T>*> m_nodeTable[MAX_LEVEL]; // level quad tree map
+	std::map<uint64, sQuadTreeNode<T>*> m_nodeTable[MAX_LEVEL]; // level quad tree map
 														  // key = quad node x,y index (linear)
 };
 template<class T> const float cQuadTree<T>::m_quadScale = 1.f;
@@ -96,14 +98,13 @@ inline cQuadTree<T>::~cQuadTree()
 
 
 template<class T>
-inline __int64 cQuadTree<T>::MakeKey(const int level, const int xLoc, const int yLoc)
+inline uint64 cQuadTree<T>::MakeKey(const int level, const int xLoc, const int yLoc)
 {
-	__int64 lv = level;
-	//__int64 y = yLoc * 10;
-	__int64 y = yLoc << (MAX_LEVEL + 1);
-	lv <<= (MAX_LEVEL + MAX_LEVEL + 2);
-	//y <<= level;
-	return lv + y + xLoc;
+	uint64 lv = level;
+	uint64 y = yLoc;
+	y <<= (MAX_LEVEL + 4);
+	lv <<= (MAX_LEVEL + MAX_LEVEL + 8);
+	return (uint64)(lv + y + xLoc);
 }
 
 
@@ -112,7 +113,7 @@ inline bool cQuadTree<T>::Insert(sQuadTreeNode<T> *node)
 {
 	RETV(node->level >= MAX_LEVEL, false);
 
-	const __int64 key = MakeKey(node->level, node->xLoc, node->yLoc);
+	const uint64 key = MakeKey(node->level, node->xLoc, node->yLoc);
 
 	auto it = m_nodeTable[node->level].find(key);
 	if (m_nodeTable[node->level].end() != it)
@@ -134,7 +135,7 @@ inline bool cQuadTree<T>::Remove(sQuadTreeNode<T> *node
 {
 	RETV(node->level >= MAX_LEVEL, false);
 
-	const __int64 key = MakeKey(node->level, node->xLoc, node->yLoc);
+	const uint64 key = MakeKey(node->level, node->xLoc, node->yLoc);
 
 	auto it = m_nodeTable[node->level].find(key);
 	if (m_nodeTable[node->level].end() == it)
@@ -153,56 +154,62 @@ inline bool cQuadTree<T>::Remove(sQuadTreeNode<T> *node
 }
 
 
-// node의 children에 node를 추가한다.
+// add children and allocate memory
 template<class T>
-inline bool cQuadTree<T>::InsertChildren(sQuadTreeNode<T> *node)
+inline bool cQuadTree<T>::InsertChildren(sQuadTreeNode<T> *parent)
 {
-	RETV((node->level + 1) >= MAX_LEVEL, false);
+	RETV((parent->level + 1) >= MAX_LEVEL, false);
 
-	sQuadTreeNode<T> *p0 = new sQuadTreeNode<T>;
-	sQuadTreeNode<T> *p1 = new sQuadTreeNode<T>;
-	sQuadTreeNode<T> *p2 = new sQuadTreeNode<T>;
-	sQuadTreeNode<T> *p3 = new sQuadTreeNode<T>;
-	sQuadTreeNode<T> *pp[4] = { p0, p1, p2, p3 };
-	return InsertChildren(node, pp);
+	int locs[] = { 0,0, 1,0, 0,1, 1,1 }; //x,y loc
+	for (int i = 0; i < 4; ++i)
+	{
+		sQuadTreeNode<T> *p = new sQuadTreeNode<T>;
+		p->xLoc = (parent->xLoc << 1) + locs[i * 2];
+		p->yLoc = (parent->yLoc << 1) + locs[i * 2 + 1];
+		p->level = parent->level + 1;
+		p->parent = parent;
+		assert(!parent->children[i]);
+		parent->children[i] = p;
+		Insert(p);
+	}
+	return true;
 }
 
 
-// node의 children에 node를 추가한다.
+// add children
 template<class T>
-inline bool cQuadTree<T>::InsertChildren(sQuadTreeNode<T> *node, sQuadTreeNode<T> *child[4])
+inline bool cQuadTree<T>::InsertChildren(
+	sQuadTreeNode<T> *parent, sQuadTreeNode<T> *child[4])
 {
-	RETV((node->level + 1) >= MAX_LEVEL, false);
+	RETV((parent->level + 1) >= MAX_LEVEL, false);
 
 	int locs[] = { 0,0, 1,0, 0,1, 1,1 }; //x,y loc
-
 	for (int i = 0; i < 4; ++i)
 	{
 		sQuadTreeNode<T> *p = child[i];
-		p->xLoc = (node->xLoc << 1) + locs[i * 2];
-		p->yLoc = (node->yLoc << 1) + locs[i * 2 + 1];
-		p->level = node->level + 1;
-		p->parent = node;
-		assert(!node->children[i]);
-		node->children[i] = p;
+		p->xLoc = (parent->xLoc << 1) + locs[i * 2];
+		p->yLoc = (parent->yLoc << 1) + locs[i * 2 + 1];
+		p->level = parent->level + 1;
+		p->parent = parent;
+		assert(!parent->children[i]);
+		parent->children[i] = p;
 		Insert(p);
 	}
-
 	return true;
 }
 
 
 template<class T>
-inline bool cQuadTree<T>::RemoveChildren(sQuadTreeNode<T> *node
+inline bool cQuadTree<T>::RemoveChildren(sQuadTreeNode<T> *parent
 	, const bool isRmTree //= true
 )
 {
 	for (int i = 0; i < 4; ++i)
 	{
-		if (node->children[i])
+		if (parent->children[i])
 		{
-			Remove(node->children[i], isRmTree);
-			node->children[i] = NULL;
+			Remove(parent->children[i], isRmTree);
+			parent->children[i] = NULL;
 		}
 	}
 	return true;
@@ -237,12 +244,14 @@ inline sQuadTreeNode<T>* cQuadTree<T>::GetNode(const sRectf &rect)
 }
 
 
-// return nodeLevel, x, y correspond rect
+// return node level, x, y correspond rect
 template<class T>
-std::tuple<int, int, int> cQuadTree<T>::GetNodeLevel(const sRectf &rect)
+inline std::tuple<int, int, int> cQuadTree<T>::GetNodeLevel(const sRectf &rect)
 {
-	if ((rect.left > m_rootRect.right) || (rect.top > m_rootRect.bottom)
-		|| (rect.right < 0) || (rect.bottom < 0))
+	//if ((rect.left > m_rootRect.right) || (rect.top > m_rootRect.bottom)
+	//	|| (rect.right < 0) || (rect.bottom < 0))
+	//	return std::make_tuple(-1,0,0);
+	if ((rect.right < 0) || (rect.bottom < 0))
 		return std::make_tuple(-1,0,0);
 
 	int x1 = (int)(rect.left * m_quadScale);
@@ -268,18 +277,54 @@ std::tuple<int, int, int> cQuadTree<T>::GetNodeLevel(const sRectf &rect)
 }
 
 
+// return nodeLevel, x, y correspond rect and level
 template<class T>
-inline sQuadTreeNode<T>* cQuadTree<T>::GetNode(const int level, const int xLoc, const int yLoc)
+inline std::pair<int, int> cQuadTree<T>::GetNodeLocation(
+	const sRectf &rect, const int level)
+{
+	const auto result = GetNodeLevel(rect);
+	int lv = std::get<0>(result);
+	int xLoc = std::get<1>(result);
+	int yLoc = std::get<2>(result);
+
+	if (lv < level)
+		return std::make_pair(-1, -1); // error occurred!!
+
+	// find level, xloc, yloc
+	while (lv != level)
+	{
+		xLoc >>= 1;
+		yLoc >>= 1;
+		--lv;
+	}
+	return std::make_pair(xLoc, yLoc);
+}
+
+
+template<class T>
+inline sQuadTreeNode<T>* cQuadTree<T>::GetNode(
+	const int level, const int xLoc, const int yLoc)
 {
 	if ((uint)level >= MAX_LEVEL)
 		return NULL;
-
-	const __int64 key = MakeKey(level, xLoc, yLoc);
-
+	const uint64 key = MakeKey(level, xLoc, yLoc);
 	auto it = m_nodeTable[level].find(key);
 	if (m_nodeTable[level].end() == it)
 		return false; // Error!! Not Exist
+	return it->second;
+}
 
+
+template<class T>
+inline sQuadTreeNode<T>* cQuadTree<T>::GetNode(const uint64 key)
+{
+	//const int level = (key & 0x3C00000000) >> (MAX_LEVEL + MAX_LEVEL + 2);
+	const int level = (key >> (MAX_LEVEL + MAX_LEVEL + 8)) & 0x0F;
+	if ((uint)level >= MAX_LEVEL)
+		return NULL;
+	auto it = m_nodeTable[level].find(key);
+	if (m_nodeTable[level].end() == it)
+		return false; // Error!! Not Exist
 	return m_nodeTable[level][key];
 }
 

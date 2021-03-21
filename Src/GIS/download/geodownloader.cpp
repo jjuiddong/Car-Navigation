@@ -1,7 +1,7 @@
 
 #include "stdafx.h"
 #include "geodownloader.h"
-#include "quadtilemanager.h"
+#include "../tile/quadtilemanager.h"
 
 using namespace gis;
 

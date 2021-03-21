@@ -23,7 +23,6 @@ public:
 
 public:
 	int m_renderFlag;
-	cMapView *m_mapView;
 
 	// facility position
 	Vector2 m_offsetLonLat;
@@ -39,7 +38,7 @@ public:
 	Vector2d m_utmLoc; // UTM ÁÂÇ¥
 	float m_genRouteGap = 0.0005f;
 	float m_genRouteAltitude = 20.f;
-	vector<Vector2d> m_route;
+	//vector<Vector2d> m_route;
 };
 
 extern cRoot g_root;

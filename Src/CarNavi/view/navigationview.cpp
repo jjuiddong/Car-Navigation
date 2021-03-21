@@ -1,7 +1,6 @@
 
 #include "stdafx.h"
 #include "navigationview.h"
-#include "carnavi.h"
 #include "mapview.h"
 
 using namespace graphic;
@@ -35,7 +34,6 @@ cNavigationView::cNavigationView(const StrId &name)
 			if (c == '^')
 				c = '\0';
 	}
-
 }
 
 cNavigationView::~cNavigationView()
@@ -94,7 +92,33 @@ void cNavigationView::OnRender(const float deltaSeconds)
 	}
 	//
 
-	// Show Prev Path CheckBox
+	// show optimize path progressbar
+	if (g_global->m_optPath.m_state == optimize::cOptimizePath::State::Run)
+	{
+		ImGui::SetNextWindowPos(ImVec2(0, g_global->m_mapView->m_viewRect.bottom - 30.f));
+		ImGui::SetNextWindowSize(ImVec2(g_global->m_mapView->m_viewRect.Width()+30, 30));
+		if (ImGui::Begin("Optimize Progress", nullptr, flags))
+		{
+			if (g_global->m_optPath.m_totalCalcCount > 0
+				&& g_global->m_optPath.m_tableCount > 0)
+			{
+				const float r = 1.0f / (float)g_global->m_optPath.m_totalCalcCount;
+
+				const float ratio0 = ((float)g_global->m_optPath.m_calcRowCount 
+					/ (float)g_global->m_optPath.m_tableCount) * r;
+
+				const float ratio1 = (float)g_global->m_optPath.m_curCalcCount 
+					/ (float)g_global->m_optPath.m_totalCalcCount;
+
+				ImGui::ProgressBar(ratio0 + ratio1);
+			}
+
+			ImGui::ProgressBar(g_global->m_optPath.m_progress);
+			ImGui::End();
+		}
+	}
+
+	// show preve path checkbox
 	ImGui::SetNextWindowPos(ImVec2(g_global->m_mapView->m_viewRect.left + 150.f
 		, g_global->m_mapView->m_viewRect.bottom - 55.f));
 	ImGui::SetNextWindowSize(ImVec2(300, 55));
@@ -102,18 +126,14 @@ void cNavigationView::OnRender(const float deltaSeconds)
 	{
 		if (ImGui::Checkbox("Show Prev Path", &g_global->m_isShowPrevPath))
 		{
-			if (g_global->m_isShowPrevPath)
+			if (g_global->m_isShowPrevPath && g_global->m_isShowAllPrevPath)
+			{
 				g_global->ReadAndConvertPathFiles(g_global->m_mapView->GetRenderer()
 					, g_global->m_mapView->m_quadTree, "./path/");
-			//cPathCompare comp;
-			//comp.Compare("./path/");
+			}
 		}
-		//ImGui::SameLine();
-		//ImGui::Checkbox("DeepCopy Smooth", &g_global->m_mapView->m_quadTree.m_tileMgr->m_isDeepCopySmooth);
 		ImGui::End();
 	}
-	//
-
 
 	cTerrainQuadTree &terrain = g_global->m_mapView->m_quadTree;
 	cGpsClient &gpsClient = g_global->m_gpsClient;
@@ -242,7 +262,7 @@ void cNavigationView::OnRender(const float deltaSeconds)
 		ImGui::Text("GPS Count = %d", g_global->m_gpsClient.m_recvCount);	
 		ImGui::Text("la d = %.3f", g_global->m_mapView->m_lookAtDistance);
 		ImGui::Text("la y = %.3f", g_global->m_mapView->m_lookAtYVector);
-		ImGui::Checkbox("Quadtree", &terrain.m_isShowQuadTree);
+		ImGui::Checkbox("Quadtree", &terrain.m_showQuadTree);
 		ImGui::SameLine();
 		ImGui::Checkbox("Lv", &terrain.m_isShowLevel);
 		ImGui::SameLine();
@@ -262,6 +282,27 @@ void cNavigationView::OnRender(const float deltaSeconds)
 	{
 		ImGui::Checkbox("Trace GPS", &g_global->m_isTraceGPSPos);
 		ImGui::Checkbox("Trace Rotate", &g_global->m_isRotateTrace);
+		if (ImGui::Checkbox("Show All Prev Path", &g_global->m_isShowAllPrevPath))
+		{
+			if (g_global->m_isShowPrevPath && g_global->m_isShowAllPrevPath)
+			{
+				g_global->ReadAndConvertPathFiles(g_global->m_mapView->GetRenderer()
+					, g_global->m_mapView->m_quadTree, "./path/");
+			}
+		}
+		ImGui::SameLine();
+		ImGui::Checkbox("Show Quad", &g_global->m_isShowQuadTree);
+		if (ImGui::Checkbox("Show Wireframe", &terrain.m_showWireframe))
+		{ 
+			if (!terrain.m_showWireframe && !terrain.m_showTile)
+				terrain.m_showTile = true;
+		}
+		ImGui::SameLine();
+		if (ImGui::Checkbox("Show Texture", &terrain.m_showTile))
+		{
+			if (!terrain.m_showTile && !terrain.m_showWireframe)
+				terrain.m_showWireframe = true;
+		}
 		ImGui::Checkbox("Show LandMark", &g_global->m_isShowLandMark);
 		ImGui::Checkbox("Show LandMark2", &g_global->m_isShowLandMark2);
 		ImGui::Checkbox("Black Mode", &g_global->m_isDarkMode);

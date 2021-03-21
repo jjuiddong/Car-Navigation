@@ -2,10 +2,10 @@
 // Car Navigation
 //
 #include "stdafx.h"
-#include "mapview.h"
+#include "view/mapview.h"
 #include "carnavi.h"
-#include "informationview.h"
-#include "navigationview.h"
+#include "view/informationview.h"
+#include "view/navigationview.h"
 
 using namespace graphic;
 using namespace framework;
@@ -18,7 +18,6 @@ common::cMemoryPool2<256 * 256 * sizeof(float)> g_memPool256;
 common::cMemoryPool2<258 * 258 * sizeof(float)> g_memPool258;
 common::cMemoryPool3<graphic::cTexture, 512> g_memPoolTex;
 
-cRoot g_root;
 cGlobal *g_global = NULL;
 
 
@@ -26,6 +25,10 @@ cViewer::cViewer()
 {
 	m_windowName = L"Navigation";
 	m_isLazyMode = true;
+	m_isWindowTitleBar = false;
+	m_isTitleBarOverriding = true;
+	m_isResizable = false;
+	m_titleBarHeight2 = 0.f;
 	const RECT r = { 0, 0, 1024, 768 };
 	//const RECT r = { 0, 0, 1280, 960 };
 	m_windowRect = r;
@@ -70,6 +73,7 @@ bool cViewer::OnInit()
 	m_mapView->Create(eDockState::DOCKWINDOW, eDockSlot::TAB, this, NULL);
 	bool result = m_mapView->Init(m_renderer);
 	assert(result);
+	m_mapView->m_showTabButton = false;
 
 	m_naviView = new cNavigationView("Navigation View");
 	m_naviView->m_owner = this;
@@ -82,7 +86,6 @@ bool cViewer::OnInit()
 	//result = m_observerView->Init(m_renderer);
 	//assert(result);
 
-	g_root.m_mapView = m_mapView;
 	g_global->m_mapView = m_mapView;
 	g_global->m_infoView = m_infoView;
 	g_global->m_naviView = m_naviView;
@@ -90,24 +93,17 @@ bool cViewer::OnInit()
 	if (g_global->m_isShowPrevPath)
 		g_global->ReadAndConvertPathFiles(m_renderer, m_mapView->m_quadTree, "./path/");
 
+	// initialize camera type
+	if (m_mapView)
+		m_mapView->ChangeViewCamera(g_global->m_camType);
+
 	m_gui.SetContext();
 	m_gui.SetStyleColorsDark();
 
 	ShowWindow(getSystemHandle(), SW_MAXIMIZE);
 	//g_global->ConvertTrackPos2Path();
 
-	//double totDistance = 0.f;
-	//cPath path;
-	//if (path.Read("path/path_20200424.txt"))
-	//{
-	//	for (uint i = 1; i < path.m_table.size(); ++i)
-	//	{
-	//		cPath::sRow r0 = path.m_table[i - 1];
-	//		cPath::sRow r1 = path.m_table[i];
-	//		const double d = gis::WGS84Distance2(r0.lonLat, r1.lonLat);
-	//		totDistance += d;
-	//	}
-	//}
+	g_global->m_optPath.Optimize(m_renderer, m_mapView->m_quadTree);
 
 	return true;
 }
@@ -123,6 +119,8 @@ void cViewer::OnUpdate(const float deltaSeconds)
 
 void cViewer::OnRender(const float deltaSeconds)
 {
+	//m_mapView->PreRender(deltaSeconds);
+	//m_mapView->OnRender(deltaSeconds);
 }
 
 

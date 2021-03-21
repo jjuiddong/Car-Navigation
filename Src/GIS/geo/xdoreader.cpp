@@ -158,7 +158,7 @@ bool cXdoReader::LoadMesh(graphic::cRenderer &renderer)
 			//mesh.vertices.push_back(Vector3(xdo.vertices[i].p.x, xdo.vertices[i].p.z, xdo.vertices[i].p.y));
 		}
 
-		//for (u_int i = 0; i < xdo.vertexCount; ++i)
+		//for (uint i = 0; i < xdo.vertexCount; ++i)
 		//	mesh.vertices.push_back(Vector3(xdo.vertices[i].p.x, xdo.vertices[i].p.z, xdo.vertices[i].p.y));
 			//mesh.vertices.push_back(Vector3(xdo.vertices[i].p.x, xdo.vertices[i].p.y, xdo.vertices[i].p.z));
 			//mesh.vertices.push_back(Vector3(-xdo.vertices[i].p.x, -xdo.vertices[i].p.y, xdo.vertices[i].p.z));
@@ -169,7 +169,7 @@ bool cXdoReader::LoadMesh(graphic::cRenderer &renderer)
 
 			//mesh.vertices.push_back(Vector3(xdo.vertices[i].p.x, xdo.vertices[i].p.y, xdo.vertices[i].p.z));
 			//mesh.vertices.push_back(xdo.vertices[i].p);
-		//for (u_int i = 0; i < xdo.indexCount; ++i)
+		//for (uint i = 0; i < xdo.indexCount; ++i)
 		//	mesh.indices.push_back(xdo.indices[i]);
 
 		for (uint i = 0; i < xdo.indexCount; i+=3)
@@ -179,7 +179,7 @@ bool cXdoReader::LoadMesh(graphic::cRenderer &renderer)
 			mesh.indices.push_back(xdo.indices[i+2]);
 		}
 
-		//for (u_int i = 0; i < xdo.vertexCount; ++i)
+		//for (uint i = 0; i < xdo.vertexCount; ++i)
 		//	mesh.normals.push_back(xdo.vertices[i].n);
 		for (uint i = 0; i < xdo.vertexCount; ++i)
 			mesh.tex.push_back(Vector3(xdo.vertices[i].u, xdo.vertices[i].v, 0));

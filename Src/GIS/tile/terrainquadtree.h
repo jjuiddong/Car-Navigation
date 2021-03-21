@@ -40,6 +40,7 @@ public:
 	float GetHeight(const Vector2 &relPos);
 	inline int GetLevel(const float distance);
 	std::pair<bool,Vector3> Pick(const Ray &ray);
+	inline bool IsContain(const graphic::cFrustum &frustum, const sRectf &rect, const float maxH);
 	void Clear();
 
 
@@ -50,11 +51,11 @@ protected:
 	eDirection::Enum GetOpposite(const eDirection::Enum type);
 	void BuildQuadTree(const graphic::cFrustum &frustum, const Ray &ray);
 	void RenderTessellation(graphic::cRenderer &renderer, const float deltaSeconds, const graphic::cFrustum &frustum);
+	void RenderWireframe(graphic::cRenderer &renderer, const float deltaSeconds, const graphic::cFrustum &frustum);
 	void RenderFacility(graphic::cRenderer &renderer, const float deltaSeconds, const graphic::cFrustum &frustum);
 	void RenderQuad(graphic::cRenderer &renderer, const float deltaSeconds, const graphic::cFrustum &frustum, const Ray &ray);
 	void RenderResDistribution(graphic::cRenderer &renderer, const float deltaSeconds, const graphic::cFrustum &frustum, const int resType);
 	void RenderRect3D(graphic::cRenderer &renderer, const float deltaSeconds, const sRectf &rect, const graphic::cColor &color);
-	inline bool IsContain(const graphic::cFrustum &frustum, const sRectf &rect, const float maxH);
 	bool ReadResourceTDistribution(const char *fileName);
 	bool ReadResourceHDistribution(const char *fileName);
 	//float GetMaximumHeight(const sQuadTreeNode<sQuadData> *node);
@@ -73,9 +74,11 @@ public:
 	vector<Vector3> m_resHDistribute; // heightmap
 	sQuadTreeNode<sQuadData> *m_nodeBuffer; // reserved tree nodes
 
-	bool m_isShowTexture;
-	bool m_isShowFacility;
-	bool m_isShowQuadTree;
+	bool m_showTexture;
+	bool m_showTile;
+	bool m_showFacility;
+	bool m_showQuadTree;
+	bool m_showWireframe;
 	bool m_isShowLevel;
 	bool m_isShowLoc;
 	bool m_isShowPoi1;
@@ -87,8 +90,8 @@ public:
 	int m_optimizeLevel;
 	int m_showQuadCount;
 	int m_loopCount;
-	const char *m_techName[5]; // Light, NoTexture, Heightmap, Light_Heightmap, Unlit
-	int m_techniqType;
+	const char *m_techName[6]; // Light, NoTexture, Heightmap, Light_Heightmap, Unlit, Wireframe
+	int m_techniqType; // default 4:Unlit
 	int m_fps;
 	float m_calcOptimizeTime;
 	int m_distanceLevelOffset;
@@ -96,4 +99,5 @@ public:
 	double m_t0; // buildtree time
 	double m_t1; // render tesselation time
 	double m_t2; // update time
+	int m_tileRenderFlag;
 };

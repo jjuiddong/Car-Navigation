@@ -9,7 +9,7 @@
 //
 #pragma once
 
-class cPath
+class cPathFile
 {
 public:
 	struct sRow {
@@ -17,10 +17,12 @@ public:
 		Vector2d lonLat;
 	};
 
-	cPath(const StrPath &fileName = "");
-	virtual ~cPath();
+	cPathFile(const StrPath &fileName = "");
+	virtual ~cPathFile();
 
 	bool Read(const StrPath &fileName);
+	bool Write3DPathFile(graphic::cRenderer &renderer
+		, cTerrainQuadTree &terrain, const StrPath &fileName) const;
 	bool IsLoad() const;
 	void Clear();
 

@@ -1,8 +1,8 @@
 
 #include "stdafx.h"
 #include "gpsclient.h"
-#include "carnavi.h"
-#include "mapview.h"
+#include "../carnavi.h"
+#include "../view/mapview.h"
 
 
 cGpsClient::cGpsClient()
@@ -49,6 +49,7 @@ bool cGpsClient::ConnectGpsServer(const Str16 &ip, const int port)
 
 	m_ip = ip;
 	m_port = port;
+	m_client.CreatePacketHeader(network2::ePacketFormat::FREE); // no format packet, no packet header
 	m_client.Init(ip, port);
 
 	g_global->m_config.SetValue("gps_server_ip", ip.c_str());

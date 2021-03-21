@@ -334,6 +334,8 @@ Package/WorldViewer_VS2017.exe
 Package/WorldViewer_VS2017d.exe
 Package/imgui.ini
 Package/path/
+Package/path_latest/
+Package/path_latest2/
 Package/path2/
 Package/path3/
 Package/path_new/
@@ -359,3 +361,4 @@ Package/gps_original.txt
 Package/gps/20200507.txt
 Package/gps - 복사본.txt
 Package/path_new4/path_20200502.txt
+Package/optimize_history.txt

@@ -25,7 +25,9 @@ cGlobal::cGlobal()
 	, m_scanSpeed(100.f)
 	, m_prevDistance(FLT_MAX)
 	, m_isMakeScanPath(false)
+	, m_isShowAllPrevPath(false)
 	, m_isShowPrevPath(false)
+	, m_isShowQuadTree(false)
 	, m_isShowLandMark(true)
 	, m_isShowLandMark2(true)
 	, m_landMarkSelectState(0)
@@ -37,7 +39,7 @@ cGlobal::cGlobal()
 	, m_isDebugMode(false)
 	, m_isDarkMode(false)
 	, m_darkColor(0.1f, 0.1f, 0.1f, 1.f)
-	, m_camType(eCameraType::Custom)
+	, m_camType(eCameraType::Camera4)
 {
 }
 
@@ -83,7 +85,7 @@ bool cGlobal::Init(HWND hwnd)
 		++fileId;
 	} while (m_pathFilename.IsFileExist());
 
-	m_shape.Read("./media/road/Z_UPIS_C_UQ1512.shp");
+	//m_shape.Read("./media/road/Z_UPIS_C_UQ1512.shp");
 
 	return true;
 }
@@ -102,7 +104,7 @@ bool cGlobal::ReadPathFiles(graphic::cRenderer &renderer
 
 	for (auto &file : files)
 	{
-		cPath path(file);
+		cPathFile path(file);
 		if (!path.IsLoad())
 			continue;
 
@@ -193,7 +195,7 @@ bool cGlobal::ReadAndConvertPathFiles(graphic::cRenderer &renderer
 		}
 		else
 		{
-			cPath path(file);
+			cPathFile path(file);
 			if (!path.IsLoad())
 				continue; // error occurred
 

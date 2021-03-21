@@ -1,7 +1,7 @@
 //
 // 2019-08-10, jjuiddong
 // path renderer
-//	- create from cPath (wgs84 pos)
+//	- create from cPathFile (wgs84 pos)
 //	- create from 3d position file
 //		- *.pos3d
 //
@@ -18,11 +18,18 @@ public:
 	cPathRenderer();
 	virtual ~cPathRenderer();
 
-	bool Create(graphic::cRenderer &renderer, cTerrainQuadTree &terrain, const cPath &path
-		, const StrPath &pos3DFileName="");
+	bool Create(graphic::cRenderer &renderer, cTerrainQuadTree &terrain
+		, const cPathFile &path, const StrPath &pos3DFileName="");
+
 	bool Create(graphic::cRenderer &renderer, const StrPath &pos3DFileName);
-	virtual bool Update(graphic::cRenderer &renderer, const float deltaSeconds) override;
-	virtual bool Render(graphic::cRenderer &renderer, const XMMATRIX &parentTm = graphic::XMIdentity, const int flags = 1) override;
+
+	virtual bool Update(graphic::cRenderer &renderer
+		, const float deltaSeconds) override;
+
+	virtual bool Render(graphic::cRenderer &renderer
+		, const XMMATRIX &parentTm = graphic::XMIdentity
+		, const int flags = 1) override;
+
 	virtual void Clear() override;
 
 

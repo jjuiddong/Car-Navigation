@@ -64,6 +64,11 @@ public:
 	cGpsClient m_gpsClient;
 	cOBD2 m_obd;
 	cConfig m_config;
+
+	// cursor, lat,lon position
+	Vector2 m_lonLat; // °æÀ§µµ
+	Vector2d m_utmLoc; // UTM ÁÂÇ¥
+	vector<Vector2d> m_route;
 	
 	// GPS
 	bool m_isShowGPS;
@@ -107,7 +112,9 @@ public:
 	float m_prevDistance; // check camera moving
 
 	// path
-	bool m_isShowPrevPath;
+	bool m_isShowAllPrevPath;
+	bool m_isShowPrevPath; // show quadtree-graph graph
+	bool m_isShowQuadTree; // show quadtree-graph quad node
 	StrPath m_pathFilename;
 	vector<cPathRenderer*> m_pathRenderers;
 
@@ -136,4 +143,7 @@ public:
 	cShapefileLoader m_shape;
 
 	cTimer m_timer;
+
+	// optimize path process
+	optimize::cOptimizePath m_optPath;
 };

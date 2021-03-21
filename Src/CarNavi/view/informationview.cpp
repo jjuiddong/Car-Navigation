@@ -1,7 +1,7 @@
 
 #include "stdafx.h"
 #include "informationview.h"
-#include "carnavi.h"
+#include "../carnavi.h"
 #include "mapview.h"
 
 using namespace graphic;
@@ -34,8 +34,8 @@ void cInformationView::OnRender(const float deltaSeconds)
 	if (ImGui::CollapsingHeader("MapView Information", ImGuiTreeNodeFlags_DefaultOpen))
 	{
 		// 위경도 출력
-		ImGui::Text("WGS84 lat,lon = %f, %f", g_root.m_lonLat.y, g_root.m_lonLat.x);
-		ImGui::Text("UTM x,y = %f, %f", g_root.m_utmLoc.x, g_root.m_utmLoc.y);
+		ImGui::Text("WGS84 lat,lon = %f, %f", g_global->m_lonLat.y, g_global->m_lonLat.x);
+		ImGui::Text("UTM x,y = %f, %f", g_global->m_utmLoc.x, g_global->m_utmLoc.y);
 
 		ImGui::Separator();
 		ImGui::Text("Scanning Information");
