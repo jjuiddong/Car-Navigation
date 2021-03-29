@@ -13,6 +13,9 @@
     <Filter Include="lib">
       <UniqueIdentifier>{bfa3eccf-4a23-4113-997d-585aafbbef82}</UniqueIdentifier>
     </Filter>
+    <Filter Include="tile2">
+      <UniqueIdentifier>{616dc572-0a12-41d1-8fef-bfe4e435a6b5}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="gis.h" />
@@ -71,6 +74,15 @@
     <ClInclude Include="tile\triangulate.h">
       <Filter>tile</Filter>
     </ClInclude>
+    <ClInclude Include="tile2\qterrain.h">
+      <Filter>tile2</Filter>
+    </ClInclude>
+    <ClInclude Include="tile2\tile2.h">
+      <Filter>tile2</Filter>
+    </ClInclude>
+    <ClInclude Include="tile2\quadtree2.h">
+      <Filter>tile2</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="gis.cpp" />
@@ -125,6 +137,12 @@
     </ClCompile>
     <ClCompile Include="tile\triangulate.cpp">
       <Filter>tile</Filter>
+    </ClCompile>
+    <ClCompile Include="tile2\qterrain.cpp">
+      <Filter>tile2</Filter>
+    </ClCompile>
+    <ClCompile Include="tile2\tile2.cpp">
+      <Filter>tile2</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

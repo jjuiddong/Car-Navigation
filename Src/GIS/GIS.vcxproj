@@ -168,6 +168,9 @@
     <ClInclude Include="lib\route.h" />
     <ClInclude Include="lib\UTM.h" />
     <ClInclude Include="stdafx.h" />
+    <ClInclude Include="tile2\qterrain.h" />
+    <ClInclude Include="tile2\quadtree2.h" />
+    <ClInclude Include="tile2\tile2.h" />
     <ClInclude Include="tile\heightmap.h" />
     <ClInclude Include="tile\heightmap2.h" />
     <ClInclude Include="tile\quadtile.h" />
@@ -195,6 +198,8 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="tile2\qterrain.cpp" />
+    <ClCompile Include="tile2\tile2.cpp" />
     <ClCompile Include="tile\heightmap.cpp" />
     <ClCompile Include="tile\heightmap2.cpp" />
     <ClCompile Include="tile\quadtile.cpp" />
