@@ -821,12 +821,13 @@ inline bool cTerrainQuadTree::IsContain(const graphic::cFrustum &frustum, const 
 {
 	const float hw = rect.Width() / 2.f;
 	const float hh = rect.Height() / 2.f;
+	const float height = std::max(maxH, 2.f);
 	const Vector3 center = Vector3(rect.Center().x, 0, rect.Center().y);
 	cBoundingBox bbox;
 	//bbox.SetBoundingBox(center + Vector3(0,hh,0), Vector3(hw, hh, hh), Quaternion());
-	//bbox.SetBoundingBox(center + Vector3(0, 0, 0), Vector3(hw, hh*4, hh), Quaternion());
-	bbox.SetBoundingBox(center + Vector3(0, maxH/2.f, 0)
-		, Vector3(hw, maxH/2.f, hh)
+	//bbox.SetBoundingBox(center + Vector3(0, 0, 0), Vector3(hw, hh*4, hh), Quaternion());	   	 
+	bbox.SetBoundingBox(center + Vector3(0, height / 2.f, 0)
+		, Vector3(hw, height / 2.f, hh)
 		, Quaternion());
 	const bool reval = frustum.FrustumAABBIntersect(bbox);
 	return reval;

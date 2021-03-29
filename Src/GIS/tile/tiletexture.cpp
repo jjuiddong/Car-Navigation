@@ -22,7 +22,8 @@ cTileTexture::~cTileTexture()
 bool cTileTexture::Create(graphic::cRenderer &renderer, const char *fileName)
 {
 	Clear();
-	return m_tex.Create(renderer, fileName);
+	const bool result = m_tex.Create(renderer, fileName);
+	return result;
 }
 
 
