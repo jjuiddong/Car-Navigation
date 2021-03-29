@@ -819,13 +819,25 @@ void cQuadTileManager::LoadTexture(graphic::cRenderer &renderer
 {
 	// 파일이 있다면, 텍스쳐를 로딩한다.
 	StrPath fileName = cTileTexture::GetFileName(g_mediaDir, level, xLoc, yLoc);
-	const bool isFileExist = fileName.IsFileExist();
+	bool isFileExist = fileName.IsFileExist();
+	bool isNeedDownload = !isFileExist;
 	if (isFileExist)
 	{
-		m_loader1.LoadParallel<cTileTexture>(renderer, fileName.c_str()
-			, &tile.m_loadFlag[gis::eLayerName::TILE], (void**)&tile.m_texture, true);
+		// empty file?
+		const int64 fileSize = fileName.FileSize();
+		if ((tile.m_level < 15) && (fileSize < 200))
+		{
+			isFileExist = false;
+			isNeedDownload = true;
+		}
+		else if (fileSize >= 200)
+		{
+			m_loader1.LoadParallel<cTileTexture>(renderer, fileName.c_str()
+				, &tile.m_loadFlag[gis::eLayerName::TILE], (void**)&tile.m_texture, true);
+		}
 	}
-	else
+
+	if (isNeedDownload)
 	{
 		m_geoDownloader.DownloadFile(level, xLoc, yLoc, 0, gis::eLayerName::TILE, *this, this);
 	}
@@ -847,29 +859,32 @@ bool cQuadTileManager::LoadHeightMap(graphic::cRenderer &renderer
 		return true;
 
 	StrPath fileName = cHeightmap2::GetFileName(g_mediaDir, level, xLoc, yLoc);
-	bool isFileExist = false;
-	if (fileName.IsFileExist())
+	bool isFileExist = fileName.IsFileExist();
+	bool isNeedDownload = !isFileExist;
+	if (isFileExist)
 	{
-		//if ((tile.m_level == 15) && (fileName.FileSize() < 150))
+		// empty file?
 		const int64 fileSize = fileName.FileSize();
-		if ((tile.m_level >= 14) && (fileSize < 150))
+		if ((tile.m_level < 15) && (fileSize < 200))
 		{
 			// null heightmap, no load this file
+			isFileExist = false;
+			isNeedDownload = true;
 		}
-		else if (fileSize > 150)
+		else if (fileSize >= 200)
 		{
-			isFileExist = true;
 			m_loader1.LoadParallel<cHeightmap2>(renderer, fileName.c_str()
 				, &tile.m_loadFlag[gis::eLayerName::DEM], (void**)&tile.m_hmap, true);
 		}
 	}
-	else
+
+	if (isNeedDownload)
 	{
 		m_geoDownloader.DownloadFile(level, xLoc, yLoc, 0, gis::eLayerName::DEM, *this, this);
 	}
 
-	// 텍스쳐 파일이 없다면, 더 높은 레벨의 텍스쳐를 이용하고, uv를 재조정한다.
-	// 텍스쳐 로딩이 병렬로 이뤄지기 때문에, 로딩이 이뤄지는 동안, 대체 텍스쳐를 이용한다.
+	// 높이맵 파일이 없다면, 더 높은 레벨의 높이맵을 이용하고, uv를 재조정한다.
+	// 높이맵 로딩이 병렬로 이뤄지기 때문에, 로딩이 이뤄지는 동안, 대체 높이맵을 이용한다.
 	ReplaceParentTexture(renderer, terrain, tile, level, xLoc, yLoc, rect, 1, isFileExist);
 
 	return true;

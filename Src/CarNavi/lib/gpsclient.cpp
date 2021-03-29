@@ -63,8 +63,8 @@ bool cGpsClient::ConnectGpsServer(const Str16 &ip, const int port)
 bool cGpsClient::ConnectGpsSerial(const int portNum, const int baudRate)
 {
 	const bool result = m_serial.Open(portNum, baudRate, '\n');
-g_global->m_config.SetValue("gps_input_type", (int)m_inputType);
-return result;
+	g_global->m_config.SetValue("gps_input_type", (int)m_inputType);
+	return result;
 }
 
 
