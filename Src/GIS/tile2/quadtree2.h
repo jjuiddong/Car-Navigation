@@ -161,6 +161,7 @@ namespace gis2
 	}
 
 
+	// todo: clear root, parent reference
 	template<class T>
 	inline bool cQuadTree2<T>::Remove(qnode *node
 		, const bool isRmTree //= true
@@ -283,11 +284,11 @@ namespace gis2
 		const int level, const int x, const int y)
 	{
 		if ((uint)level >= MAX_QTREE_LEVEL)
-			return NULL;
+			return nullptr;
 		const uint64 key = qtree::MakeKey(level, x, y);
 		auto it = m_nodeTable[level].find(key);
 		if (m_nodeTable[level].end() == it)
-			return false; // Error!! Not Exist
+			return nullptr; // Error!! Not Exist
 		return it->second;
 	}
 
@@ -297,11 +298,11 @@ namespace gis2
 	{
 		const int level = (key >> (MAX_QTREE_LEVEL + MAX_QTREE_LEVEL + 8)) & 0x0F;
 		if ((uint)level >= MAX_QTREE_LEVEL)
-			return NULL;
+			return nullptr;
 		auto it = m_nodeTable[level].find(key);
 		if (m_nodeTable[level].end() == it)
-			return false; // Error!! Not Exist
-		return m_nodeTable[level][key];
+			return nullptr; // Error!! Not Exist
+		return it->second;// m_nodeTable[level][key];
 	}
 
 
@@ -313,7 +314,7 @@ namespace gis2
 		pos.y += (1.f / 2.f);
 
 		qnode *ret = GetNode(sRectf::Rect(pos.x, pos.y, 0, 0));
-		return (ret == node) ? NULL : ret;
+		return (ret == node) ? nullptr : ret;
 	}
 
 
@@ -325,7 +326,7 @@ namespace gis2
 		pos.y -= (1.f / 2.f);
 
 		qnode *ret = GetNode(sRectf::Rect(pos.x, pos.y, 0, 0));
-		return (ret == node) ? NULL : ret;
+		return (ret == node) ? nullptr : ret;
 	}
 
 

@@ -128,6 +128,7 @@ inline bool cQuadTree<T>::Insert(sQuadTreeNode<T> *node)
 }
 
 
+// todo: clear root, parent reference
 template<class T>
 inline bool cQuadTree<T>::Remove(sQuadTreeNode<T> *node
 	, const bool isRmTree //= true
@@ -306,11 +307,11 @@ inline sQuadTreeNode<T>* cQuadTree<T>::GetNode(
 	const int level, const int xLoc, const int yLoc)
 {
 	if ((uint)level >= MAX_LEVEL)
-		return NULL;
+		return nullptr;
 	const uint64 key = MakeKey(level, xLoc, yLoc);
 	auto it = m_nodeTable[level].find(key);
 	if (m_nodeTable[level].end() == it)
-		return false; // Error!! Not Exist
+		return nullptr; // Error!! Not Exist
 	return it->second;
 }
 
@@ -321,10 +322,10 @@ inline sQuadTreeNode<T>* cQuadTree<T>::GetNode(const uint64 key)
 	//const int level = (key & 0x3C00000000) >> (MAX_LEVEL + MAX_LEVEL + 2);
 	const int level = (key >> (MAX_LEVEL + MAX_LEVEL + 8)) & 0x0F;
 	if ((uint)level >= MAX_LEVEL)
-		return NULL;
+		return nullptr;
 	auto it = m_nodeTable[level].find(key);
 	if (m_nodeTable[level].end() == it)
-		return false; // Error!! Not Exist
+		return nullptr; // Error!! Not Exist
 	return m_nodeTable[level][key];
 }
 
@@ -337,7 +338,7 @@ inline sQuadTreeNode<T>* cQuadTree<T>::GetNorthNeighbor(const sQuadTreeNode<T> *
 	pos.y += (m_quadScale / 2.f);
 
 	sQuadTreeNode<T> *ret = GetNode(sRectf::Rect(pos.x, pos.y, 0, 0));
-	return (ret == node) ? NULL : ret;
+	return (ret == node) ? nullptr : ret;
 }
 
 
