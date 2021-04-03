@@ -17,8 +17,8 @@ struct sHeightmapArgs2
 {
 	float huvs[4];
 	int level;
-	int xLoc;
-	int yLoc;
+	int x;
+	int y;
 };
 
 

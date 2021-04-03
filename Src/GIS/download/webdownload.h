@@ -21,16 +21,14 @@ namespace gis
 		};
 	};
 
-	interface iDownloadFinishListener;
 	struct sDownloadData
 	{
 		eLayerName::Enum layer;
 		int level;
-		int xLoc;
-		int yLoc;
+		int x;
+		int y;
 		int idx; // *.xdo file load
 		common::Str64 dataFile;
-		iDownloadFinishListener *listener;
 	};
 
 	StrPath GetDownloadFileName(const StrPath &mediaDir, const sDownloadData &dnData);

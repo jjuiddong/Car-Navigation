@@ -5,24 +5,16 @@
 #include <urlmon.h>
 #pragma comment(lib, "urlmon.lib")
 
-
 using namespace gis;
 
 
-cTaskWebDownload::cTaskWebDownload()
-	: cTask(common::GenerateId(), "cTaskWebDownload", true)
-	, m_webDownloader(nullptr)
-{
-}
-
-cTaskWebDownload::cTaskWebDownload(cGeoDownloader *webDownloader
-	, cQuadTileManager *tileMgr
+cTaskWebDownload::cTaskWebDownload(const int id
+	, cGeoDownloader *geoDownloader
 	, const sDownloadData &dnData)
-	: cTask(common::GenerateId(), "cTaskWebDownload", true)
-	, m_tileMgr(nullptr)
-	, m_webDownloader(nullptr)
+	: cTask(id, "cTaskWebDownload", true)
+	, m_geoDownloader(nullptr)
 {
-	SetParameter(webDownloader, tileMgr, dnData);
+	SetParameter(geoDownloader, dnData);
 }
 
 cTaskWebDownload::~cTaskWebDownload() 
@@ -32,34 +24,32 @@ cTaskWebDownload::~cTaskWebDownload()
 
 void cTaskWebDownload::Clear()
 {
-	if (m_webDownloader)
-		m_webDownloader->Remove(m_dnData);
+	if (m_geoDownloader)
+		m_geoDownloader->FailDownload(m_dnData);
 }
 
 
-void cTaskWebDownload::SetParameter(cGeoDownloader *webDownloader
-		, cQuadTileManager *tileMgr
+void cTaskWebDownload::SetParameter(cGeoDownloader *geoDownloader
 		, const sDownloadData &dnData) 
 {
-	m_webDownloader = webDownloader;
+	m_geoDownloader = geoDownloader;
 	m_dnData = dnData;
-	m_tileMgr = tileMgr;
 }
 
 
 common::cTask::eRunResult::Enum cTaskWebDownload::Run(const double deltaSeconds)
 {
 	// 해당 타일이 지워진 상태라면 다운로드 받지 않는다.
-	if (m_webDownloader->m_isCheckTileMgr 
-		&& !m_tileMgr->FindTile(m_dnData.level, m_dnData.xLoc, m_dnData.yLoc))
-	{
-		//dbg::Logp("skip web download level=%d, xLoc=%d, yLoc=%d\n", m_dnData.level, m_dnData.xLoc, m_dnData.yLoc);
-		//m_webDownloader->Remove(m_dnData);
-		return eRunResult::END;
-	}
+	//if (m_geoDownloader->m_isCheckTileMgr 
+	//	&& !m_tileMgr->FindTile(m_dnData.level, m_dnData.xLoc, m_dnData.yLoc))
+	//{
+	//	//dbg::Logp("skip web download level=%d, xLoc=%d, yLoc=%d\n", m_dnData.level, m_dnData.xLoc, m_dnData.yLoc);
+	//	//m_geoDownloader->Remove(m_dnData);
+	//	return eRunResult::END;
+	//}
 
 	//sample "http://xdworld.vworld.kr:8080/XDServer/requestLayerNode?APIKey=A3C8B7D2-1149-3C99-XXXX-XXXXXXXXXXXX&Layer=dem&Level=7&IDX=1091&IDY=452";
-	const char *apiKey = m_webDownloader->m_apiKey.c_str();
+	const char *apiKey = m_geoDownloader->m_apiKey.c_str();
 	const char *site = "http://xdworld.vworld.kr:8080/XDServer/";
 	const char *cmd = NULL;
 	const char *layerName = NULL;
@@ -72,14 +62,14 @@ common::cTask::eRunResult::Enum cTaskWebDownload::Run(const double deltaSeconds)
 		cmd = "requestLayerNode";
 		layerName = "dem";
 		break;
-		//m_webDownloader->Remove(m_dnData);
+		//m_geoDownloader->FailDownload(m_dnData);
 		//return eRunResult::END;
 
 	case eLayerName::TILE:
 		cmd = "requestLayerNode";
 		layerName = "tile";
 		break;
-		//m_webDownloader->Remove(m_dnData);
+		//m_geoDownloader->FailDownload(m_dnData);
 		//return eRunResult::END;
 
 	case eLayerName::POI_BASE:
@@ -96,21 +86,21 @@ common::cTask::eRunResult::Enum cTaskWebDownload::Run(const double deltaSeconds)
 		//cmd = "requestLayerNode";
 		//layerName = "facility_build";
 		//break;
-		m_webDownloader->Remove(m_dnData);
+		m_geoDownloader->FailDownload(m_dnData);
 		return eRunResult::END;
 
 	case eLayerName::FACILITY_BUILD_GET:
 		//cmd = "requestLayerObject";
 		//layerName = "facility_build";
 		//break;
-		m_webDownloader->Remove(m_dnData);
+		m_geoDownloader->FailDownload(m_dnData);
 		return eRunResult::END;
 
 	case eLayerName::FACILITY_BUILD_GET_JPG:
 		//cmd = "requestLayerObject";
 		//layerName = "facility_build";
 		//break;
-		m_webDownloader->Remove(m_dnData);
+		m_geoDownloader->FailDownload(m_dnData);
 		return eRunResult::END;
 
 	default: assert(0); break;
@@ -118,14 +108,15 @@ common::cTask::eRunResult::Enum cTaskWebDownload::Run(const double deltaSeconds)
 
 	if (!cmd)
 	{
-		// 더이상 쓸수 없는 API일 경우 종료
-		m_webDownloader->Remove(m_dnData);
+		// no api command? exit
+		m_geoDownloader->FailDownload(m_dnData);
+		m_geoDownloader = nullptr; // finish
 		return eRunResult::END;
 	}
 
 	Str256 url;
 	url.Format("%s%s?APIKey=%s&Layer=%s&Level=%d&IDX=%d&IDY=%d", site, cmd, apiKey, layerName
-		, m_dnData.level, m_dnData.xLoc, m_dnData.yLoc);
+		, m_dnData.level, m_dnData.x, m_dnData.y);
 
 	if ((eLayerName::FACILITY_BUILD_GET == m_dnData.layer)
 		|| (eLayerName::FACILITY_BUILD_GET_JPG == m_dnData.layer))
@@ -141,21 +132,17 @@ common::cTask::eRunResult::Enum cTaskWebDownload::Run(const double deltaSeconds)
 		if (!common::IsFileExist(dirPath))
 			_mkdir(dirPath.c_str());
 
-		dirPath.Format("%s\\%d\\%04d", dir, m_dnData.level, m_dnData.yLoc);
+		dirPath.Format("%s\\%d\\%04d", dir, m_dnData.level, m_dnData.y);
 		if (!common::IsFileExist(dirPath))
 			_mkdir(dirPath.c_str());
 	}
 
 	const HRESULT hr = URLDownloadToFileA(NULL, url.c_str(), dstFileName.c_str(), 0, NULL);
 	if (S_OK == hr)
-		m_webDownloader->Insert(m_dnData);
+		m_geoDownloader->CompleteDownload(m_dnData);
 	else
-		m_webDownloader->Remove(m_dnData);
+		m_geoDownloader->FailDownload(m_dnData);
 
-	//if (S_OK == hr)
-	//	dbg::Logp("success web download url = [%s]\n", url.c_str());
-	//else
-	//	dbg::Logp("error web download url = [%s]\n", url.c_str());
-
+	m_geoDownloader = nullptr; // finish
 	return eRunResult::END;
 }

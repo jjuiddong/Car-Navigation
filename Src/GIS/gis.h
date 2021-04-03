@@ -102,6 +102,7 @@ namespace gis
 #include "lib/CFW1StateSaver.h"
 #include "download/webdownload.h"
 #include "download/taskwebdownload.h"
+#include "download/taskarcgisdownload.h"
 #include "download/geodownloader.h"
 #include "geo/poireader.h"
 #include "geo/real3dmodelindexreader.h"
@@ -116,6 +117,15 @@ namespace gis
 #include "tile/terrainquadtree.h"
 #include "tile/triangulate.h"
 
+// gis2
+#include "gis2.h"
+#include "tile2/quadtree2.h"
+#include "tile2/heightmap3.h"
+#include "tile2/qtile.h"
+#include "tile2/tilemanager.h"
+#include "tile2/qterrain.h"
+#include "tile2/cntzimg.h"
+// ~gis2
 
 extern StrPath g_mediaDir;
 

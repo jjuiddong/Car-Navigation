@@ -77,10 +77,23 @@
     <ClInclude Include="tile2\qterrain.h">
       <Filter>tile2</Filter>
     </ClInclude>
-    <ClInclude Include="tile2\tile2.h">
+    <ClInclude Include="tile2\quadtree2.h">
       <Filter>tile2</Filter>
     </ClInclude>
-    <ClInclude Include="tile2\quadtree2.h">
+    <ClInclude Include="tile2\tilemanager.h">
+      <Filter>tile2</Filter>
+    </ClInclude>
+    <ClInclude Include="tile2\qtile.h">
+      <Filter>tile2</Filter>
+    </ClInclude>
+    <ClInclude Include="download\taskarcgisdownload.h">
+      <Filter>download</Filter>
+    </ClInclude>
+    <ClInclude Include="tile2\heightmap3.h">
+      <Filter>tile2</Filter>
+    </ClInclude>
+    <ClInclude Include="gis2.h" />
+    <ClInclude Include="tile2\cntzimg.h">
       <Filter>tile2</Filter>
     </ClInclude>
   </ItemGroup>
@@ -141,7 +154,20 @@
     <ClCompile Include="tile2\qterrain.cpp">
       <Filter>tile2</Filter>
     </ClCompile>
-    <ClCompile Include="tile2\tile2.cpp">
+    <ClCompile Include="tile2\tilemanager.cpp">
+      <Filter>tile2</Filter>
+    </ClCompile>
+    <ClCompile Include="tile2\qtile.cpp">
+      <Filter>tile2</Filter>
+    </ClCompile>
+    <ClCompile Include="download\taskarcgisdownload.cpp">
+      <Filter>download</Filter>
+    </ClCompile>
+    <ClCompile Include="tile2\heightmap3.cpp">
+      <Filter>tile2</Filter>
+    </ClCompile>
+    <ClCompile Include="gis2.cpp" />
+    <ClCompile Include="tile2\cntzimg.cpp">
       <Filter>tile2</Filter>
     </ClCompile>
   </ItemGroup>

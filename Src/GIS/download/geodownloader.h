@@ -8,48 +8,65 @@
 // 2020-09-10
 //	- apikey external file
 //
+// 2021-03-30
+//	- refactoring
+//	- arcgis
+//
 #pragma once
 
 
-class cQuadTileManager;
-
 namespace gis
 {
+	enum class eGeoServer {
+		XDWORLD 
+		, ARCGIS
+	};
 
 	class cGeoDownloader
 	{
 	public:
+		friend class cTaskWebDownload;
+		friend class cTaskArcGisDownload;
+
+		// keytype:  filename hash + (id + layer * 100) + cQuadTree::MakeKey()
+		typedef std::tuple<int, int, __int64> keytype;
+
+
 		cGeoDownloader();
 		virtual ~cGeoDownloader();
 
-		bool Create(const string &apiKey, const bool isCheckTileMgr=true);
-		bool DownloadFile(const int level, const int xLoc, const int yLoc
+		bool Create(const string &apiKey, iDownloadFinishListener *listener);
+		bool DownloadFile(const eGeoServer svrType
+			, const int level, const int x, const int y
 			, const int idx
 			, const eLayerName::Enum type
-			, cQuadTileManager &tileMgr
-			, iDownloadFinishListener *listener
 			, const char *dataFileName = NULL
 		);
+		bool CancelDownload(const int level, const int x, const int y
+			, const int idx
+			, const eLayerName::Enum type
+			, const char *dataFileName = NULL);
 		void UpdateDownload();
-		bool Insert(const sDownloadData &dnData);
-		bool Remove(const sDownloadData &dnData);
 		void Clear();
 
 
 	protected:
-		std::tuple<int, int, __int64> GetKey(const sDownloadData &dnData);
+		keytype MakeKey(const sDownloadData &dnData);
+		bool CompleteDownload(const sDownloadData &dnData);
+		bool FailDownload(const sDownloadData &dnData);
 
 
 	public:
 		Str64 m_apiKey;
 		bool m_isOfflineMode;
-		bool m_isCheckTileMgr; // if TileMgr has tile, download
+		iDownloadFinishListener *m_listener; // download event listener
 		CriticalSection m_cs;
-		vector<sDownloadData> m_complete;
-		set<iDownloadFinishListener*> m_listeners;
+		vector<sDownloadData> m_complete; // complete download file list
 
-		// 중복 요청 체크, filename + (id + layer * 100) + cQuadTree::MakeKey()
-		set<std::tuple<int, int, __int64>> m_requestIds;
+		// check duplicate request
+		set<keytype> m_requestIds;
+		map<keytype, int> m_taskIds; // key: download key, value: task id
+									 // store task id to remove
 		__int64 m_totalDownloadFileSize;
 		common::cTPSemaphore m_tpDownloader;
 	};

@@ -157,6 +157,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="download\geodownloader.h" />
+    <ClInclude Include="download\taskarcgisdownload.h" />
     <ClInclude Include="download\taskwebdownload.h" />
     <ClInclude Include="download\webdownload.h" />
     <ClInclude Include="geo\poireader.h" />
@@ -164,13 +165,17 @@
     <ClInclude Include="geo\shapefileloader.h" />
     <ClInclude Include="geo\xdoreader.h" />
     <ClInclude Include="gis.h" />
+    <ClInclude Include="gis2.h" />
     <ClInclude Include="lib\CFW1StateSaver.h" />
     <ClInclude Include="lib\route.h" />
     <ClInclude Include="lib\UTM.h" />
     <ClInclude Include="stdafx.h" />
+    <ClInclude Include="tile2\cntzimg.h" />
+    <ClInclude Include="tile2\heightmap3.h" />
     <ClInclude Include="tile2\qterrain.h" />
     <ClInclude Include="tile2\quadtree2.h" />
-    <ClInclude Include="tile2\tile2.h" />
+    <ClInclude Include="tile2\qtile.h" />
+    <ClInclude Include="tile2\tilemanager.h" />
     <ClInclude Include="tile\heightmap.h" />
     <ClInclude Include="tile\heightmap2.h" />
     <ClInclude Include="tile\quadtile.h" />
@@ -182,6 +187,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="download\geodownloader.cpp" />
+    <ClCompile Include="download\taskarcgisdownload.cpp" />
     <ClCompile Include="download\taskwebdownload.cpp" />
     <ClCompile Include="download\webdownload.cpp" />
     <ClCompile Include="geo\poireader.cpp" />
@@ -189,6 +195,7 @@
     <ClCompile Include="geo\shapefileloader.cpp" />
     <ClCompile Include="geo\xdoreader.cpp" />
     <ClCompile Include="gis.cpp" />
+    <ClCompile Include="gis2.cpp" />
     <ClCompile Include="lib\CFW1StateSaver.cpp" />
     <ClCompile Include="lib\route.cpp" />
     <ClCompile Include="lib\UTM.cpp" />
@@ -198,8 +205,11 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="tile2\cntzimg.cpp" />
+    <ClCompile Include="tile2\heightmap3.cpp" />
     <ClCompile Include="tile2\qterrain.cpp" />
-    <ClCompile Include="tile2\tile2.cpp" />
+    <ClCompile Include="tile2\qtile.cpp" />
+    <ClCompile Include="tile2\tilemanager.cpp" />
     <ClCompile Include="tile\heightmap.cpp" />
     <ClCompile Include="tile\heightmap2.cpp" />
     <ClCompile Include="tile\quadtile.cpp" />

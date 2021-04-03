@@ -21,9 +21,14 @@ public:
 	bool Create(graphic::cRenderer &renderer, const char *fileName);
 	void Clear();
 
-	static StrPath GetFileName(const StrPath &directoryName, const int level, const int xLoc, const int yLoc);
-	static StrPath GetFileName(const StrPath &directoryName, const int level, const int xLoc, const int yLoc
-		, const char *fileName );
+	static StrPath GetFileName(const StrPath &directoryName
+		, const int level, const int xLoc, const int yLoc);
+	static StrPath GetFileName2(const StrPath &directoryName
+		, const int level, const int xLoc, const int yLoc);
+	static StrPath GetFileName(const StrPath &directoryName
+		, const int level, const int xLoc, const int yLoc, const char *fileName );
+	static StrPath GetFileName2(const StrPath &directoryName
+		, const int level, const int xLoc, const int yLoc, const char *fileName);
 
 
 public:

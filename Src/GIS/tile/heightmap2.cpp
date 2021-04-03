@@ -18,9 +18,9 @@ cHeightmap2::cHeightmap2()
 	, m_width(0)
 	, m_height(0)
 	, m_scale(0.00001f)
-	, m_data(NULL)
+	, m_data(nullptr)
 	, m_maxHeight(0)
-	, m_texture(NULL)
+	, m_texture(nullptr)
 	, m_isTextureUpdate(false)
 	, m_waitState(0)
 {
@@ -33,8 +33,8 @@ cHeightmap2::cHeightmap2(graphic::cRenderer &renderer, const char *fileName)
 	, m_width(0)
 	, m_height(0)
 	, m_scale(0.00001f)
-	, m_data(NULL)
-	, m_texture(NULL)
+	, m_data(nullptr)
+	, m_texture(nullptr)
 	, m_isTextureUpdate(false)
 	, m_waitState(0)
 {
@@ -45,7 +45,7 @@ cHeightmap2::cHeightmap2(graphic::cRenderer &renderer, const char *fileName)
 cHeightmap2::cHeightmap2(graphic::cRenderer &renderer, const cHeightmap2 *src,
 	const char *fileName, const sHeightmapArgs2 &args)
 {
-	if (!Create(renderer, *src, args.huvs, args.level, args.xLoc, args.yLoc))
+	if (!Create(renderer, *src, args.huvs, args.level, args.x, args.y))
 		throw std::exception();
 	m_fileName = fileName;
 }

@@ -47,6 +47,29 @@ StrPath cTileTexture::GetFileName(const StrPath &directoryName
 }
 
 
+// arcgis filename
+StrPath cTileTexture::GetFileName2(const StrPath &directoryName
+	, const int level, const int xLoc, const int yLoc)
+{
+	const int y = (1 << level) - yLoc - 1;
+	StrPath path;
+	path.Format("%s\\%d\\%04d\\%04d_%04d.dds", directoryName.c_str()
+		, level, y, y, xLoc);
+	return path;
+}
+
+
+// arcgis filename
+StrPath cTileTexture::GetFileName2(const StrPath &directoryName
+	, const int level, const int xLoc, const int yLoc
+	, const char *fileName)
+{
+	const int y = (1 << level) - yLoc - 1;
+	StrPath path;
+	path.Format("%s\\%d\\%04d\\%s", directoryName.c_str(), level, y, fileName);
+	return path;
+}
+
 
 void cTileTexture::Clear()
 {

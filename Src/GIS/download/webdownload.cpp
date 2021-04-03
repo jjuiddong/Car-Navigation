@@ -12,9 +12,9 @@ StrPath gis::GetDownloadFileName(const StrPath &mediaDir, const sDownloadData &d
 	dstFileName.Format("%s\\%d\\%04d\\%04d_%04d"
 		, mediaDir.c_str()
 		, dnData.level
-		, dnData.yLoc
-		, dnData.yLoc
-		, dnData.xLoc);
+		, dnData.y
+		, dnData.y
+		, dnData.x);
 
 	switch (dnData.layer)
 	{
@@ -27,14 +27,14 @@ StrPath gis::GetDownloadFileName(const StrPath &mediaDir, const sDownloadData &d
 		dstFileName.Format("%s\\%d\\%04d\\%s"
 			, mediaDir.c_str()
 			, dnData.level
-			, dnData.yLoc
+			, dnData.y
 			, dnData.dataFile.c_str());
 		break;
 	case eLayerName::FACILITY_BUILD_GET_JPG:
 		dstFileName.Format("%s\\%d\\%04d\\%s"
 			, mediaDir.c_str()
 			, dnData.level
-			, dnData.yLoc
+			, dnData.y
 			, dnData.dataFile.c_str());
 		break;
 	default: assert(0); break;

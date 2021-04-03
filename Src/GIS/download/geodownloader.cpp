@@ -8,8 +8,8 @@ using namespace gis;
 
 cGeoDownloader::cGeoDownloader()
 	: m_isOfflineMode(false)
-	, m_isCheckTileMgr(true)
 	, m_totalDownloadFileSize(0)
+	, m_listener(nullptr)
 {
 	m_tpDownloader.Init(5); // 5 thread
 }
@@ -23,20 +23,18 @@ cGeoDownloader::~cGeoDownloader()
 // create geo downloader
 // setting apikey
 bool cGeoDownloader::Create(const string &apiKey
-	, const bool isCheckTileMgr // =true
-)
+	, iDownloadFinishListener *listener)
 {
 	m_apiKey = apiKey;
-	m_isCheckTileMgr = isCheckTileMgr;
+	m_listener = listener;
 	return true;
 }
 
 
-bool cGeoDownloader::DownloadFile(const int level, const int xLoc, const int yLoc
+bool cGeoDownloader::DownloadFile(const eGeoServer svrType
+	, const int level, const int x, const int y
 	, const int idx
 	, const eLayerName::Enum type
-	, cQuadTileManager &tileMgr
-	, iDownloadFinishListener *listener
 	, const char *dataFileName //= NULL
 )
 {
@@ -46,57 +44,95 @@ bool cGeoDownloader::DownloadFile(const int level, const int xLoc, const int yLo
 	sDownloadData data;
 	ZeroMemory(&data, sizeof(data));
 	data.level = level;
-	data.xLoc = xLoc;
-	data.yLoc = yLoc;
+	data.x = x;
+	data.y = y;
 	data.idx = idx;
 	data.layer = type;
 	data.dataFile = dataFileName;
-	data.listener = listener;
 
+	const keytype key = MakeKey(data);
+	const int taskId = common::GenerateId();
 	{
 		AutoCSLock cs(m_cs);
-
-		m_listeners.insert(listener);
-
-		const auto key = GetKey(data);
 		if (m_requestIds.end() != m_requestIds.find(key))
 			return false; //already requested
-
 		m_requestIds.insert(key);
+		m_taskIds[key] = taskId;
 	}
 
-	cTaskWebDownload *taskWebDownload = new cTaskWebDownload();
-	taskWebDownload->SetParameter(this, &tileMgr, data);
-	m_tpDownloader.PushTask(taskWebDownload);
+	cTask *task = nullptr;
+	switch (svrType)
+	{
+	case eGeoServer::XDWORLD:
+		task = new cTaskWebDownload(taskId, this, data);
+		break;
+	case eGeoServer::ARCGIS:
+		task = new cTaskArcGisDownload(taskId, this, data);
+		break;
+	default: assert(0); break;
+	}
+
+	if (task)
+		m_tpDownloader.PushTask(task);
 
 	return true;
 }
 
 
-// 다운로드 받은 파일을, 리스너에게 알린다.
+// send listener if complete download
 void cGeoDownloader::UpdateDownload()
 {
 	AutoCSLock cs(m_cs);
 
 	for (auto &file : m_complete)
 	{
-		// 전체 다운로드 파일크기를 저장한다.
+		// calc total download file size
 		const StrPath dstFileName = gis::GetDownloadFileName(g_mediaDir, file);
 		m_totalDownloadFileSize += dstFileName.FileSize();
 
-		// 모든 리스너에게 알린다.
-		for (auto &listener : m_listeners)
-			listener->OnDownloadComplete(file);
+		if (m_listener)
+			m_listener->OnDownloadComplete(file);
 
-		const auto key = GetKey(file);
+		const keytype key = MakeKey(file);
 		m_requestIds.erase(key);
+		m_taskIds.erase(key);
 	}
 
 	m_complete.clear();
 }
 
 
-bool cGeoDownloader::Insert(const sDownloadData &dnData)
+// cancel download
+bool cGeoDownloader::CancelDownload(const int level, const int x, const int y
+	, const int idx
+	, const eLayerName::Enum type
+	, const char *dataFileName //= NULL
+)
+{
+	sDownloadData data;
+	ZeroMemory(&data, sizeof(data));
+	data.level = level;
+	data.x = x;
+	data.y = y;
+	data.idx = idx;
+	data.layer = type;
+	data.dataFile = dataFileName;
+
+	{
+		AutoCSLock cs(m_cs);
+		const keytype key = MakeKey(data);
+		auto it = m_taskIds.find(key);
+		if (m_taskIds.end() == it)
+			return false;
+		m_tpDownloader.RemoveTask(it->second);
+	}
+	return true;
+}
+
+
+// complete download, calling from task downloader
+// add complete queue
+bool cGeoDownloader::CompleteDownload(const sDownloadData &dnData)
 {
 	AutoCSLock cs(m_cs);
 	m_complete.push_back(dnData);
@@ -104,21 +140,26 @@ bool cGeoDownloader::Insert(const sDownloadData &dnData)
 }
 
 
-bool cGeoDownloader::Remove(const sDownloadData &dnData)
+// fail download, calling from task downloader
+// remove request queue to retry
+bool cGeoDownloader::FailDownload(const sDownloadData &dnData)
 {
 	AutoCSLock cs(m_cs);
-	const auto key = GetKey(dnData);
+	const keytype key = MakeKey(dnData);
 	m_requestIds.erase(key);
+	m_taskIds.erase(key);
 	return true;
 }
 
 
-std::tuple<int, int, __int64> cGeoDownloader::GetKey(const sDownloadData &dnData)
+// make key
+// filename hash + (id + layer * 100) + cQuadTree::MakeKey()
+cGeoDownloader::keytype cGeoDownloader::MakeKey(const sDownloadData &dnData)
 {
 	const int key1 = (dnData.dataFile.empty()) ? 0 : dnData.dataFile.GetHashCode();
 	const int key2 = ((int)dnData.layer * 100 + dnData.idx);
-	const __int64 key3 = cQuadTree<sQuadData>::MakeKey(dnData.level, dnData.xLoc, dnData.yLoc);
-	const auto key = std::make_tuple(key1, key2, key3);
+	const __int64 key3 = cQuadTree<sQuadData>::MakeKey(dnData.level, dnData.x, dnData.y);
+	const keytype key = std::make_tuple(key1, key2, key3);
 	return key;
 }
 
@@ -129,6 +170,7 @@ void cGeoDownloader::Clear()
 		AutoCSLock cs(m_cs);
 		m_complete.clear();
 		m_requestIds.clear();
+		m_taskIds.clear();
 	}
 
 	m_tpDownloader.Clear();

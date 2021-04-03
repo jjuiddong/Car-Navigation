@@ -1,23 +1,20 @@
 //
 // 2021-03-29, jjuiddong
-// quadtree terrain renderer
+// seamless terrain renderer
 //	- upgrade cTerrainQuadTree
-//	- vworld renderer
 //	- esri arcgis renderer
 //	- bingmap renderer
+//	- vworld renderer
 //
 #pragma once
 
-#include "quadtree2.h"
 
-
-namespace gis
+namespace gis2
 {
 
-	class cTile;
 	struct sTileData
 	{
-		cTile *tile; // reference
+		cQTile *tile; // reference
 	};
 
 
@@ -35,13 +32,29 @@ namespace gis
 			, const graphic::cFrustum &frustum
 			, const Ray &ray
 			, const Ray &mouseRay);
+		std::pair<bool, Vector3> Pick(const Ray &ray);
+		Vector3 Get3DPos(const Vector2d &lonLat);
+		Vector2d GetWGS84(const Vector3 &relPos);
 		void Clear();
 
 
 	protected:
 		void BuildQuadTree(const graphic::cFrustum &frustum, const Ray &ray);
+		void RenderTessellation(graphic::cRenderer &renderer
+			, const float deltaSeconds
+			, const graphic::cFrustum &frustum);
+		void RenderQuad(graphic::cRenderer &renderer
+			, const float deltaSeconds
+			, const graphic::cFrustum &frustum
+			, const Ray &ray);
+		void RenderRect3D(graphic::cRenderer &renderer
+			, const float deltaSeconds
+			, const sRectf &rect
+			, const graphic::cColor &color
+		);
 		bool IsContain(const graphic::cFrustum &frustum, const sRectf &rect
 			, const float maxH);
+		int GetLevel(const float distance);
 
 
 	public:
@@ -54,6 +67,7 @@ namespace gis
 		enum {MAX_STACK = 1024};
 
 		cQuadTree2<sTileData> m_qtree;
+		cTileManager m_tileMgr;
 		graphic::cMaterial m_mtrl;
 		graphic::cVertexBuffer m_vtxBuff;
 		graphic::cShader11 m_shader;
@@ -65,6 +79,7 @@ namespace gis
 		bool m_showWireframe;
 		bool m_isShowLevel;
 		bool m_isShowLoc;
+		int m_distanceLevelOffset;
 		sStackData *m_stack; // recursive call stack
 	};
 

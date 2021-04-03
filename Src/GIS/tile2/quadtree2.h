@@ -3,31 +3,77 @@
 // Quad-Tree for Geometry (Sparse QuadTree)
 //	- upgrade cQuadTree
 //
-//
 #pragma once
 
+// quad tree node tile space (terrain tile space)
+//
+//  y-axis
+//  |  
+//  |
+//  |
+//  |0,0
+//  -------------> x-axis
+//
+//
+// quad node tile x,y coordinate
+//
+//  y-axis
+//  |
+//  |-----------------
+//  | (0,1) | (1,1) |
+//  | (0,0) | (1,0) |
+//   -----------------> x-axis
+//
+//
+// -----------------------------------------------------------
+// quad tree node rect space (3D space)
+// 
+//  y-axis
+//  |
+//  |
+//  |
+//  |0,0
+//  -------------> x-axis
+//
+// quad node rect coordinate
+//
+//  y-axis
+//  | 
+//  |
+//  |  * left-bottom -- * right-bottom
+//  |  |                |
+//  |  * left-top    -- * right-top
+//  |0,0
+//   -------------------> x-axis
+//
 
-namespace gis
+namespace gis2
 {
-	
+
+	namespace qtree
+	{
+		uint64 MakeKey(const int level, const int x, const int y);
+	}
+
+
 	// maximum quad tree level
-	static const int MAX_QTREE_LEVEL = 16;
+	static const int MAX_QTREE_LEVEL = 20;
 
 
 	// quad tree node
 	template<class T>
 	struct sQNode : public common::cMemoryPool<sQNode<T>>
 	{
-		int xLoc;
-		int yLoc;
+		int x;
+		int y;
 		int level;
 		sQNode *parent; // reference
 		sQNode *children[4]; // reference
 		T data;
 
 		sQNode() {
-			xLoc = 0;
-			yLoc = 0;
+			x = 0;
+			y = 0;
 			level = 0;
 			parent = nullptr;
 			children[0] = children[1] = children[2] = children[3] = nullptr;
@@ -51,21 +97,14 @@ namespace gis
 		bool InsertChildren(qnode *node, qnode *child[4]);
 		bool RemoveChildren(qnode *node, const bool isRmTree = true);
 		qnode* GetNode(const sRectf &rect);
-		qnode* GetNode(const int level, const int xLoc, const int yLoc);
+		qnode* GetNode(const int level, const int x, const int y);
 		qnode* GetNode(const uint64 key);
 		qnode* GetNorthNeighbor(const qnode *node);
 		qnode* GetSouthNeighbor(const qnode *node);
 		qnode* GetWestNeighbor(const qnode *node);
 		qnode* GetEastNeighbor(const qnode *node);
-
-		static std::tuple<int, int, int> GetNodeLevel(const sRectf &rect);
-		static std::pair<int, int> GetNodeLocation(const sRectf &rect, const int level);
-		static sRectf GetNodeRect(const int level, const int xLoc, const int yLoc);
-		static sRectf GetNodeRect(const qnode *node);
-		static sRectf GetNodeGlobalRect(const qnode *node);
-		static Vector3 GetGlobalPos(const Vector3 &relPos);
-		static Vector3 GetRelationPos(const Vector3 &globalPos);
-		static uint64 MakeKey(const int level, const int xLoc, const int yLoc);
+		sRectf GetNodeRect(const qnode *node);
+		sRectf GetNodeGlobalRect(const qnode *node);
 		void Clear(const bool isRmTree = true);
 
 
@@ -99,22 +138,11 @@ namespace gis
 
 
 	template<class T>
-	inline uint64 cQuadTree2<T>::MakeKey(const int level, const int xLoc, const int yLoc)
-	{
-		uint64 lv = level;
-		uint64 y = yLoc;
-		y <<= (MAX_QTREE_LEVEL + 4);
-		lv <<= (MAX_QTREE_LEVEL + MAX_QTREE_LEVEL + 8);
-		return (uint64)(lv + y + xLoc);
-	}
-
-
-	template<class T>
 	inline bool cQuadTree2<T>::Insert(qnode *node)
 	{
 		RETV(node->level >= MAX_QTREE_LEVEL, false);
 
-		const uint64 key = MakeKey(node->level, node->xLoc, node->yLoc);
+		const uint64 key = qtree::MakeKey(node->level, node->x, node->y);
 
 		auto it = m_nodeTable[node->level].find(key);
 		if (m_nodeTable[node->level].end() != it)
@@ -140,7 +168,7 @@ namespace gis
 	{
 		RETV(node->level >= MAX_QTREE_LEVEL, false);
 
-		const uint64 key = MakeKey(node->level, node->xLoc, node->yLoc);
+		const uint64 key = qtree::MakeKey(node->level, node->x, node->y);
 
 		auto it = m_nodeTable[node->level].find(key);
 		if (m_nodeTable[node->level].end() == it)
@@ -169,8 +197,8 @@ namespace gis
 		for (int i = 0; i < 4; ++i)
 		{
 			qnode *p = new qnode;
-			p->xLoc = (parent->xLoc << 1) + locs[i * 2];
-			p->yLoc = (parent->yLoc << 1) + locs[i * 2 + 1];
+			p->x = (parent->x << 1) + locs[i * 2];
+			p->y = (parent->y << 1) + locs[i * 2 + 1];
 			p->level = parent->level + 1;
 			p->parent = parent;
 			assert(!parent->children[i]);
@@ -192,8 +220,8 @@ namespace gis
 		for (int i = 0; i < 4; ++i)
 		{
 			qnode *p = child[i];
-			p->xLoc = (parent->xLoc << 1) + locs[i * 2];
-			p->yLoc = (parent->yLoc << 1) + locs[i * 2 + 1];
+			p->x = (parent->x << 1) + locs[i * 2];
+			p->y = (parent->y << 1) + locs[i * 2 + 1];
 			p->level = parent->level + 1;
 			p->parent = parent;
 			assert(!parent->children[i]);
@@ -249,67 +277,14 @@ namespace gis
 	}
 
 
-	// return node level, x, y correspond rect
-	template<class T>
-	inline std::tuple<int, int, int> cQuadTree2<T>::GetNodeLevel(const sRectf &rect)
-	{
-		if ((rect.right < 0) || (rect.bottom < 0))
-			return std::make_tuple(-1, 0, 0);
-
-		int x1 = (int)(rect.left);
-		int y1 = (int)(rect.top);
-
-		int xResult = x1 ^ ((int)(rect.right));
-		int yResult = y1 ^ ((int)(rect.bottom));
-
-		int nodeLevel = MAX_QTREE_LEVEL;
-		int shiftCount = 0;
-
-		while (xResult + yResult != 0)
-		{
-			xResult >>= 1;
-			yResult >>= 1;
-			nodeLevel--;
-			shiftCount++;
-		}
-
-		x1 >>= shiftCount;
-		y1 >>= shiftCount;
-		return std::make_tuple(nodeLevel, x1, y1);
-	}
-
-
-	// return nodeLevel, x, y correspond rect and level
-	template<class T>
-	inline std::pair<int, int> cQuadTree2<T>::GetNodeLocation(
-		const sRectf &rect, const int level)
-	{
-		const auto result = GetNodeLevel(rect);
-		int lv = std::get<0>(result);
-		int xLoc = std::get<1>(result);
-		int yLoc = std::get<2>(result);
-
-		if (lv < level)
-			return std::make_pair(-1, -1); // error occurred!!
-
-		// find level, xloc, yloc
-		while (lv != level)
-		{
-			xLoc >>= 1;
-			yLoc >>= 1;
-			--lv;
-		}
-		return std::make_pair(xLoc, yLoc);
-	}
-
 
 	template<class T>
 	inline sQNode<T>* cQuadTree2<T>::GetNode(
-		const int level, const int xLoc, const int yLoc)
+		const int level, const int x, const int y)
 	{
 		if ((uint)level >= MAX_QTREE_LEVEL)
 			return NULL;
-		const uint64 key = MakeKey(level, xLoc, yLoc);
+		const uint64 key = qtree::MakeKey(level, x, y);
 		auto it = m_nodeTable[level].find(key);
 		if (m_nodeTable[level].end() == it)
 			return false; // Error!! Not Exist
@@ -382,63 +357,9 @@ namespace gis
 
 	// return Relation Coordinate
 	template<class T>
-	inline sRectf cQuadTree2<T>::GetNodeRect(const int level, const int xLoc, const int yLoc)
-	{
-		sRectf rect;
-		if (level >= 7)
-		{
-			const int clv = (level - 7);
-			const int cxloc = 1088 << clv;
-			const int cyloc = 442 << clv;
-			const int xx = xLoc - cxloc;
-			const int yy = yLoc - cyloc;
-			const float size = (float)(1 << (16 - level));
-			rect = sRectf::Rect(xx * size, yy*size, size, size);
-		}
-		else
-		{
-			const int clv = (7 - level);
-			const int cxloc = xLoc << clv;
-			const int cyloc = yLoc << clv;
-			const int xx = cxloc - 1088;
-			const int yy = cyloc - 442;
-			const float size1 = (float)(1 << (16 - 7));
-			const float size2 = (float)(1 << (16 - level));
-			rect = sRectf::Rect(xx * size1, yy*size1, size2, size2);
-		}
-
-		return rect;
-	}
-
-
-	// return Relation Coordinate
-	template<class T>
 	inline sRectf cQuadTree2<T>::GetNodeRect(const qnode *node)
 	{
-		sRectf rect;
-		if (node->level >= 7)
-		{
-			const int clv = (node->level - 7);
-			const int cxloc = 1088 << clv;
-			const int cyloc = 442 << clv;
-			const int xx = node->xLoc - cxloc;
-			const int yy = node->yLoc - cyloc;
-			const float size = (float)(1 << (16 - node->level));
-			rect = sRectf::Rect(xx * size, yy*size, size, size);
-		}
-		else
-		{
-			const int clv = (7 - node->level);
-			const int cxloc = node->xLoc << clv;
-			const int cyloc = node->yLoc << clv;
-			const int xx = cxloc - 1088;
-			const int yy = cyloc - 442;
-			const float size1 = (float)(1 << (16 - 7));
-			const float size2 = (float)(1 << (16 - node->level));
-			rect = sRectf::Rect(xx * size1, yy*size1, size2, size2);
-		}
-
-		return rect;
+		return gis2::GetNodeRect(node->level, node->x, node->y);
 	}
 
 
@@ -446,35 +367,9 @@ namespace gis
 	template<class T>
 	inline sRectf cQuadTree2<T>::GetNodeGlobalRect(const qnode *node)
 	{
-		const float size = (float)(1 << (16 - node->level));
-		const sRectf rect = sRectf::Rect(node->xLoc * size, node->yLoc*size, size, size);
+		const float size = (float)(1 << (MAX_QTREE_LEVEL - node->level));
+		const sRectf rect = sRectf::Rect(node->x * size, node->y * size, size, size);
 		return rect;
-	}
-
-
-	// covert relation coordinate to global coordinate
-	template<class T>
-	inline Vector3 cQuadTree2<T>::GetGlobalPos(const Vector3 &relPos)
-	{
-		const float size = (float)(1 << (16 - 7));
-		const int xLoc = 1088;
-		const int yLoc = 442;
-		const float offsetX = size * xLoc;
-		const float offsetY = size * yLoc;
-		return Vector3(relPos.x + offsetX, relPos.y, relPos.z + offsetY);
-	}
-
-
-	// covert relation coordinate to global coordinate
-	template<class T>
-	inline Vector3 cQuadTree2<T>::GetRelationPos(const Vector3 &globalPos)
-	{
-		const float size = (float)(1 << (16 - 7));
-		const int xLoc = 1088;
-		const int yLoc = 442;
-		const float offsetX = size * xLoc;
-		const float offsetY = size * yLoc;
-		return Vector3(globalPos.x - offsetX, globalPos.y, globalPos.z - offsetY);
 	}
 
 
@@ -491,6 +386,16 @@ namespace gis
 			m_nodeTable[i].clear();
 		}
 		m_root = nullptr;
+	}
+
+
+	inline uint64 qtree::MakeKey(const int level, const int x, const int y)
+	{
+		uint64 lv = level;
+		uint64 yy = y;
+		yy <<= (MAX_QTREE_LEVEL + 4);
+		lv <<= (MAX_QTREE_LEVEL + MAX_QTREE_LEVEL + 8);
+		return (uint64)(lv + yy + x);
 	}
 
 }

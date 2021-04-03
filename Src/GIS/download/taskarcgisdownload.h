@@ -1,20 +1,20 @@
 //
-// 2018-06-21, jjuiddong
-// task web download
+// 2021-03-30, jjuiddong
+// arcgis download
 // 
 #pragma once
 
 namespace gis { class cGeoDownloader; }
 
 
-class cTaskWebDownload : public common::cTask
-						, public common::cMemoryPool4<cTaskWebDownload>
+class cTaskArcGisDownload : public common::cTask
+	, public common::cMemoryPool4<cTaskArcGisDownload >
 {
 public:
-	cTaskWebDownload(const int id
+	cTaskArcGisDownload(const int id
 		, gis::cGeoDownloader *geoDownloader
 		, const gis::sDownloadData &dnData);
-	virtual ~cTaskWebDownload();
+	virtual ~cTaskArcGisDownload();
 
 	void SetParameter(gis::cGeoDownloader *geoDownloader
 		, const gis::sDownloadData &dnData);

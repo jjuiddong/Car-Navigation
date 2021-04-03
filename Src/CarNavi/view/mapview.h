@@ -47,6 +47,7 @@ public:
 	graphic::cSkyBoxCube m_skybox;
 	graphic::cRenderTarget m_renderTarget;
 	cTerrainQuadTree m_quadTree;
+	gis2::cQTerrain m_qterrain;
 
 	// GuageBar LED
 	graphic::cTexture *m_ledTexture[4]; // blue-green-yellow-red

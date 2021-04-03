@@ -38,6 +38,7 @@ cMapView::cMapView(const string &name)
 cMapView::~cMapView() 
 {
 	m_quadTree.Clear();
+	m_qterrain.Clear();
 	m_netController.Clear();
 	m_naviClient.Close();
 }
@@ -47,12 +48,24 @@ bool cMapView::Init(cRenderer &renderer)
 {
 	//const Vector3 eyePos(3040.59766f, 10149.6260f, -4347.90381f);
 	//const Vector3 lookAt(2825.30078f, 0.000000000f, 2250.73193f);
-	const Vector3 eyePos(2887.55542f, 10676.3408f, 594.097351f);
-	const Vector3 lookAt(2674.30518f, 0.000000000f, 2766.95801f);
+	// korea
+	//const Vector3 eyePos(2887.55542f, 10676.3408f, 594.097351f);
+	//const Vector3 lookAt(2674.30518f, 0.000000000f, 2766.95801f);
+	// world
+	//const Vector3 eyePos(121432.094f, 105913.688f, -219297.594f);
+	//const Vector3 lookAt(122620.094f, -0.0625000000f, -67574.3594f);
+	// world-korea
+	//const Vector3 eyePos(895814.625f, 27550.5039f, 626810.063f);
+	//const Vector3 lookAt(895543.938f, 0.00000000f, 637696.188f);
+	// korea2
+	const Vector3 eyePos(1694.86792f, 33778.4648f, -27061.9805f);
+	const Vector3 lookAt(-24.1528015f, 0.00000000f, 4727.60938f);
+
 
 	const float fov = g_global->m_config.GetFloat("fov", MATH_PI / 4.f);
 	m_camera.SetCamera(eyePos, lookAt, Vector3(0, 1, 0));
-	m_camera.SetProjection(fov, m_rect.Width() / m_rect.Height(), 0.1f, 100000.f);
+	//m_camera.SetProjection(fov, m_rect.Width() / m_rect.Height(), 0.1f, 100000.f);
+	m_camera.SetProjection(fov, m_rect.Width() / m_rect.Height(), 1.f, 1000000.f);
 	m_camera.SetViewPort(m_rect.Width(), m_rect.Height());
 	m_camera.m_kp = g_global->m_config.GetFloat("camera_kp", 1.5f);
 	m_camera.m_kd = g_global->m_config.GetFloat("camera_kd", 0.f);
@@ -71,14 +84,20 @@ bool cMapView::Init(cRenderer &renderer)
 	if (!m_quadTree.Create(renderer, true))
 		return false;
 
+	if (!m_qterrain.Create(renderer))
+		return false;
+
 	m_quadTree.m_isShowDistribute = false;
 	m_quadTree.m_showQuadTree = false;
 	m_quadTree.m_showFacility = false;
 	m_quadTree.m_isShowPoi1 = true;
 	m_quadTree.m_isShowPoi2 = false;
 	if (m_quadTree.m_tileMgr)
+	{
 		m_quadTree.m_tileMgr->m_geoDownloader.Create(
-			g_global->m_config.GetString("apikey"));
+			g_global->m_config.GetString("apikey")
+			, m_quadTree.m_tileMgr);
+	}
 
 	m_skybox.Create(renderer, "../media/skybox/sky.dds");
 	m_skybox.m_isDepthNone = true;
@@ -122,6 +141,7 @@ void cMapView::OnUpdate(const float deltaSeconds)
 
 	if (g_global->m_isShowTerrain)
 		m_quadTree.Update(GetRenderer(), camLonLat, deltaSeconds);
+	m_qterrain.Update(GetRenderer(), camLonLat, deltaSeconds);
 
 	float dt = deltaSeconds;
 	// ²Ç¼ö.
@@ -135,15 +155,15 @@ void cMapView::OnUpdate(const float deltaSeconds)
 		dt = 0.f;
 	}
 
-	m_camera.Update(dt);
-	m_netController.Process(dt);
+	//m_camera.Update(dt);
+	//m_netController.Process(dt);
 
-	g_global->m_touch.CheckTouchType(m_owner->getSystemHandle());
+	//g_global->m_touch.CheckTouchType(m_owner->getSystemHandle());
 
-	UpdateOBD2(deltaSeconds);
-	UpdateGPS(deltaSeconds);
-	UpdateMapScanCircle(deltaSeconds);
-	UpdateMapScanPath(deltaSeconds);
+	//UpdateOBD2(deltaSeconds);
+	//UpdateGPS(deltaSeconds);
+	//UpdateMapScanCircle(deltaSeconds);
+	//UpdateMapScanPath(deltaSeconds);
 	//UpdateMapTrace(deltaSeconds);
 }
 
@@ -592,7 +612,7 @@ void cMapView::OnPreRender(const float deltaSeconds)
 		else
 		{
 			renderer.GetDevContext()->RSSetState(states.CullCounterClockwise());
-			if (g_global->m_isShowTerrain && m_quadTree.m_showTile)
+			//if (g_global->m_isShowTerrain && m_quadTree.m_showTile)
 				m_skybox.Render(renderer);
 		}
 
@@ -603,6 +623,7 @@ void cMapView::OnPreRender(const float deltaSeconds)
 		frustum.SetFrustum(GetMainCamera().GetViewProjectionMatrix());
 		if (g_global->m_isShowTerrain)
 			m_quadTree.Render(renderer, deltaSeconds, frustum, ray1, ray2);
+		m_qterrain.Render(renderer, deltaSeconds, frustum, ray1, ray2);
 
 		if (g_global->m_isShowPrevPath && g_global->m_isShowAllPrevPath)
 		{
@@ -662,8 +683,9 @@ void cMapView::OnPreRender(const float deltaSeconds)
 		if ((g_global->m_camType != eCameraType::Camera1)
 			|| (g_global->m_touch.m_type != eTouchType::Touch))
 		{
-			const Vector3 p0 = m_quadTree.Get3DPos(
+			const Vector3 p0 = m_qterrain.Get3DPos(
 				{ (double)g_global->m_lonLat.x, (double)g_global->m_lonLat.y });
+
 			renderer.m_dbgLine.m_isSolid = true;
 			renderer.m_dbgLine.SetColor(Vector4(1,1,1,0.5f));
 			renderer.m_dbgLine.SetLine(p0, p0 + Vector3(0, 0.1f, 0), 0.01f);
@@ -1331,12 +1353,14 @@ void cMapView::OnMouseDown(const sf::Mouse::Button &button, const POINT mousePt)
 	{
 		m_mouseDown[0] = true;
 		const Ray ray = GetMainCamera().GetRay(mousePt.x, mousePt.y);
-		auto result = m_quadTree.Pick(ray);
+		//auto result = m_quadTree.Pick(ray);
+		auto result = m_qterrain.Pick(ray);
 		Vector3 p1 = result.second;
 		m_rotateLen = (p1 - ray.orig).Length();
 
 		cAutoCam cam(&m_camera);
-		const Vector2d lonLat = m_quadTree.GetWGS84(p1);
+		//const Vector2d lonLat = m_quadTree.GetWGS84(p1);
+		const Vector2d lonLat = m_qterrain.GetWGS84(p1);
 		gis::LatLonToUTMXY(lonLat.y, lonLat.x, 52, g_global->m_utmLoc.x, g_global->m_utmLoc.y);
 		g_global->m_lonLat = Vector2((float)lonLat.x, (float)lonLat.y);
 
