@@ -48,6 +48,7 @@ StrPath cTileTexture::GetFileName(const StrPath &directoryName
 
 
 // arcgis filename
+// flip y
 StrPath cTileTexture::GetFileName2(const StrPath &directoryName
 	, const int level, const int xLoc, const int yLoc)
 {
@@ -60,6 +61,7 @@ StrPath cTileTexture::GetFileName2(const StrPath &directoryName
 
 
 // arcgis filename
+// flip y
 StrPath cTileTexture::GetFileName2(const StrPath &directoryName
 	, const int level, const int xLoc, const int yLoc
 	, const char *fileName)

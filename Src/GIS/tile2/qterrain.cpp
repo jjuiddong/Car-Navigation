@@ -26,13 +26,6 @@ cQTerrain::~cQTerrain()
 // create quadtree terrain
 bool cQTerrain::Create(graphic::cRenderer &renderer)
 {
-	sVertexNormTex vtx;
-	vtx.p = Vector3(0, 0, 0);
-	vtx.n = Vector3(0, 1, 0);
-	vtx.u = 0;
-	vtx.v = 0;
-	m_vtxBuff.Create(renderer, 1, sizeof(sVertexNormTex), &vtx);
-
 	const StrPath fileName = cResourceManager::Get()->GetResourceFilePath(
 		"shader11/tess-pos-norm-tex.fxo");
 	if (!m_shader.Create(renderer, fileName, "Unlit"

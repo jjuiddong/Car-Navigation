@@ -9,7 +9,7 @@ common::cMemoryPool2<67 * 67 * sizeof(float)> g_memPool67;
 common::cMemoryPool2<256 * 256 * sizeof(float)> g_memPool256;
 common::cMemoryPool2<258 * 258 * sizeof(float)> g_memPool258;
 common::cMemoryPool3<graphic::cTexture, 512> g_memPoolTex;
-int MAX_SCAN_LEVEL = 14;
+int MAX_SCAN_LEVEL = 20;
 
 struct sLocation {
 	int lv;
@@ -42,7 +42,7 @@ int main(char argc, char *argv[])
 
 	const string svr = argv[1];
 	cout << "server= " << svr << endl;
-	MAX_SCAN_LEVEL = min(16, atoi(argv[2]));
+	MAX_SCAN_LEVEL = min(MAX_SCAN_LEVEL, atoi(argv[2]));
 	cout << "max level=" << MAX_SCAN_LEVEL << endl;
 	Sleep(3000);
 

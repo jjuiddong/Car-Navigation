@@ -69,7 +69,6 @@ namespace gis2
 		cQuadTree2<sTileData> m_qtree;
 		cTileManager m_tileMgr;
 		graphic::cMaterial m_mtrl;
-		graphic::cVertexBuffer m_vtxBuff;
 		graphic::cShader11 m_shader;
 		graphic::cText m_text;
 		Vector3 m_txtColor;
