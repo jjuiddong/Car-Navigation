@@ -52,20 +52,21 @@ bool cMapView::Init(cRenderer &renderer)
 	//const Vector3 eyePos(2887.55542f, 10676.3408f, 594.097351f);
 	//const Vector3 lookAt(2674.30518f, 0.000000000f, 2766.95801f);
 	// world
-	//const Vector3 eyePos(121432.094f, 105913.688f, -219297.594f);
-	//const Vector3 lookAt(122620.094f, -0.0625000000f, -67574.3594f);
+	const Vector3 eyePos(121432.094f, 1059130.688f, -219297.594f);
+	const Vector3 lookAt(122620.094f, -0.0625000000f, -67574.3594f);
 	// world-korea
 	//const Vector3 eyePos(895814.625f, 27550.5039f, 626810.063f);
 	//const Vector3 lookAt(895543.938f, 0.00000000f, 637696.188f);
 	// korea2
-	const Vector3 eyePos(1694.86792f, 33778.4648f, -27061.9805f);
-	const Vector3 lookAt(-24.1528015f, 0.00000000f, 4727.60938f);
+	//const Vector3 eyePos(1694.86792f, 33778.4648f, -27061.9805f);
+	//const Vector3 lookAt(-24.1528015f, 0.00000000f, 4727.60938f);
 
 
 	const float fov = g_global->m_config.GetFloat("fov", MATH_PI / 4.f);
 	m_camera.SetCamera(eyePos, lookAt, Vector3(0, 1, 0));
 	//m_camera.SetProjection(fov, m_rect.Width() / m_rect.Height(), 0.1f, 100000.f);
-	m_camera.SetProjection(fov, m_rect.Width() / m_rect.Height(), 1.f, 1000000.f);
+	//m_camera.SetProjection(fov, m_rect.Width() / m_rect.Height(), 1.f, 1000000.f);
+	m_camera.SetProjection(fov, m_rect.Width() / m_rect.Height(), 1.f, 10000000.f);
 	m_camera.SetViewPort(m_rect.Width(), m_rect.Height());
 	m_camera.m_kp = g_global->m_config.GetFloat("camera_kp", 1.5f);
 	m_camera.m_kd = g_global->m_config.GetFloat("camera_kd", 0.f);

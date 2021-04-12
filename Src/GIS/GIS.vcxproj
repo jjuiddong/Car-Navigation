@@ -158,6 +158,7 @@
   <ItemGroup>
     <ClInclude Include="download\geodownloader.h" />
     <ClInclude Include="download\taskarcgisdownload.h" />
+    <ClInclude Include="download\taskgoogledownload.h" />
     <ClInclude Include="download\taskwebdownload.h" />
     <ClInclude Include="download\webdownload.h" />
     <ClInclude Include="geo\poireader.h" />
@@ -188,6 +189,7 @@
   <ItemGroup>
     <ClCompile Include="download\geodownloader.cpp" />
     <ClCompile Include="download\taskarcgisdownload.cpp" />
+    <ClCompile Include="download\taskgoogledownload.cpp" />
     <ClCompile Include="download\taskwebdownload.cpp" />
     <ClCompile Include="download\webdownload.cpp" />
     <ClCompile Include="geo\poireader.cpp" />

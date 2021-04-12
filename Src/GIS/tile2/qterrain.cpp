@@ -43,6 +43,16 @@ bool cQTerrain::Create(graphic::cRenderer &renderer)
 
 	m_text.Create(renderer, 18.f, true, "Consolas");
 
+	//const int lv = 13;
+	//const int x = 7036;
+	//const int y = 4981;// (1 << lv) - 27 - 1;
+	//sRectf rect = gis2::GetNodeRect(lv, x, y);
+	//cQTile *tile = m_tileMgr.GetTile(renderer, lv, x, y, rect);
+	//if (tile) {
+	//	m_tileMgr.LoadResource(renderer, *this, *tile,
+	//		tile->m_level, tile->m_loc.x, tile->m_loc.y, rect);
+	//}
+
 	return true;
 }
 

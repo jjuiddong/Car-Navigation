@@ -55,6 +55,8 @@ bool cGlobal::Init(HWND hwnd)
 {
 	m_config.Read("carnavi_config.txt");
 	g_mediaDir = m_config.GetString("media_path", "D:\\media\\data");
+	g_mediaDemDir = m_config.GetString("media_path_dem", g_mediaDir.c_str());
+	g_mediaTileDir = m_config.GetString("media_path_tile", g_mediaDir.c_str());
 
 	// read camera information
 	for (int i = 0; i < (int)eCameraType::MAX; ++i)

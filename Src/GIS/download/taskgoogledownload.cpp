@@ -1,6 +1,6 @@
 
 #include "stdafx.h"
-#include "taskarcgisdownload.h"
+#include "taskgoogledownload.h"
 #include <direct.h> //mkdir
 #include <urlmon.h>
 #pragma comment(lib, "urlmon.lib")
@@ -8,29 +8,29 @@
 using namespace gis;
 
 
-cTaskArcGisDownload::cTaskArcGisDownload(const int id
+cTaskGoogleDownload::cTaskGoogleDownload(const int id
 	, cGeoDownloader *geoDownloader
 	, const sDownloadData &dnData)
-	: cTask(id, "cTaskArcGisDownload", true)
+	: cTask(id, "cTaskGoogleDownload", true)
 	, m_geoDownloader(nullptr)
 {
 	SetParameter(geoDownloader, dnData);
 }
 
-cTaskArcGisDownload::~cTaskArcGisDownload()
+cTaskGoogleDownload::~cTaskGoogleDownload()
 {
 	Clear();
 }
 
 
-void cTaskArcGisDownload::Clear()
+void cTaskGoogleDownload::Clear()
 {
 	if (m_geoDownloader)
 		m_geoDownloader->FailDownload(m_dnData);
 }
 
 
-void cTaskArcGisDownload::SetParameter(cGeoDownloader *geoDownloader
+void cTaskGoogleDownload::SetParameter(cGeoDownloader *geoDownloader
 	, const sDownloadData &dnData)
 {
 	m_geoDownloader = geoDownloader;
@@ -38,14 +38,13 @@ void cTaskArcGisDownload::SetParameter(cGeoDownloader *geoDownloader
 }
 
 
-common::cTask::eRunResult::Enum cTaskArcGisDownload::Run(const double deltaSeconds)
+common::cTask::eRunResult::Enum cTaskGoogleDownload::Run(const double deltaSeconds)
 {
-	//sample "https://services.arcgisonline.com/arcgis/rest/services/Elevation/World_Hillshade/MapServer/tile/0/0/0";
-	const char *site = "https://services.arcgisonline.com/ArcGIS/rest/services/";
-	const char *cmd = nullptr;
+	//sample "https://khms1.googleapis.com/kh?v=899&hl=ko-KR&x=1&y=1&z=1";
+	const char *site = "https://khms1.googleapis.com/kh?v=899&hl=ko-KR&";
 	const char *dir = nullptr;
 
-	// change original space -> arcgis space
+	// change original space -> googlemap space
 	const int level = m_dnData.level;
 	const int x = m_dnData.x;
 	const int y = (1 << m_dnData.level) - m_dnData.y - 1;
@@ -59,18 +58,10 @@ common::cTask::eRunResult::Enum cTaskArcGisDownload::Run(const double deltaSecon
 	Str256 url;
 	switch (m_dnData.layer)
 	{
-	case eLayerName::DEM:
-		dir = g_mediaDemDir.c_str();
-		cmd = "WorldElevation3D/Terrain3D/ImageServer/tile/";
-		url.Format("%s%s%d/%d/%d", site, cmd, level, y, x);
-		dstFileName = gis::GetDownloadFileName(g_mediaDemDir, dnInfo);
-		//dstFileName += ".tmp";
-		break;
 	case eLayerName::TILE:
 		dir = g_mediaTileDir.c_str();
-		cmd = "World_Imagery/MapServer/tile/";
-		url.Format("%s%s%d/%d/%d", site, cmd, level, y, x);
 		dstFileName = gis::GetDownloadFileName(g_mediaTileDir, dnInfo);
+		url.Format("%sx=%d&y=%d&z=%d", site, x, y, level);
 		break;
 	default: 
 	{
@@ -97,20 +88,6 @@ common::cTask::eRunResult::Enum cTaskArcGisDownload::Run(const double deltaSecon
 	const HRESULT hr = URLDownloadToFileA(NULL, url.c_str(), dstFileName.c_str(), 0, NULL);
 	if (S_OK == hr)
 	{
-		//if (eLayerName::DEM == m_dnData.layer)
-		//{
-		//	// generate custom dem format file
-		//	// to simple heightmap data
-		//	// arcgis heightmap data compressed lerc format
-		//	gis2::cHeightmap3 hmap;
-		//	if (hmap.ReadLerc(dstFileName.c_str()))
-		//	{
-		//		const StrPath fileName = gis::GetDownloadFileName(g_mediaDir, dnInfo);
-		//		hmap.Write(g_mediaDir);
-		//		DeleteFileA(dstFileName.c_str()); // remove temporal file
-		//	}
-		//}
-		
 		m_geoDownloader->CompleteDownload(m_dnData);
 	}
 	else

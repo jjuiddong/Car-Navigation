@@ -75,7 +75,7 @@ bool cHeightmap2::Create(cRenderer &renderer, const cHeightmap2 &src
 	, const float huvs[4]
 	, const int level, const int xLoc, const int yLoc)
 {
-#define MACRO_SWITCH32(val, expr) \
+#define MACRO_SWITCH64(val, expr) \
 switch (val) \
 { \
 case 64: expr; \
@@ -179,10 +179,10 @@ case 1: expr; \
 		while (sx < endSrcX)
 		{
 			const float val = src.m_data[sy * srcPitch + sx];
-			MACRO_SWITCH32(incX, m_data[dy * dstPitch + dx++] = val);
+			MACRO_SWITCH64(incX, m_data[dy * dstPitch + dx++] = val);
 			sx++;
 		}
-		MACRO_SWITCH32(incY-1
+		MACRO_SWITCH64(incY-1
 			, memcpy(&m_data[(dy+1) * dstPitch], &m_data[dy * dstPitch], sizeof(float)*dstPitch); ++dy);
 
 		dy++;

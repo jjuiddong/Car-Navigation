@@ -11,6 +11,7 @@
 // 2021-03-30
 //	- refactoring
 //	- arcgis
+//	- googlemap (04-09)
 //
 #pragma once
 
@@ -20,6 +21,7 @@ namespace gis
 	enum class eGeoServer {
 		XDWORLD 
 		, ARCGIS
+		, GOOGLEMAP
 	};
 
 	class cGeoDownloader
@@ -27,6 +29,7 @@ namespace gis
 	public:
 		friend class cTaskWebDownload;
 		friend class cTaskArcGisDownload;
+		friend class cTaskGoogleDownload;
 
 		// keytype:  filename hash + (id + layer * 100) + cQuadTree::MakeKey()
 		typedef std::tuple<int, int, __int64> keytype;

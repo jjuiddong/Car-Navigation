@@ -47,7 +47,7 @@ bool cTileManager::Update(graphic::cRenderer &renderer
 		{
 			{
 				StrPath fileName = cHeightmap3::GetFileName(
-					g_mediaDir, tile->m_level, tile->m_loc.x, tile->m_loc.y);
+					g_mediaDemDir, tile->m_level, tile->m_loc.x, tile->m_loc.y);
 				m_loader1.RemoveParallel<cHeightmap3>(fileName.c_str());
 				m_geoDownloader.CancelDownload(
 					tile->m_level, tile->m_loc.x, tile->m_loc.y, 0, gis::eLayerName::DEM);
@@ -55,7 +55,7 @@ bool cTileManager::Update(graphic::cRenderer &renderer
 
 			{
 				StrPath fileName = cTileTexture::GetFileName2(
-					g_mediaDir, tile->m_level, tile->m_loc.x, tile->m_loc.y);
+					g_mediaTileDir, tile->m_level, tile->m_loc.x, tile->m_loc.y);
 				m_loader1.RemoveParallel<cTileTexture>(fileName.c_str());
 				m_geoDownloader.CancelDownload(
 					tile->m_level, tile->m_loc.x, tile->m_loc.y, 0, gis::eLayerName::TILE);
@@ -95,7 +95,7 @@ void cTileManager::UpdateDownloadFile(graphic::cRenderer &renderer)
 			if (tile && !tile->m_hmap)
 			{
 				StrPath fileName = cHeightmap3::GetFileName(
-					g_mediaDir, file.level, file.x, file.y);
+					g_mediaDemDir, file.level, file.x, file.y);
 				m_loader1.LoadParallel<cHeightmap3>(renderer, fileName.c_str()
 					, &tile->m_loadFlag[file.layer], (void**)&tile->m_hmap, true);
 			}
@@ -109,7 +109,7 @@ void cTileManager::UpdateDownloadFile(graphic::cRenderer &renderer)
 			if (tile && !tile->m_texture)
 			{
 				StrPath fileName = cTileTexture::GetFileName2(
-					g_mediaDir, file.level, file.x, file.y);
+					g_mediaTileDir, file.level, file.x, file.y);
 				// check no image
 				const int64 fileSize = fileName.FileSize();
 				if (fileSize > 3000)
@@ -198,7 +198,7 @@ void cTileManager::LoadTexture(graphic::cRenderer &renderer
 	, const int level, const int x, const int y
 	, const sRectf &rect)
 {
-	StrPath fileName = cTileTexture::GetFileName2(g_mediaDir, level, x, y);
+	StrPath fileName = cTileTexture::GetFileName2(g_mediaTileDir, level, x, y);
 	bool isFileExist = fileName.IsFileExist();
 	bool isNeedDownload = !isFileExist;
 	if (isFileExist)
@@ -219,7 +219,7 @@ void cTileManager::LoadTexture(graphic::cRenderer &renderer
 
 	if (isNeedDownload)
 	{
-		m_geoDownloader.DownloadFile(gis::eGeoServer::ARCGIS
+		m_geoDownloader.DownloadFile(gis::eGeoServer::GOOGLEMAP
 			, level, x, y, 0, gis::eLayerName::TILE);
 	}
 
@@ -239,7 +239,7 @@ bool cTileManager::LoadHeightMap(graphic::cRenderer &renderer
 		return true;
 
 	const int ty = (1 << level) - y - 1;
-	StrPath fileName = cHeightmap3::GetFileName(g_mediaDir, level, x, y);
+	StrPath fileName = cHeightmap3::GetFileName(g_mediaDemDir, level, x, y);
 	bool isFileExist = fileName.IsFileExist();
 	bool isNeedDownload = !isFileExist;
 	if (isFileExist)

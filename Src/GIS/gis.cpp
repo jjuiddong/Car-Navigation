@@ -27,6 +27,8 @@ static const double deg[16] = {
 };
 
 StrPath g_mediaDir = "D:\\media\\data";
+StrPath g_mediaTileDir = "D:\\media\\data"; // tile texture directory
+StrPath g_mediaDemDir = "D:\\media\\data"; // heightmap directory
 
 static const int g_offsetLv = 7;
 static const int g_offsetXLoc = 1088;

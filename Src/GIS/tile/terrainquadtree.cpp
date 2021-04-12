@@ -982,7 +982,7 @@ Vector3 cTerrainQuadTree::Get3DPosPrecise(graphic::cRenderer &renderer, const Ve
 			&& m_tileMgr->LoadHeightMapDirect(renderer, *tile, *this, level, x, y, rect))
 		{
 			// insert heightmap fileloader for clear memory
-			const StrPath fileName = cHeightmap2::GetFileName(g_mediaDir, level, x, y);
+			const StrPath fileName = cHeightmap2::GetFileName(g_mediaDemDir, level, x, y);
 
 			typedef graphic::cFileLoader2<2000, 10, sHeightmapArgs2> FileLoaderType;
 			FileLoaderType::sChunk chunk;

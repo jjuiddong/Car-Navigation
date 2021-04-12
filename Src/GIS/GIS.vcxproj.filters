@@ -96,6 +96,9 @@
     <ClInclude Include="tile2\cntzimg.h">
       <Filter>tile2</Filter>
     </ClInclude>
+    <ClInclude Include="download\taskgoogledownload.h">
+      <Filter>download</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="gis.cpp" />
@@ -169,6 +172,9 @@
     <ClCompile Include="gis2.cpp" />
     <ClCompile Include="tile2\cntzimg.cpp">
       <Filter>tile2</Filter>
+    </ClCompile>
+    <ClCompile Include="download\taskgoogledownload.cpp">
+      <Filter>download</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

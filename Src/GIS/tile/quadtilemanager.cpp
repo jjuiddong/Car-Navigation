@@ -54,19 +54,19 @@ bool cQuadTileManager::Update(graphic::cRenderer &renderer, cTerrainQuadTree &te
 			++m_cntRemoveTile;
 
 			{
-				StrPath fileName = cHeightmap2::GetFileName(g_mediaDir, tile->m_level, tile->m_loc.x, tile->m_loc.y);
+				StrPath fileName = cHeightmap2::GetFileName(g_mediaDemDir, tile->m_level, tile->m_loc.x, tile->m_loc.y);
 				m_loader1.RemoveParallel<cHeightmap2>(fileName.c_str());
 				m_geoDownloader.CancelDownload(tile->m_level, tile->m_loc.x, tile->m_loc.y, 0, gis::eLayerName::DEM);
 			}
 
 			{
 				// remove replace deepcopy heightmap
-				StrPath fileName = cHeightmap2::GetFileName(g_mediaDir, tile->m_level, tile->m_loc.x, tile->m_loc.y) + "DeepCpy";
+				StrPath fileName = cHeightmap2::GetFileName(g_mediaDemDir, tile->m_level, tile->m_loc.x, tile->m_loc.y) + "DeepCpy";
 				m_loader1.RemoveParallel<cHeightmap2>(fileName.c_str());
 			}
 
 			{
-				StrPath fileName = cTileTexture::GetFileName(g_mediaDir, tile->m_level, tile->m_loc.x, tile->m_loc.y);
+				StrPath fileName = cTileTexture::GetFileName(g_mediaTileDir, tile->m_level, tile->m_loc.x, tile->m_loc.y);
 				m_loader1.RemoveParallel<cTileTexture>(fileName.c_str());
 				m_geoDownloader.CancelDownload(tile->m_level, tile->m_loc.x, tile->m_loc.y, 0, gis::eLayerName::TILE);
 			}
@@ -205,7 +205,7 @@ void cQuadTileManager::UpdateDownloadFile(graphic::cRenderer &renderer)
 			cQuadTile *tile = FindTile(file.level, file.x, file.y);
 			if (tile && !tile->m_hmap)
 			{
-				StrPath fileName = cHeightmap2::GetFileName(g_mediaDir, file.level, file.x, file.y);
+				StrPath fileName = cHeightmap2::GetFileName(g_mediaDemDir, file.level, file.x, file.y);
 				m_loader1.LoadParallel<cHeightmap2>(renderer, fileName.c_str()
 					, &tile->m_loadFlag[file.layer], (void**)&tile->m_hmap, true);
 			}
@@ -218,7 +218,7 @@ void cQuadTileManager::UpdateDownloadFile(graphic::cRenderer &renderer)
 			cQuadTile *tile = FindTile(file.level, file.x, file.y);
 			if (tile && !tile->m_texture)
 			{
-				StrPath fileName = cTileTexture::GetFileName(g_mediaDir, file.level, file.x, file.y);
+				StrPath fileName = cTileTexture::GetFileName(g_mediaTileDir, file.level, file.x, file.y);
 				m_loader1.LoadParallel<cTileTexture>(renderer, fileName.c_str()
 					, &tile->m_loadFlag[file.layer], (void**)&tile->m_texture, true);
 			}
@@ -828,7 +828,7 @@ void cQuadTileManager::LoadTexture(graphic::cRenderer &renderer
 	, const sRectf &rect)
 {
 	// 파일이 있다면, 텍스쳐를 로딩한다.
-	StrPath fileName = cTileTexture::GetFileName(g_mediaDir, level, xLoc, yLoc);
+	StrPath fileName = cTileTexture::GetFileName(g_mediaTileDir, level, xLoc, yLoc);
 	bool isFileExist = fileName.IsFileExist();
 	bool isNeedDownload = !isFileExist;
 	if (isFileExist)
@@ -869,7 +869,7 @@ bool cQuadTileManager::LoadHeightMap(graphic::cRenderer &renderer
 	if (tile.m_hmap)
 		return true;
 
-	StrPath fileName = cHeightmap2::GetFileName(g_mediaDir, level, xLoc, yLoc);
+	StrPath fileName = cHeightmap2::GetFileName(g_mediaDemDir, level, xLoc, yLoc);
 	bool isFileExist = fileName.IsFileExist();
 	bool isNeedDownload = !isFileExist;
 	if (isFileExist)
@@ -913,7 +913,7 @@ bool cQuadTileManager::LoadHeightMapDirect(graphic::cRenderer &renderer
 	if (tile.m_hmap)
 		return true;
 
-	const StrPath fileName = cHeightmap2::GetFileName(g_mediaDir, level, xLoc, yLoc);
+	const StrPath fileName = cHeightmap2::GetFileName(g_mediaDemDir, level, xLoc, yLoc);
 	if (!fileName.IsFileExist() || (fileName.FileSize() < 150))
 		return false;
 
@@ -1110,7 +1110,7 @@ bool cQuadTileManager::ReplaceParentTexture(graphic::cRenderer &renderer
 				args.level = level;
 				args.x = xLoc;
 				args.y = yLoc;
-				const StrPath fileName = cHeightmap2::GetFileName(g_mediaDir
+				const StrPath fileName = cHeightmap2::GetFileName(g_mediaDemDir
 					, level, xLoc, yLoc) + "DeepCpy";
 
 				m_loader1.LoadParallel<cHeightmap2>(renderer

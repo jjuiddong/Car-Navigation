@@ -69,6 +69,9 @@ bool cGeoDownloader::DownloadFile(const eGeoServer svrType
 	case eGeoServer::ARCGIS:
 		task = new cTaskArcGisDownload(taskId, this, data);
 		break;
+	case eGeoServer::GOOGLEMAP:
+		task = new cTaskGoogleDownload(taskId, this, data);
+		break;
 	default: assert(0); break;
 	}
 
@@ -87,7 +90,14 @@ void cGeoDownloader::UpdateDownload()
 	for (auto &file : m_complete)
 	{
 		// calc total download file size
-		const StrPath dstFileName = gis::GetDownloadFileName(g_mediaDir, file);
+		const char *dir = nullptr;
+		switch (file.layer) {
+		case eLayerName::DEM: dir = g_mediaDemDir.c_str(); break;
+		case eLayerName::TILE: dir = g_mediaTileDir.c_str(); break;
+		default: dir = g_mediaDir.c_str(); break;
+		}
+
+		const StrPath dstFileName = gis::GetDownloadFileName(dir, file);
 		m_totalDownloadFileSize += dstFileName.FileSize();
 
 		if (m_listener)

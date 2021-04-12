@@ -103,6 +103,7 @@ namespace gis
 #include "download/webdownload.h"
 #include "download/taskwebdownload.h"
 #include "download/taskarcgisdownload.h"
+#include "download/taskgoogledownload.h"
 #include "download/geodownloader.h"
 #include "geo/poireader.h"
 #include "geo/real3dmodelindexreader.h"
@@ -128,4 +129,5 @@ namespace gis
 // ~gis2
 
 extern StrPath g_mediaDir;
-
+extern StrPath g_mediaTileDir;
+extern StrPath g_mediaDemDir;

@@ -21,7 +21,7 @@ class cDownloadListener : public gis::iDownloadFinishListener
 {
 	virtual void OnDownloadComplete(const gis::sDownloadData &data) override
 	{
-		cout << "Complete " << data.dataFile.c_str() << endl;
+		cout << "Complete " << data.dataFile.c_str() << " : " << data.dataFile.FileSize() << endl;
 	}
 };
 
@@ -30,13 +30,15 @@ void scan_vworld(gis::cGeoDownloader &geoDownloader
 	, const StrPath &mediaDir, queue<sLocation> &q);
 void scan_arcgis(gis::cGeoDownloader &geoDownloader
 	, const StrPath &mediaDir, queue<sLocation> &q);
+void scan_google(gis::cGeoDownloader &geoDownloader
+	, const StrPath &mediaDir, queue<sLocation> &q);
 
 
 int main(char argc, char *argv[])
 {
 	if (argc < 3)
 	{
-		cout << "server:{vworld, arcgis}, maxLv:number" << endl;
+		cout << "server:{vworld, arcgis, google}, maxLv:number" << endl;
 		return 0;
 	}
 
@@ -53,9 +55,14 @@ int main(char argc, char *argv[])
 	geoDownloader.Create(config.GetString("apikey"), &listener);
 	StrPath mediaDir = config.GetString("media_path", "D:\\media\\data");
 	g_mediaDir = mediaDir;
+	g_mediaDemDir = mediaDir;
+	g_mediaTileDir = mediaDir;
+	cout << "media directory= " << g_mediaDir.c_str() << endl;
 	
 	//ex) 6, 548, 225
 	std::queue<sLocation> q;
+
+
 	if (0)
 	{
 		// vworld
@@ -90,34 +97,39 @@ int main(char argc, char *argv[])
 	if (1)
 	{
 		// arcgis world
-		//q.push({ 0, 0, 0 }); 
+		if (MAX_SCAN_LEVEL < 8) 
+		{
+			q.push({ 0, 0, 0 }); 
+		}
+		else
+		{
+			// arcgis korea
+			q.push({ 8, 218, 157 });
+			q.push({ 8, 219, 157 });
+			//8, 217, 156
+			q.push({ 9, 435, 313 });
+			q.push({ 9, 435, 312 });
+			q.push({ 8, 218, 156 });
+			q.push({ 8, 219, 156 });
+			q.push({ 9, 440, 312 });
+			//8, 217, 155
+			q.push({ 9, 435, 311 });
+			q.push({ 9, 435, 310 });
+			q.push({ 8, 218, 155 });
+			q.push({ 8, 219, 155 });
+			q.push({ 9, 440, 311 });
+			q.push({ 9, 440, 310 });
+			//8, 217, 154
+			q.push({ 9, 435, 309 });
+			q.push({ 9, 435, 308 });
+			q.push({ 8, 218, 154 });
+			q.push({ 8, 219, 154 });
+			q.push({ 8, 217, 153 });
+			q.push({ 8, 218, 153 });
 
-		// arcgis korea
-		q.push({ 8, 218, 157 });
-		q.push({ 8, 219, 157 });
-		//8, 217, 156
-		q.push({ 9, 435, 313 });
-		q.push({ 9, 435, 312 });
-		q.push({ 8, 218, 156 });
-		q.push({ 8, 219, 156 });
-		q.push({ 9, 440, 312 });
-		//8, 217, 155
-		q.push({ 9, 435, 311 });
-		q.push({ 9, 435, 310 });
-		q.push({ 8, 218, 155 });
-		q.push({ 8, 219, 155 });
-		q.push({ 9, 440, 311 });
-		q.push({ 9, 440, 310 });
-		//8, 217, 154
-		q.push({ 9, 435, 309 });
-		q.push({ 9, 435, 308 });
-		q.push({ 8, 218, 154 });
-		q.push({ 8, 219, 154 });
-		q.push({ 8, 217, 153 });
-		q.push({ 8, 218, 153 });
-
-		// uleug dokdo
-		q.push({ 9, 442, 313 });
+			// uleug dokdo
+			q.push({ 9, 442, 313 });
+		}
 	}
 
 	if (svr == "vworld")
@@ -127,8 +139,15 @@ int main(char argc, char *argv[])
 	}
 	else if (svr == "arcgis")
 	{
+		cout << "start scan arcgis" << endl;
 		while (!q.empty())
 			scan_arcgis(geoDownloader, mediaDir, q);
+	}
+	else if (svr == "google")
+	{
+		cout << "start scan googlemap" << endl;
+		while (!q.empty())
+			scan_google(geoDownloader, mediaDir, q);
 	}
 	else
 	{
@@ -137,6 +156,8 @@ int main(char argc, char *argv[])
 
 	while (geoDownloader.m_requestIds.size() > 0)
 		Sleep(1000);
+
+	cout << "finish scan" << endl;
 }
 
 
@@ -255,6 +276,59 @@ void scan_arcgis(gis::cGeoDownloader &geoDownloader
 			geoDownloader.DownloadFile(gis::eGeoServer::ARCGIS
 				, loc.lv, loc.x, loc.y,
 				0, gis::eLayerName::TILE, fileName.c_str());
+		}
+	}
+
+	geoDownloader.UpdateDownload();
+	if (geoDownloader.m_requestIds.size() > 100)
+		Sleep(geoDownloader.m_requestIds.size() * 10);
+
+	const int startX = loc.x << 1;
+	const int endX = (loc.x + 1) << 1;
+	const int startY = loc.y << 1;
+	const int endY = (loc.y + 1) << 1;
+	for (int x = startX; x < endX; ++x)
+		for (int y = startY; y < endY; ++y)
+			q.push({ loc.lv + 1, x, y });
+}
+
+
+// scan lv, x, y child node
+// and then scan child tree node recursivly
+void scan_google(gis::cGeoDownloader &geoDownloader
+	, const StrPath &mediaDir, queue<sLocation> &q)
+{
+	if (q.empty())
+		return; // finish scan
+
+	const sLocation loc = q.front(); q.pop();
+	if (loc.lv > MAX_SCAN_LEVEL)
+		return; // finish scan
+
+	// texture
+	{
+		const StrPath fileName = cTileTexture::GetFileName2(mediaDir, loc.lv, loc.x, loc.y);
+		const bool isFileExist = fileName.IsFileExist();
+		if (!isFileExist) {
+
+			const int plv = loc.lv - 1;
+			const int px = loc.x >> 1;
+			const int py = loc.y >> 1;
+			const StrPath parentFileName =
+				cTileTexture::GetFileName2(mediaDir, plv, px, py);
+			if (parentFileName.FileSize() < 100)
+			{
+				// no parent file?, ignore this tile data
+				return;
+			}
+
+			cout << "request texture " << loc.lv << "," 
+				<< loc.x << "," << loc.y << ", " << fileName.c_str() << endl;
+			geoDownloader.DownloadFile(gis::eGeoServer::GOOGLEMAP
+				, loc.lv, loc.x, loc.y,
+				0, gis::eLayerName::TILE, fileName.c_str());
+
+			Sleep(500); // delay to prevent block from server
 		}
 	}
 

@@ -54,20 +54,24 @@ common::cTask::eRunResult::Enum cTaskWebDownload::Run(const double deltaSeconds)
 	const char *cmd = NULL;
 	const char *layerName = NULL;
 	const char *dir = g_mediaDir.c_str();
-	const StrPath dstFileName = gis::GetDownloadFileName(g_mediaDir, m_dnData);
+	StrPath dstFileName = gis::GetDownloadFileName(g_mediaDir, m_dnData);
 
 	switch (m_dnData.layer)
 	{
 	case eLayerName::DEM:
+		dir = g_mediaDemDir.c_str();
 		cmd = "requestLayerNode";
 		layerName = "dem";
+		dstFileName = gis::GetDownloadFileName(g_mediaDemDir, m_dnData);
 		break;
 		//m_geoDownloader->FailDownload(m_dnData);
 		//return eRunResult::END;
 
 	case eLayerName::TILE:
+		dir = g_mediaTileDir.c_str();
 		cmd = "requestLayerNode";
 		layerName = "tile";
+		dstFileName = gis::GetDownloadFileName(g_mediaTileDir, m_dnData);
 		break;
 		//m_geoDownloader->FailDownload(m_dnData);
 		//return eRunResult::END;

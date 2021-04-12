@@ -108,7 +108,7 @@ bool cCntZImg::DecodeTempl(float *pData, const BYTE* pLercBlob
 		if ((size_t)(pByte - pLercBlob) + numBytesHeader > numBytesBlob)
 			return false;
 
-		bool onlyZPart = iBand > 0;
+		const bool onlyZPart = iBand > 0;
 		if (!ReadCntZImg(&pByte1, 1e12, false, onlyZPart))
 			return false;
 
@@ -133,7 +133,7 @@ bool cCntZImg::Convert(float* arr)
 
 	const sCntZ* srcPtr = GetData();
 	float* dstPtr = arr;
-	uint num = m_width * m_height;
+	const uint num = m_width * m_height;
 	for (uint k = 0; k < num; k++)
 	{
 		if (srcPtr->cnt > 0)
@@ -192,7 +192,7 @@ bool cCntZImg::ReadCntZImg(BYTE** ppByte, double maxZError
 
 	for (int iPart = 0; iPart < 2; iPart++)
 	{
-		bool zPart = iPart ? true : false;    // first cnt part, then z part
+		const bool zPart = iPart ? true : false;    // first cnt part, then z part
 
 		if (!zPart && onlyZPart)
 			continue;
@@ -277,6 +277,10 @@ bool cCntZImg::ReadTiles(bool zPart, double maxZErrorInFile, uint numTilesVert
 
 			if (tileW == 0)
 				continue;
+
+			if (iTile == 3 && jTile == 5) {
+				int a = 0;
+			}
 
 			bool rv = false;
 			if (zPart)
@@ -469,7 +473,6 @@ bool cCntZImg::Resize(uint width, uint height)
 }
 
 
-
 uint cCntZImg::ComputeNumBytesNeededToReadHeader(bool onlyZPart)
 {
 	uint cnt = (unsigned int)GetTypeString().length();  // "CntZImage ", 10 bytes
@@ -612,7 +615,7 @@ bool cBitStuffer::ReadUInt(BYTE** ppByte, uint& k, int numBytes)
 
 uint cBitStuffer::NumTailBytesNotNeeded(uint numElem, int numBits)
 {
-	int numBitsTail = (numElem * numBits) & 31;
-	int numBytesTail = (numBitsTail + 7) >> 3;
+	const int numBitsTail = (numElem * numBits) & 31;
+	const int numBytesTail = (numBitsTail + 7) >> 3;
 	return (numBytesTail > 0) ? 4 - numBytesTail : 0;
 }
