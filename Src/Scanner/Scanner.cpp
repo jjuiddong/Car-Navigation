@@ -36,9 +36,9 @@ void scan_google(gis::cGeoDownloader &geoDownloader
 
 int main(char argc, char *argv[])
 {
-	if (argc < 3)
+	if (argc < 4)
 	{
-		cout << "server:{vworld, arcgis, google}, maxLv:number" << endl;
+		cout << "server:{vworld, arcgis, google} maxLv dir" << endl;
 		return 0;
 	}
 
@@ -46,6 +46,8 @@ int main(char argc, char *argv[])
 	cout << "server= " << svr << endl;
 	MAX_SCAN_LEVEL = min(MAX_SCAN_LEVEL, atoi(argv[2]));
 	cout << "max level=" << MAX_SCAN_LEVEL << endl;
+	const string mediaDir = argv[3];
+	cout << "dest directory= " << mediaDir << endl;
 	Sleep(3000);
 
 	cConfig config("carnavi_config.txt");
@@ -53,7 +55,7 @@ int main(char argc, char *argv[])
 	gis::cGeoDownloader geoDownloader;
 	cDownloadListener listener;
 	geoDownloader.Create(config.GetString("apikey"), &listener);
-	StrPath mediaDir = config.GetString("media_path", "D:\\media\\data");
+	//StrPath mediaDir = config.GetString("media_path", "D:\\media\\data");
 	g_mediaDir = mediaDir;
 	g_mediaDemDir = mediaDir;
 	g_mediaTileDir = mediaDir;
@@ -62,8 +64,7 @@ int main(char argc, char *argv[])
 	//ex) 6, 548, 225
 	std::queue<sLocation> q;
 
-
-	if (0)
+	if (svr == "vworld")
 	{
 		// vworld
 		q.push({ 5, 272, 113}); // ¼­¿ï
@@ -94,7 +95,7 @@ int main(char argc, char *argv[])
 		q.push({ 6, 548, 225 }); //
 	}
 
-	if (1)
+	if (svr == "arcgis")
 	{
 		// arcgis world
 		if (MAX_SCAN_LEVEL < 8) 
@@ -188,8 +189,10 @@ void scan_vworld(gis::cGeoDownloader &geoDownloader
 			// heightmap
 			{
 				const StrPath fileName = cHeightmap2::GetFileName(mediaDir, lv+1, x, y);
-				const bool isFileExist = fileName.IsFileExist();
-				if (!isFileExist) {
+				//const bool isFileExist = fileName.IsFileExist();
+				const __int64 fileSize = fileName.FileSize();
+
+				if (fileSize < 10) {
 					cout << "request heightmap " << fileName.c_str() << endl;
 					geoDownloader.DownloadFile(gis::eGeoServer::XDWORLD
 						, lv+1, x, y,
@@ -200,8 +203,9 @@ void scan_vworld(gis::cGeoDownloader &geoDownloader
 			// texture
 			{
 				const StrPath fileName = cTileTexture::GetFileName(mediaDir, lv + 1, x, y);
-				const bool isFileExist = fileName.IsFileExist();
-				if (!isFileExist) {
+				//const bool isFileExist = fileName.IsFileExist();
+				const __int64 fileSize = fileName.FileSize();
+				if (fileSize < 10) {
 					cout << "request texture " << fileName.c_str() << endl;
 					geoDownloader.DownloadFile(gis::eGeoServer::XDWORLD
 						, lv + 1, x, y,
@@ -310,7 +314,6 @@ void scan_google(gis::cGeoDownloader &geoDownloader
 		const StrPath fileName = cTileTexture::GetFileName2(mediaDir, loc.lv, loc.x, loc.y);
 		const bool isFileExist = fileName.IsFileExist();
 		if (!isFileExist) {
-
 			const int plv = loc.lv - 1;
 			const int px = loc.x >> 1;
 			const int py = loc.y >> 1;
